@@ -34,6 +34,7 @@ class _TodoListPageState extends State<TodoListPage> {
   List<TodoItem> _todoItems = [];
   final TextEditingController _textController = TextEditingController();
   bool _isLoading = true;
+  int? _expandedTaskId; // ID expandovaného úkolu
 
   @override
   void initState() {
@@ -157,92 +158,120 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Vytvořit kartu s úkolem
   Widget _buildTodoCard(TodoItem todo) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: DoomOneTheme.bgAlt,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: todo.isCompleted ? DoomOneTheme.green : DoomOneTheme.base3,
-          width: 1,
+    final isExpanded = _expandedTaskId == todo.id;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _expandedTaskId = isExpanded ? null : todo.id;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: DoomOneTheme.bgAlt,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: todo.isCompleted ? DoomOneTheme.green : DoomOneTheme.base3,
+            width: 1,
+          ),
         ),
-      ),
-      child: ListTile(
-        leading: Checkbox(
-          value: todo.isCompleted,
-          onChanged: (_) => _toggleTodoItem(todo),
-        ),
-        title: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ID a text úkolu
-            RichText(
-              text: TextSpan(
+            // Checkbox
+            Checkbox(
+              value: todo.isCompleted,
+              onChanged: (_) => _toggleTodoItem(todo),
+            ),
+            const SizedBox(width: 8),
+
+            // Obsah (ID + text + metadata)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ID úkolu
-                  TextSpan(
-                    text: '[${todo.id}] ',
-                    style: TextStyle(
-                      color: DoomOneTheme.base5,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
-                    ),
+                  // První řádek: ID + text úkolu
+                  Row(
+                    children: [
+                      // ID
+                      Text(
+                        '[${todo.id}]',
+                        style: TextStyle(
+                          color: DoomOneTheme.base5,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Text úkolu (oříznutý nebo plný)
+                      Expanded(
+                        child: Text(
+                          todo.task,
+                          maxLines: isExpanded ? null : 1,
+                          overflow: isExpanded ? null : TextOverflow.ellipsis,
+                          style: TextStyle(
+                            decoration: todo.isCompleted
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                            color: todo.isCompleted
+                                ? DoomOneTheme.base5
+                                : DoomOneTheme.fg,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  // Text úkolu
-                  TextSpan(
-                    text: todo.task,
-                    style: TextStyle(
-                      decoration: todo.isCompleted
-                          ? TextDecoration.lineThrough
-                          : TextDecoration.none,
-                      color: todo.isCompleted ? DoomOneTheme.base5 : DoomOneTheme.fg,
-                      fontSize: 16,
-                    ),
+                  const SizedBox(height: 8),
+
+                  // Druhý řádek: Metadata (priorita, datum, akce, tagy)
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      // Priorita
+                      if (todo.priority != null)
+                        _buildTag(
+                          '${TagParser.getPriorityIcon(todo.priority)} ${todo.priority!.toUpperCase()}',
+                          _getPriorityColor(todo.priority!),
+                        ),
+
+                      // Datum
+                      if (todo.dueDate != null)
+                        _buildTag(
+                          '📅 ${TagParser.formatDate(todo.dueDate!)}',
+                          DoomOneTheme.blue,
+                        ),
+
+                      // Akce
+                      if (todo.action != null)
+                        _buildTag(
+                          '${TagParser.getActionIcon(todo.action)} ${todo.action}',
+                          DoomOneTheme.magenta,
+                        ),
+
+                      // Obecné tagy
+                      ...todo.tags.map((tag) => _buildTag(
+                            tag,
+                            DoomOneTheme.cyan,
+                          )),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 4),
 
-            // Metadata (priorita, datum, akce, tagy)
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                // Priorita
-                if (todo.priority != null)
-                  _buildTag(
-                    '${TagParser.getPriorityIcon(todo.priority)} ${todo.priority!.toUpperCase()}',
-                    _getPriorityColor(todo.priority!),
-                  ),
-
-                // Datum
-                if (todo.dueDate != null)
-                  _buildTag(
-                    '📅 ${TagParser.formatDate(todo.dueDate!)}',
-                    DoomOneTheme.blue,
-                  ),
-
-                // Akce
-                if (todo.action != null)
-                  _buildTag(
-                    '${TagParser.getActionIcon(todo.action)} ${todo.action}',
-                    DoomOneTheme.magenta,
-                  ),
-
-                // Obecné tagy
-                ...todo.tags.map((tag) => _buildTag(
-                      tag,
-                      DoomOneTheme.cyan,
-                    )),
-              ],
+            // Tlačítko smazat
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: DoomOneTheme.red),
+              onPressed: () => _removeTodoItem(todo),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
             ),
           ],
-        ),
-        trailing: IconButton(
-          icon: const Icon(Icons.delete_outline, color: DoomOneTheme.red),
-          onPressed: () => _removeTodoItem(todo),
         ),
       ),
     );
