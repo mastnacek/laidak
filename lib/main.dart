@@ -6,6 +6,7 @@ import 'models/todo_item.dart';
 import 'services/database_helper.dart';
 import 'services/tag_parser.dart';
 import 'services/ai_service.dart';
+import 'services/sound_manager.dart';
 import 'widgets/highlighted_text_field.dart';
 import 'widgets/typewriter_text.dart';
 
@@ -372,6 +373,11 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Získat AI motivaci pro úkol
   Future<void> _motivateTask(TodoItem todo) async {
+    final soundManager = SoundManager();
+
+    // Spustit typing_long zvuk
+    await soundManager.playTypingLong();
+
     // Zobrazit loading dialog
     showDialog(
       context: context,
@@ -391,17 +397,26 @@ class _TodoListPageState extends State<TodoListPage> {
         tags: todo.tags,
       );
 
+      // Přepnout na subtle typing zvuk
+      await soundManager.playSubtleTyping();
+
       // Zavřít loading dialog
       if (mounted) Navigator.of(context).pop();
 
       // Zobrazit motivaci v dialogu s typewriter efektem
       if (mounted) {
-        showDialog(
+        await showDialog(
           context: context,
           builder: (context) => _buildMotivationDialog(todo, motivation),
         );
+
+        // Po zavření dialogu zastavit zvuk
+        await soundManager.stop();
       }
     } catch (e) {
+      // Zastavit zvuk při chybě
+      await soundManager.stop();
+
       // Zavřít loading dialog
       if (mounted) Navigator.of(context).pop();
 
