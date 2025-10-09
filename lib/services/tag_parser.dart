@@ -1,22 +1,44 @@
 import 'package:intl/intl.dart';
 import '../models/tag_definition.dart';
 import 'tag_service.dart';
+import 'database_helper.dart';
 
 /// Služba pro parsování tagů z textu úkolu
 ///
 /// Využívá TagService pro O(1) lookup definic tagů místo hardcoded if-else
+/// Podporuje konfigurovatelné oddělovače tagů (*, @, !, atd.)
 class TagParser {
   static final TagService _tagService = TagService();
+  static final DatabaseHelper _db = DatabaseHelper();
+
+  /// Získat aktuální nastavení oddělovačů z databáze
+  static Future<Map<String, String>> _getDelimiters() async {
+    final settings = await _db.getSettings();
+    return {
+      'start': settings['tag_delimiter_start'] as String? ?? '*',
+      'end': settings['tag_delimiter_end'] as String? ?? '*',
+    };
+  }
+
+  /// Vytvořit RegEx pattern pro aktuální oddělovače
+  static Future<RegExp> _buildTagRegex() async {
+    final delimiters = await _getDelimiters();
+    final start = RegExp.escape(delimiters['start']!);
+    final end = RegExp.escape(delimiters['end']!);
+
+    // Pattern: start + obsah + end
+    return RegExp('$start([^${end}]+)$end');
+  }
 
   /// Parsovat text a extrahovat tagy, prioritu, datum, akci
-  static ParsedTask parse(String input) {
+  static Future<ParsedTask> parse(String input) async {
     String? priority;
     DateTime? dueDate;
     String? action;
     final tags = <String>[];
 
-    // RegEx pro nalezení všech *tagů*
-    final tagRegex = RegExp(r'\*([^*]+)\*');
+    // RegEx pro nalezení všech tagů s aktuálními oddělovači
+    final tagRegex = await _buildTagRegex();
     final matches = tagRegex.allMatches(input);
 
     for (final match in matches) {
@@ -164,29 +186,33 @@ class TagParser {
   }
 
   /// Rekonstruovat text s tagy z TodoItem (pro editaci)
-  static String reconstructWithTags({
+  static Future<String> reconstructWithTags({
     required String cleanText,
     String? priority,
     DateTime? dueDate,
     String? action,
     List<String>? tags,
-  }) {
+  }) async {
+    final delimiters = await _getDelimiters();
+    final start = delimiters['start']!;
+    final end = delimiters['end']!;
+
     final buffer = StringBuffer();
 
     // Přidat prioritu
     if (priority != null) {
-      buffer.write('*$priority* ');
+      buffer.write('$start$priority$end ');
     }
 
     // Přidat datum
     if (dueDate != null) {
       final dateTag = formatDate(dueDate);
-      buffer.write('*$dateTag* ');
+      buffer.write('$start$dateTag$end ');
     }
 
     // Přidat akci
     if (action != null) {
-      buffer.write('*$action* ');
+      buffer.write('$start$action$end ');
     }
 
     // Přidat čistý text
@@ -195,7 +221,7 @@ class TagParser {
     // Přidat obecné tagy na konec
     if (tags != null && tags.isNotEmpty) {
       for (final tag in tags) {
-        buffer.write(', *$tag*');
+        buffer.write(', $start$tag$end');
       }
     }
 

@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -47,7 +47,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabulka AI nastavení
+    // Tabulka AI nastavení + nastavení tagů
     await db.execute('''
       CREATE TABLE settings (
         id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -55,7 +55,9 @@ class DatabaseHelper {
         model TEXT NOT NULL DEFAULT 'mistralai/mistral-medium-3.1',
         temperature REAL NOT NULL DEFAULT 1.0,
         max_tokens INTEGER NOT NULL DEFAULT 1000,
-        enabled INTEGER NOT NULL DEFAULT 1
+        enabled INTEGER NOT NULL DEFAULT 1,
+        tag_delimiter_start TEXT NOT NULL DEFAULT '*',
+        tag_delimiter_end TEXT NOT NULL DEFAULT '*'
       )
     ''');
 
@@ -136,6 +138,17 @@ class DatabaseHelper {
 
       await _insertDefaultTagDefinitions(db);
     }
+
+    if (oldVersion < 4) {
+      // Přidat sloupce pro nastavení oddělovačů tagů
+      await db.execute('''
+        ALTER TABLE settings ADD COLUMN tag_delimiter_start TEXT NOT NULL DEFAULT '*'
+      ''');
+
+      await db.execute('''
+        ALTER TABLE settings ADD COLUMN tag_delimiter_end TEXT NOT NULL DEFAULT '*'
+      ''');
+    }
   }
 
   /// Vložit výchozí AI nastavení
@@ -147,6 +160,8 @@ class DatabaseHelper {
       'temperature': 1.0,
       'max_tokens': 1000,
       'enabled': 1,
+      'tag_delimiter_start': '*',
+      'tag_delimiter_end': '*',
     });
   }
 
@@ -368,6 +383,8 @@ class DatabaseHelper {
         'temperature': 1.0,
         'max_tokens': 1000,
         'enabled': 1,
+        'tag_delimiter_start': '*',
+        'tag_delimiter_end': '*',
       };
     }
 
@@ -381,6 +398,8 @@ class DatabaseHelper {
     double? temperature,
     int? maxTokens,
     bool? enabled,
+    String? tagDelimiterStart,
+    String? tagDelimiterEnd,
   }) async {
     final db = await database;
 
@@ -394,6 +413,8 @@ class DatabaseHelper {
     if (temperature != null) updateData['temperature'] = temperature;
     if (maxTokens != null) updateData['max_tokens'] = maxTokens;
     if (enabled != null) updateData['enabled'] = enabled ? 1 : 0;
+    if (tagDelimiterStart != null) updateData['tag_delimiter_start'] = tagDelimiterStart;
+    if (tagDelimiterEnd != null) updateData['tag_delimiter_end'] = tagDelimiterEnd;
 
     if (updateData.isEmpty) return;
 
@@ -407,6 +428,8 @@ class DatabaseHelper {
         'temperature': temperature ?? current['temperature'],
         'max_tokens': maxTokens ?? current['max_tokens'],
         'enabled': (enabled ?? (current['enabled'] == 1)) ? 1 : 0,
+        'tag_delimiter_start': tagDelimiterStart ?? current['tag_delimiter_start'],
+        'tag_delimiter_end': tagDelimiterEnd ?? current['tag_delimiter_end'],
       });
     } else {
       await db.update(

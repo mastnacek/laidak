@@ -76,8 +76,8 @@ class _TodoListPageState extends State<TodoListPage> {
   Future<void> _addTodoItem(String taskText) async {
     if (taskText.trim().isEmpty) return;
 
-    // Parsovat tagy
-    final parsed = TagParser.parse(taskText);
+    // Parsovat tagy (async)
+    final parsed = await TagParser.parse(taskText);
 
     // Vytvořit TodoItem
     final todo = TodoItem(
@@ -207,8 +207,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Editovat úkol
   Future<void> _editTodoItem(TodoItem todo) async {
-    // Rekonstruovat text s tagy pro editaci
-    final textWithTags = TagParser.reconstructWithTags(
+    // Rekonstruovat text s tagy pro editaci (async)
+    final textWithTags = await TagParser.reconstructWithTags(
       cleanText: todo.task,
       priority: todo.priority,
       dueDate: todo.dueDate,
@@ -319,8 +319,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
     // Pokud byl text změněn, uložit do databáze
     if (result != null && result != todo.task) {
-      // Parsovat tagy z nového textu
-      final parsed = TagParser.parse(result);
+      // Parsovat tagy z nového textu (async)
+      final parsed = await TagParser.parse(result);
 
       // Vytvořit aktualizovaný TodoItem
       final updatedTodo = todo.copyWith(
