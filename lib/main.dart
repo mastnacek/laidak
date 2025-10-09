@@ -373,12 +373,15 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Získat AI motivaci pro úkol
   Future<void> _motivateTask(TodoItem todo) async {
+    print('🚀 _motivateTask START pro úkol: ${todo.task}');
     final soundManager = SoundManager();
 
     // Spustit typing_long zvuk
+    print('🔊 Spouštím typing_long zvuk');
     await soundManager.playTypingLong();
 
     // Zobrazit loading dialog
+    print('⏳ Zobrazuji loading dialog');
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -390,20 +393,25 @@ class _TodoListPageState extends State<TodoListPage> {
     );
 
     try {
+      print('🤖 Volám AIService.getMotivation...');
       // Zavolat AI API
       final motivation = await AIService.getMotivation(
         taskText: todo.task,
         priority: todo.priority,
         tags: todo.tags,
       );
+      print('✅ AI odpověď obdržena: ${motivation.substring(0, motivation.length > 50 ? 50 : motivation.length)}...');
 
       // Přepnout na subtle typing zvuk
+      print('🔊 Přepínám na subtle typing zvuk');
       await soundManager.playSubtleTyping();
 
       // Zavřít loading dialog
+      print('❌ Zavírám loading dialog');
       if (mounted) Navigator.of(context).pop();
 
       // Zobrazit motivaci v dialogu s typewriter efektem
+      print('📝 Zobrazuji motivační dialog');
       if (mounted) {
         await showDialog(
           context: context,
@@ -411,9 +419,14 @@ class _TodoListPageState extends State<TodoListPage> {
         );
 
         // Po zavření dialogu zastavit zvuk
+        print('⏹️ Zastavuji zvuk po zavření dialogu');
         await soundManager.stop();
       }
-    } catch (e) {
+      print('✅ _motivateTask KONEC (úspěch)');
+    } catch (e, stackTrace) {
+      print('❌ EXCEPTION v _motivateTask: $e');
+      print('Stack trace: $stackTrace');
+
       // Zastavit zvuk při chybě
       await soundManager.stop();
 
@@ -429,6 +442,7 @@ class _TodoListPageState extends State<TodoListPage> {
           ),
         );
       }
+      print('✅ _motivateTask KONEC (chyba)');
     }
   }
 
