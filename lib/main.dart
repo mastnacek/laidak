@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'theme/doom_one_theme.dart';
+import 'models/todo_item.dart';
+import 'services/database_helper.dart';
+import 'services/tag_parser.dart';
 
 void main() {
   runApp(const TodoApp());
@@ -10,11 +14,8 @@ class TodoApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'TODO Aplikace',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
+      title: 'TODO Doom',
+      theme: DoomOneTheme.darkTheme,
       home: const TodoListPage(),
     );
   }
@@ -28,28 +29,61 @@ class TodoListPage extends StatefulWidget {
 }
 
 class _TodoListPageState extends State<TodoListPage> {
-  final List<TodoItem> _todoItems = [];
+  final DatabaseHelper _db = DatabaseHelper();
+  List<TodoItem> _todoItems = [];
   final TextEditingController _textController = TextEditingController();
+  bool _isLoading = true;
 
-  void _addTodoItem(String task) {
-    if (task.isNotEmpty) {
-      setState(() {
-        _todoItems.add(TodoItem(task: task));
-      });
-      _textController.clear();
-    }
+  @override
+  void initState() {
+    super.initState();
+    _loadTodos();
   }
 
-  void _toggleTodoItem(int index) {
+  /// Načíst úkoly z databáze
+  Future<void> _loadTodos() async {
+    setState(() => _isLoading = true);
+    final todos = await _db.getAllTodos();
     setState(() {
-      _todoItems[index].isCompleted = !_todoItems[index].isCompleted;
+      _todoItems = todos;
+      _isLoading = false;
     });
   }
 
-  void _removeTodoItem(int index) {
-    setState(() {
-      _todoItems.removeAt(index);
-    });
+  /// Přidat nový úkol s parsováním tagů
+  Future<void> _addTodoItem(String taskText) async {
+    if (taskText.trim().isEmpty) return;
+
+    // Parsovat tagy
+    final parsed = TagParser.parse(taskText);
+
+    // Vytvořit TodoItem
+    final todo = TodoItem(
+      task: parsed.cleanText,
+      priority: parsed.priority,
+      dueDate: parsed.dueDate,
+      action: parsed.action,
+      tags: parsed.tags,
+    );
+
+    // Uložit do DB
+    await _db.insertTodo(todo);
+
+    // Reload
+    await _loadTodos();
+    _textController.clear();
+  }
+
+  /// Přepnout stav úkolu (hotovo/nehotovo)
+  Future<void> _toggleTodoItem(TodoItem todo) async {
+    await _db.toggleTodoStatus(todo.id!, !todo.isCompleted);
+    await _loadTodos();
+  }
+
+  /// Smazat úkol
+  Future<void> _removeTodoItem(TodoItem todo) async {
+    await _db.deleteTodo(todo.id!);
+    await _loadTodos();
   }
 
   @override
@@ -62,22 +96,26 @@ class _TodoListPageState extends State<TodoListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Moje TODO seznam'),
+        title: const Text('TODO // DOOM'),
       ),
       body: Column(
         children: [
           // Formulář pro přidání nového úkolu
-          Padding(
+          Container(
+            color: DoomOneTheme.bgAlt,
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _textController,
-                    decoration: const InputDecoration(
-                      hintText: 'Přidat nový úkol...',
-                      border: OutlineInputBorder(),
+                    style: TextStyle(color: DoomOneTheme.fg),
+                    decoration: InputDecoration(
+                      hintText: '*a* *dnes* *udelat* nakoupit, *rodina*',
+                      hintStyle: TextStyle(
+                        color: DoomOneTheme.base5,
+                        fontSize: 14,
+                      ),
                     ),
                     onSubmitted: _addTodoItem,
                   ),
@@ -85,61 +123,151 @@ class _TodoListPageState extends State<TodoListPage> {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () => _addTodoItem(_textController.text),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                  ),
                   child: const Icon(Icons.add),
                 ),
               ],
             ),
           ),
-          const Divider(),
+          Divider(height: 1, color: DoomOneTheme.base3),
+
           // Seznam úkolů
           Expanded(
-            child: _todoItems.isEmpty
-                ? const Center(
-                    child: Text(
-                      'Zatím žádné úkoly.\nPřidej první úkol!',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: _todoItems.length,
-                    itemBuilder: (context, index) {
-                      final todo = _todoItems[index];
-                      return ListTile(
-                        leading: Checkbox(
-                          value: todo.isCompleted,
-                          onChanged: (_) => _toggleTodoItem(index),
-                        ),
-                        title: Text(
-                          todo.task,
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _todoItems.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Zatím žádné úkoly.\nPřidej první úkol!',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            decoration: todo.isCompleted
-                                ? TextDecoration.lineThrough
-                                : TextDecoration.none,
-                            color: todo.isCompleted ? Colors.grey : Colors.black,
+                            fontSize: 16,
+                            color: DoomOneTheme.base5,
                           ),
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _removeTodoItem(index),
-                        ),
-                      );
-                    },
-                  ),
+                      )
+                    : ListView.builder(
+                        itemCount: _todoItems.length,
+                        itemBuilder: (context, index) {
+                          final todo = _todoItems[index];
+                          return _buildTodoCard(todo);
+                        },
+                      ),
           ),
         ],
       ),
     );
   }
-}
 
-// Model pro TODO položku
-class TodoItem {
-  String task;
-  bool isCompleted;
+  /// Vytvořit kartu s úkolem
+  Widget _buildTodoCard(TodoItem todo) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: DoomOneTheme.bgAlt,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: todo.isCompleted ? DoomOneTheme.green : DoomOneTheme.base3,
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        leading: Checkbox(
+          value: todo.isCompleted,
+          onChanged: (_) => _toggleTodoItem(todo),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Hlavní text úkolu
+            Text(
+              todo.task,
+              style: TextStyle(
+                decoration: todo.isCompleted
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+                color: todo.isCompleted ? DoomOneTheme.base5 : DoomOneTheme.fg,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 4),
 
-  TodoItem({
-    required this.task,
-    this.isCompleted = false,
-  });
+            // Metadata (priorita, datum, akce, tagy)
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                // Priorita
+                if (todo.priority != null)
+                  _buildTag(
+                    '${TagParser.getPriorityIcon(todo.priority)} ${todo.priority!.toUpperCase()}',
+                    _getPriorityColor(todo.priority!),
+                  ),
+
+                // Datum
+                if (todo.dueDate != null)
+                  _buildTag(
+                    '📅 ${TagParser.formatDate(todo.dueDate!)}',
+                    DoomOneTheme.blue,
+                  ),
+
+                // Akce
+                if (todo.action != null)
+                  _buildTag(
+                    '${TagParser.getActionIcon(todo.action)} ${todo.action}',
+                    DoomOneTheme.magenta,
+                  ),
+
+                // Obecné tagy
+                ...todo.tags.map((tag) => _buildTag(
+                      tag,
+                      DoomOneTheme.cyan,
+                    )),
+              ],
+            ),
+          ],
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline, color: DoomOneTheme.red),
+          onPressed: () => _removeTodoItem(todo),
+        ),
+      ),
+    );
+  }
+
+  /// Vytvořit tag chip
+  Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  /// Získat barvu pro prioritu
+  Color _getPriorityColor(String priority) {
+    switch (priority) {
+      case 'a':
+        return DoomOneTheme.red;
+      case 'b':
+        return DoomOneTheme.yellow;
+      case 'c':
+        return DoomOneTheme.green;
+      default:
+        return DoomOneTheme.base5;
+    }
+  }
 }
