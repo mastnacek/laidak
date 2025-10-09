@@ -60,27 +60,39 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: DoomOneTheme.base2,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: _focusNode.hasFocus ? DoomOneTheme.blue : DoomOneTheme.base4,
-          width: _focusNode.hasFocus ? 2 : 1,
+    return GestureDetector(
+      onTap: () {
+        // Při tapu vždy požádat o focus a otevřít klávesnici
+        if (!_focusNode.hasFocus) {
+          _focusNode.requestFocus();
+        }
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: DoomOneTheme.base2,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: _focusNode.hasFocus ? DoomOneTheme.blue : DoomOneTheme.base4,
+            width: _focusNode.hasFocus ? 2 : 1,
+          ),
         ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-      child: EditableText(
-        controller: _highlightController,
-        focusNode: _focusNode,
-        style: TextStyle(
-          color: DoomOneTheme.fg,
-          fontSize: 16,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        child: EditableText(
+          controller: _highlightController,
+          focusNode: _focusNode,
+          style: TextStyle(
+            color: DoomOneTheme.fg,
+            fontSize: 16,
+          ),
+          cursorColor: DoomOneTheme.cyan,
+          backgroundCursorColor: DoomOneTheme.base4,
+          maxLines: null,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.done,
+          autocorrect: true,
+          enableSuggestions: true,
+          onSubmitted: widget.onSubmitted,
         ),
-        cursorColor: DoomOneTheme.cyan,
-        backgroundCursorColor: DoomOneTheme.base4,
-        maxLines: null,
-        onSubmitted: widget.onSubmitted,
       ),
     );
   }
