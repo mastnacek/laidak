@@ -127,6 +127,45 @@ class TagParser {
         return '';
     }
   }
+
+  /// Rekonstruovat text s tagy z TodoItem (pro editaci)
+  static String reconstructWithTags({
+    required String cleanText,
+    String? priority,
+    DateTime? dueDate,
+    String? action,
+    List<String>? tags,
+  }) {
+    final buffer = StringBuffer();
+
+    // Přidat prioritu
+    if (priority != null) {
+      buffer.write('*$priority* ');
+    }
+
+    // Přidat datum
+    if (dueDate != null) {
+      final dateTag = formatDate(dueDate);
+      buffer.write('*$dateTag* ');
+    }
+
+    // Přidat akci
+    if (action != null) {
+      buffer.write('*$action* ');
+    }
+
+    // Přidat čistý text
+    buffer.write(cleanText);
+
+    // Přidat obecné tagy na konec
+    if (tags != null && tags.isNotEmpty) {
+      for (final tag in tags) {
+        buffer.write(', *$tag*');
+      }
+    }
+
+    return buffer.toString();
+  }
 }
 
 /// Výsledek parsování úkolu

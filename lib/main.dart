@@ -200,7 +200,16 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Editovat úkol
   Future<void> _editTodoItem(TodoItem todo) async {
-    final controller = TextEditingController(text: todo.task);
+    // Rekonstruovat text s tagy pro editaci
+    final textWithTags = TagParser.reconstructWithTags(
+      cleanText: todo.task,
+      priority: todo.priority,
+      dueDate: todo.dueDate,
+      action: todo.action,
+      tags: todo.tags,
+    );
+
+    final controller = TextEditingController(text: textWithTags);
 
     final result = await showDialog<String>(
       context: context,
