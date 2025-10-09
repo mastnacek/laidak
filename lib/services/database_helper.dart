@@ -207,6 +207,50 @@ class DatabaseHelper {
     return result.first;
   }
 
+  /// Aktualizovat AI nastavení
+  Future<void> updateSettings({
+    String? apiKey,
+    String? model,
+    double? temperature,
+    int? maxTokens,
+    bool? enabled,
+  }) async {
+    final db = await database;
+
+    // Načíst současná nastavení
+    final current = await getSettings();
+
+    // Připravit data k update
+    final updateData = <String, dynamic>{};
+    if (apiKey != null) updateData['api_key'] = apiKey;
+    if (model != null) updateData['model'] = model;
+    if (temperature != null) updateData['temperature'] = temperature;
+    if (maxTokens != null) updateData['max_tokens'] = maxTokens;
+    if (enabled != null) updateData['enabled'] = enabled ? 1 : 0;
+
+    if (updateData.isEmpty) return;
+
+    // Update nebo insert
+    final result = await db.query('settings', where: 'id = ?', whereArgs: [1]);
+    if (result.isEmpty) {
+      await db.insert('settings', {
+        'id': 1,
+        'api_key': apiKey ?? current['api_key'],
+        'model': model ?? current['model'],
+        'temperature': temperature ?? current['temperature'],
+        'max_tokens': maxTokens ?? current['max_tokens'],
+        'enabled': (enabled ?? (current['enabled'] == 1)) ? 1 : 0,
+      });
+    } else {
+      await db.update(
+        'settings',
+        updateData,
+        where: 'id = ?',
+        whereArgs: [1],
+      );
+    }
+  }
+
   /// Načíst všechny custom prompty
   Future<List<Map<String, dynamic>>> getAllPrompts() async {
     final db = await database;
