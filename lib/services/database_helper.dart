@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -47,7 +47,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabulka AI nastavení + nastavení tagů
+    // Tabulka AI nastavení + nastavení tagů + téma
     await db.execute('''
       CREATE TABLE settings (
         id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -57,7 +57,8 @@ class DatabaseHelper {
         max_tokens INTEGER NOT NULL DEFAULT 1000,
         enabled INTEGER NOT NULL DEFAULT 1,
         tag_delimiter_start TEXT NOT NULL DEFAULT '*',
-        tag_delimiter_end TEXT NOT NULL DEFAULT '*'
+        tag_delimiter_end TEXT NOT NULL DEFAULT '*',
+        selected_theme TEXT NOT NULL DEFAULT 'doom_one'
       )
     ''');
 
@@ -149,6 +150,13 @@ class DatabaseHelper {
         ALTER TABLE settings ADD COLUMN tag_delimiter_end TEXT NOT NULL DEFAULT '*'
       ''');
     }
+
+    if (oldVersion < 5) {
+      // Přidat sloupec pro vybrané téma
+      await db.execute('''
+        ALTER TABLE settings ADD COLUMN selected_theme TEXT NOT NULL DEFAULT 'doom_one'
+      ''');
+    }
   }
 
   /// Vložit výchozí AI nastavení
@@ -162,6 +170,7 @@ class DatabaseHelper {
       'enabled': 1,
       'tag_delimiter_start': '*',
       'tag_delimiter_end': '*',
+      'selected_theme': 'doom_one',
     });
   }
 
@@ -385,6 +394,7 @@ class DatabaseHelper {
         'enabled': 1,
         'tag_delimiter_start': '*',
         'tag_delimiter_end': '*',
+        'selected_theme': 'doom_one',
       };
     }
 
@@ -400,6 +410,7 @@ class DatabaseHelper {
     bool? enabled,
     String? tagDelimiterStart,
     String? tagDelimiterEnd,
+    String? selectedTheme,
   }) async {
     final db = await database;
 
@@ -415,6 +426,7 @@ class DatabaseHelper {
     if (enabled != null) updateData['enabled'] = enabled ? 1 : 0;
     if (tagDelimiterStart != null) updateData['tag_delimiter_start'] = tagDelimiterStart;
     if (tagDelimiterEnd != null) updateData['tag_delimiter_end'] = tagDelimiterEnd;
+    if (selectedTheme != null) updateData['selected_theme'] = selectedTheme;
 
     if (updateData.isEmpty) return;
 
@@ -430,6 +442,7 @@ class DatabaseHelper {
         'enabled': (enabled ?? (current['enabled'] == 1)) ? 1 : 0,
         'tag_delimiter_start': tagDelimiterStart ?? current['tag_delimiter_start'],
         'tag_delimiter_end': tagDelimiterEnd ?? current['tag_delimiter_end'],
+        'selected_theme': selectedTheme ?? current['selected_theme'],
       });
     } else {
       await db.update(

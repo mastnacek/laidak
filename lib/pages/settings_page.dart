@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/doom_one_theme.dart';
+import '../theme/blade_runner_theme.dart';
+import '../theme/osaka_jade_theme.dart';
 import '../services/database_helper.dart';
 import '../services/tag_service.dart';
 import '../models/tag_definition.dart';
@@ -1897,6 +1899,302 @@ class _TagManagementTabState extends State<_TagManagementTab> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Tab pro výběr témat
+class _ThemesTab extends StatefulWidget {
+  const _ThemesTab();
+
+  @override
+  State<_ThemesTab> createState() => _ThemesTabState();
+}
+
+class _ThemesTabState extends State<_ThemesTab> {
+  final DatabaseHelper _db = DatabaseHelper();
+  String _selectedTheme = 'doom_one';
+  bool _isLoading = true;
+
+  /// Definice dostupných témat
+  final List<Map<String, dynamic>> _availableThemes = [
+    {
+      'id': 'doom_one',
+      'name': 'Doom One',
+      'description': 'Klasické tmavé téma inspirované Emacs Doom',
+      'icon': '🌑',
+      'colors': {
+        'primary': DoomOneTheme.cyan,
+        'secondary': DoomOneTheme.magenta,
+        'accent': DoomOneTheme.green,
+        'background': DoomOneTheme.bg,
+      },
+    },
+    {
+      'id': 'blade_runner',
+      'name': 'Blade Runner 2049',
+      'description': 'Sci-fi téma inspirované filmem Blade Runner 2049',
+      'icon': '🌃',
+      'colors': {
+        'primary': BladeRunnerTheme.cyan,
+        'secondary': BladeRunnerTheme.magenta,
+        'accent': BladeRunnerTheme.yellow,
+        'background': BladeRunnerTheme.bg,
+      },
+    },
+    {
+      'id': 'osaka_jade',
+      'name': 'Osaka Jade',
+      'description': 'Japonské neonové město s jadenou zelení',
+      'icon': '🏙️',
+      'colors': {
+        'primary': OsakaJadeTheme.cyan,
+        'secondary': OsakaJadeTheme.magenta,
+        'accent': OsakaJadeTheme.green,
+        'background': OsakaJadeTheme.bg,
+      },
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSelectedTheme();
+  }
+
+  /// Načíst aktuálně vybrané téma z databáze
+  Future<void> _loadSelectedTheme() async {
+    setState(() => _isLoading = true);
+    final settings = await _db.getSettings();
+    setState(() {
+      _selectedTheme = settings['selected_theme'] as String? ?? 'doom_one';
+      _isLoading = false;
+    });
+  }
+
+  /// Uložit vybrané téma do databáze
+  Future<void> _saveTheme(String themeId) async {
+    try {
+      await _db.updateSettings(selectedTheme: themeId);
+      setState(() => _selectedTheme = themeId);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Téma bylo uloženo. Restartuj aplikaci pro aplikování změn.'),
+            backgroundColor: DoomOneTheme.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Chyba při ukládání: $e'),
+            backgroundColor: DoomOneTheme.red,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return Column(
+      children: [
+        // Info panel
+        Container(
+          color: DoomOneTheme.bgAlt,
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, color: DoomOneTheme.blue),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Vyber vizuální téma aplikace. Pro aplikování změn je potřeba restartovat aplikaci.',
+                  style: TextStyle(color: DoomOneTheme.fg, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: DoomOneTheme.base3),
+
+        // Seznam témat
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: _availableThemes.length,
+            itemBuilder: (context, index) {
+              final theme = _availableThemes[index];
+              final isSelected = _selectedTheme == theme['id'];
+
+              return Card(
+                color: isSelected ? DoomOneTheme.bgAlt : DoomOneTheme.base2,
+                margin: const EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base3,
+                    width: isSelected ? 2 : 1,
+                  ),
+                ),
+                child: InkWell(
+                  onTap: () => _saveTheme(theme['id'] as String),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header s názvem tématu
+                        Row(
+                          children: [
+                            Text(
+                              theme['icon'] as String,
+                              style: const TextStyle(fontSize: 32),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    theme['name'] as String,
+                                    style: TextStyle(
+                                      color: isSelected
+                                          ? DoomOneTheme.cyan
+                                          : DoomOneTheme.fg,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    theme['description'] as String,
+                                    style: TextStyle(
+                                      color: DoomOneTheme.base5,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: DoomOneTheme.cyan.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(
+                                    color: DoomOneTheme.cyan,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: DoomOneTheme.cyan,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'AKTIVNÍ',
+                                      style: TextStyle(
+                                        color: DoomOneTheme.cyan,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Náhled barev
+                        Text(
+                          'Náhled barev:',
+                          style: TextStyle(
+                            color: DoomOneTheme.base5,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildColorChip(
+                              'Primary',
+                              (theme['colors'] as Map<String, Color>)['primary']!,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildColorChip(
+                              'Secondary',
+                              (theme['colors'] as Map<String, Color>)['secondary']!,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildColorChip(
+                              'Accent',
+                              (theme['colors'] as Map<String, Color>)['accent']!,
+                            ),
+                            const SizedBox(width: 8),
+                            _buildColorChip(
+                              'Background',
+                              (theme['colors'] as Map<String, Color>)['background']!,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Vytvořit barevný chip pro náhled
+  Widget _buildColorChip(String label, Color color) {
+    return Expanded(
+      child: Column(
+        children: [
+          Container(
+            height: 40,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: DoomOneTheme.base4,
+                width: 1,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: DoomOneTheme.base5,
+              fontSize: 10,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
