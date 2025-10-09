@@ -333,24 +333,125 @@ class _TodoListPageState extends State<TodoListPage> {
   Widget _buildTodoCard(TodoItem todo) {
     final isExpanded = _expandedTaskId == todo.id;
 
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _expandedTaskId = isExpanded ? null : todo.id;
-        });
-      },
-      onLongPress: () => _editTodoItem(todo), // Dlouhý stisk = editace
-      child: Container(
+    return Dismissible(
+      key: Key('todo_${todo.id}'),
+      // Swipe doprava = toggle hotovo/nehotovo
+      background: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: DoomOneTheme.bgAlt,
+          color: todo.isCompleted ? DoomOneTheme.yellow : DoomOneTheme.green,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: todo.isCompleted ? DoomOneTheme.green : DoomOneTheme.base3,
-            width: 1,
-          ),
         ),
+        alignment: Alignment.centerLeft,
+        padding: const EdgeInsets.only(left: 20),
+        child: Row(
+          children: [
+            Icon(
+              todo.isCompleted ? Icons.refresh : Icons.check_circle,
+              color: DoomOneTheme.bg,
+              size: 32,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              todo.isCompleted ? 'VRÁTIT' : 'HOTOVO',
+              style: TextStyle(
+                color: DoomOneTheme.bg,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+      // Swipe doleva = smazat
+      secondaryBackground: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: DoomOneTheme.red,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              'SMAZAT',
+              style: TextStyle(
+                color: DoomOneTheme.bg,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Icon(
+              Icons.delete_forever,
+              color: DoomOneTheme.bg,
+              size: 32,
+            ),
+          ],
+        ),
+      ),
+      confirmDismiss: (direction) async {
+        if (direction == DismissDirection.startToEnd) {
+          // Swipe doprava = toggle hotovo/nehotovo (potvrzení není potřeba)
+          await _toggleTodoItem(todo);
+          return false; // Neodstranit widget
+        } else {
+          // Swipe doleva = smazat (požádat o potvrzení)
+          return await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: DoomOneTheme.bg,
+              title: Text(
+                'Smazat úkol?',
+                style: TextStyle(color: DoomOneTheme.red),
+              ),
+              content: Text(
+                'Opravdu chceš smazat úkol "${todo.task}"?',
+                style: TextStyle(color: DoomOneTheme.fg),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: DoomOneTheme.red,
+                    foregroundColor: DoomOneTheme.bg,
+                  ),
+                  child: const Text('Smazat'),
+                ),
+              ],
+            ),
+          ) ?? false;
+        }
+      },
+      onDismissed: (direction) {
+        if (direction == DismissDirection.endToStart) {
+          // Smazat úkol
+          _removeTodoItem(todo);
+        }
+      },
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            _expandedTaskId = isExpanded ? null : todo.id;
+          });
+        },
+        onLongPress: () => _editTodoItem(todo), // Dlouhý stisk = editace
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: DoomOneTheme.bgAlt,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: todo.isCompleted ? DoomOneTheme.green : DoomOneTheme.base3,
+              width: 1,
+            ),
+          ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -461,6 +562,7 @@ class _TodoListPageState extends State<TodoListPage> {
               tooltip: 'Smazat úkol',
             ),
           ],
+        ),
         ),
       ),
     );
