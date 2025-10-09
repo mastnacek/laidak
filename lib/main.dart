@@ -5,18 +5,25 @@ import 'theme/doom_one_theme.dart';
 import 'models/todo_item.dart';
 import 'services/database_helper.dart';
 import 'services/tag_parser.dart';
+import 'services/tag_service.dart';
 import 'services/ai_service.dart';
 import 'services/sound_manager.dart';
 import 'widgets/highlighted_text_field.dart';
 import 'widgets/typewriter_text.dart';
 import 'pages/settings_page.dart';
 
-void main() {
+void main() async {
+  // Ensure Flutter bindings
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Inicializovat FFI pro desktop platformy (Windows, Linux, macOS)
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+
+  // Inicializovat TagService (načíst definice tagů do cache)
+  await TagService().init();
 
   runApp(const TodoApp());
 }
