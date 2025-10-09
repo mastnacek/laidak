@@ -1,7 +1,13 @@
 import 'package:intl/intl.dart';
+import '../models/tag_definition.dart';
+import 'tag_service.dart';
 
 /// Služba pro parsování tagů z textu úkolu
+///
+/// Využívá TagService pro O(1) lookup definic tagů místo hardcoded if-else
 class TagParser {
+  static final TagService _tagService = TagService();
+
   /// Parsovat text a extrahovat tagy, prioritu, datum, akci
   static ParsedTask parse(String input) {
     String? priority;
@@ -17,22 +23,35 @@ class TagParser {
       final tagValue = match.group(1)?.toLowerCase();
       if (tagValue == null) continue;
 
-      // Priorita: *a*, *b*, *c*
-      if (tagValue == 'a' || tagValue == 'b' || tagValue == 'c') {
-        priority = tagValue;
-      }
-      // Datum: *dnes*, *zitra*
-      else if (tagValue == 'dnes') {
-        dueDate = DateTime.now();
-      } else if (tagValue == 'zitra') {
-        dueDate = DateTime.now().add(const Duration(days: 1));
-      }
-      // Akce: *udelat*, *zavolat*, *napsat*, atd.
-      else if (_isAction(tagValue)) {
-        action = tagValue;
-      }
-      // Obecný tag
-      else {
+      // O(1) lookup z TagService cache
+      final definition = _tagService.getDefinition(tagValue);
+
+      if (definition != null && definition.enabled) {
+        // Tag je definovaný v databázi a je povolen
+        switch (definition.tagType) {
+          case TagType.priority:
+            priority = tagValue;
+            break;
+
+          case TagType.date:
+            dueDate = _parseDateTag(tagValue);
+            break;
+
+          case TagType.action:
+            action = tagValue;
+            break;
+
+          case TagType.status:
+            // Status tagy můžeme přidat do custom tags nebo ignorovat
+            tags.add(tagValue);
+            break;
+
+          case TagType.custom:
+            tags.add(tagValue);
+            break;
+        }
+      } else {
+        // Tag není definovaný nebo je vypnutý → přidat jako custom tag
         tags.add(tagValue);
       }
     }
@@ -50,22 +69,54 @@ class TagParser {
     );
   }
 
-  /// Zkontrolovat, zda je tag akční sloveso
-  static bool _isAction(String tag) {
-    const actions = [
-      'udelat',
-      'zavolat',
-      'napsat',
-      'koupit',
-      'poslat',
-      'pripravit',
-      'domluvit',
-      'zkontrolovat',
-      'opravit',
-      'nacist',
-      'poslouchat',
-    ];
-    return actions.contains(tag);
+  /// Parsovat datum tag a převést na DateTime
+  static DateTime? _parseDateTag(String tagValue) {
+    final now = DateTime.now();
+
+    switch (tagValue) {
+      case 'dnes':
+        return DateTime(now.year, now.month, now.day);
+
+      case 'zitra':
+        return DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 1));
+
+      case 'zatyden':
+        return DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 7));
+
+      case 'zamesic':
+        return DateTime(now.year, now.month + 1, now.day);
+
+      case 'zarok':
+        return DateTime(now.year + 1, now.month, now.day);
+
+      default:
+        // Zkusit parsovat DD.MM.YYYY formát
+        return _parseDateFormat(tagValue);
+    }
+  }
+
+  /// Parsovat datum ve formátu DD.MM.YYYY
+  static DateTime? _parseDateFormat(String input) {
+    final dateRegex = RegExp(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$');
+    final match = dateRegex.firstMatch(input);
+
+    if (match != null) {
+      final day = int.tryParse(match.group(1)!);
+      final month = int.tryParse(match.group(2)!);
+      final year = int.tryParse(match.group(3)!);
+
+      if (day != null && month != null && year != null) {
+        try {
+          return DateTime(year, month, day);
+        } catch (e) {
+          return null;
+        }
+      }
+    }
+
+    return null;
   }
 
   /// Formátovat datum pro zobrazení
@@ -84,48 +135,32 @@ class TagParser {
     }
   }
 
-  /// Získat emoji ikonu pro prioritu
+  /// Získat emoji ikonu pro prioritu (z TagService)
   static String getPriorityIcon(String? priority) {
-    switch (priority) {
-      case 'a':
-        return '🔴'; // Vysoká priorita
-      case 'b':
-        return '🟡'; // Střední priorita
-      case 'c':
-        return '🟢'; // Nízká priorita
-      default:
-        return '';
-    }
+    if (priority == null) return '';
+
+    final definition = _tagService.getDefinition(priority);
+    return definition?.emoji ?? '';
   }
 
-  /// Získat emoji ikonu pro akci
+  /// Získat emoji ikonu pro akci (z TagService)
   static String getActionIcon(String? action) {
-    switch (action) {
-      case 'udelat':
-        return '✅';
-      case 'zavolat':
-        return '📞';
-      case 'napsat':
-        return '✍️';
-      case 'koupit':
-        return '🛒';
-      case 'poslat':
-        return '📤';
-      case 'pripravit':
-        return '🔧';
-      case 'domluvit':
-        return '🤝';
-      case 'zkontrolovat':
-        return '🔍';
-      case 'opravit':
-        return '🔨';
-      case 'nacist':
-        return '📖';
-      case 'poslouchat':
-        return '🎧';
-      default:
-        return '';
-    }
+    if (action == null) return '';
+
+    final definition = _tagService.getDefinition(action);
+    return definition?.emoji ?? '';
+  }
+
+  /// Získat emoji ikonu pro jakýkoliv tag (univerzální)
+  static String getTagIcon(String tag) {
+    final definition = _tagService.getDefinition(tag);
+    return definition?.emoji ?? '';
+  }
+
+  /// Získat barvu pro tag (z TagService)
+  static String? getTagColor(String tag) {
+    final definition = _tagService.getDefinition(tag);
+    return definition?.color;
   }
 
   /// Rekonstruovat text s tagy z TodoItem (pro editaci)
