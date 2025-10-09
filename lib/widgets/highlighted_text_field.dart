@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/theme/doom_one_theme.dart';
+import '../services/tag_service.dart';
 
 /// TextField s live syntax highlighting pro tagy
+/// Používá dynamické barvy z TagService
 /// Používá EditableText s vlastním TextEditingController
 class HighlightedTextField extends StatefulWidget {
   final TextEditingController controller;
@@ -100,6 +102,8 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
 
 /// Custom TextEditingController s syntax highlighting
 class HighlightedTextEditingController extends TextEditingController {
+  final TagService _tagService = TagService();
+
   HighlightedTextEditingController({super.text});
 
   @override
@@ -199,6 +203,16 @@ class HighlightedTextEditingController extends TextEditingController {
   Color _getTagColor(String tagContent) {
     final lower = tagContent.toLowerCase();
 
+    // Pokusit se získat definici z TagService
+    final definition = _tagService.getDefinition(lower);
+
+    // Pokud existuje definice s barvou, použít ji
+    if (definition != null && definition.color != null) {
+      final color = _parseHexColor(definition.color!);
+      if (color != null) return color;
+    }
+
+    // Fallback barvy podle typu tagu (pokud definice neexistuje nebo nemá color)
     // Priorita
     if (lower == 'a') return DoomOneTheme.red;
     if (lower == 'b') return DoomOneTheme.yellow;
@@ -211,9 +225,17 @@ class HighlightedTextEditingController extends TextEditingController {
 
     // Akce
     const actions = [
-      'udelat', 'zavolat', 'napsat', 'koupit', 'poslat',
-      'pripravit', 'domluvit', 'zkontrolovat', 'opravit',
-      'nacist', 'poslouchat'
+      'udelat',
+      'zavolat',
+      'napsat',
+      'koupit',
+      'poslat',
+      'pripravit',
+      'domluvit',
+      'zkontrolovat',
+      'opravit',
+      'nacist',
+      'poslouchat'
     ];
     if (actions.contains(lower)) {
       return DoomOneTheme.magenta;
@@ -221,5 +243,37 @@ class HighlightedTextEditingController extends TextEditingController {
 
     // Obecný tag
     return DoomOneTheme.cyan;
+  }
+
+  /// Parsovat hex color string na Flutter Color
+  ///
+  /// Podporované formáty: "#FF5555", "#F55", "FF5555", "F55"
+  Color? _parseHexColor(String hexString) {
+    try {
+      // Odstranit # pokud existuje
+      String hex = hexString.replaceAll('#', '');
+
+      // Pokud je 3-znakový (#RGB), expandovat na 6-znakový (#RRGGBB)
+      if (hex.length == 3) {
+        hex = hex.split('').map((c) => c + c).join();
+      }
+
+      // Pokud je 6-znakový, přidat alfa kanál (FF = plně viditelné)
+      if (hex.length == 6) {
+        hex = 'FF' + hex;
+      }
+
+      // Parsovat jako int a vytvořit Color
+      if (hex.length == 8) {
+        final value = int.tryParse(hex, radix: 16);
+        if (value != null) {
+          return Color(value);
+        }
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 }

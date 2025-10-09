@@ -5,6 +5,7 @@ import '../../../../core/services/sound_manager.dart';
 import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/typewriter_text.dart';
+import '../../../../widgets/highlighted_text_field.dart';
 import '../../domain/entities/todo.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
@@ -320,7 +321,7 @@ class TodoCard extends StatelessWidget {
               ),
               Divider(color: theme.appColors.base3, height: 24),
 
-              // TextField pro text úkolu
+              // HighlightedTextField pro text úkolu (s obarvením tagů)
               Text(
                 'Text úkolu:',
                 style: TextStyle(
@@ -330,26 +331,9 @@ class TodoCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              TextField(
+              HighlightedTextField(
                 controller: controller,
-                autofocus: true,
-                maxLines: 3,
-                style: TextStyle(color: theme.appColors.fg, fontSize: 16),
-                decoration: InputDecoration(
-                  hintText: 'Zadej text úkolu...',
-                  hintStyle: TextStyle(color: theme.appColors.base5),
-                  filled: true,
-                  fillColor: theme.appColors.base2,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: theme.appColors.base4),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide:
-                        BorderSide(color: theme.appColors.yellow, width: 2),
-                  ),
-                ),
+                hintText: '*a* *dnes* *udelat* nakoupit, *rodina*',
               ),
               const SizedBox(height: 24),
 
