@@ -9,6 +9,7 @@ import 'services/ai_service.dart';
 import 'services/sound_manager.dart';
 import 'widgets/highlighted_text_field.dart';
 import 'widgets/typewriter_text.dart';
+import 'pages/settings_page.dart';
 
 void main() {
   // Inicializovat FFI pro desktop platformy (Windows, Linux, macOS)
@@ -110,6 +111,17 @@ class _TodoListPageState extends State<TodoListPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('TODO // DOOM'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Nastavení',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
