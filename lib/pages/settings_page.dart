@@ -88,10 +88,6 @@ class _AISettingsTabState extends State<_AISettingsTab> {
   bool _isEnabled = true;
   bool _obscureApiKey = true;
 
-  // Nastavení oddělovačů tagů
-  String _tagDelimiterStart = '*';
-  String _tagDelimiterEnd = '*';
-
   // Populární modely
   final List<String> _popularModels = [
     'anthropic/claude-3.5-sonnet',
@@ -131,8 +127,6 @@ class _AISettingsTabState extends State<_AISettingsTab> {
       _temperatureController.text = (settings['temperature'] as double).toString();
       _maxTokensController.text = (settings['max_tokens'] as int).toString();
       _isEnabled = (settings['enabled'] as int) == 1;
-      _tagDelimiterStart = settings['tag_delimiter_start'] as String? ?? '*';
-      _tagDelimiterEnd = settings['tag_delimiter_end'] as String? ?? '*';
       _isLoading = false;
     });
   }
@@ -146,8 +140,6 @@ class _AISettingsTabState extends State<_AISettingsTab> {
         temperature: double.tryParse(_temperatureController.text) ?? 1.0,
         maxTokens: int.tryParse(_maxTokensController.text) ?? 1000,
         enabled: _isEnabled,
-        tagDelimiterStart: _tagDelimiterStart,
-        tagDelimiterEnd: _tagDelimiterEnd,
       );
 
       if (mounted) {
@@ -201,145 +193,6 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                       fontSize: 13,
                       height: 1.4,
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Nastavení oddělovačů tagů
-          _buildSectionTitle('🏷️ Oddělovače tagů'),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: DoomOneTheme.bgAlt,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: DoomOneTheme.base3),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Zvol symboly pro označení tagů v textu:',
-                  style: TextStyle(
-                    color: DoomOneTheme.base5,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Předvolené vzory oddělovačů
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildDelimiterChip('*', '*', 'Hvězdičky'),
-                    _buildDelimiterChip('@', '@', 'Zavináče'),
-                    _buildDelimiterChip('!', '!', 'Vykřičníky'),
-                    _buildDelimiterChip('#', '#', 'Mřížky'),
-                    _buildDelimiterChip('[', ']', 'Hranaté závorky'),
-                    _buildDelimiterChip('{', '}', 'Složené závorky'),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Live preview
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: DoomOneTheme.base2,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Náhled: ',
-                        style: TextStyle(
-                          color: DoomOneTheme.base5,
-                          fontSize: 12,
-                        ),
-                      ),
-                      Text(
-                        '$_tagDelimiterStart',
-                        style: TextStyle(
-                          color: DoomOneTheme.cyan,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        'a',
-                        style: TextStyle(
-                          color: DoomOneTheme.fg,
-                          fontSize: 14,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        '$_tagDelimiterEnd ',
-                        style: TextStyle(
-                          color: DoomOneTheme.cyan,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        '$_tagDelimiterStart',
-                        style: TextStyle(
-                          color: DoomOneTheme.yellow,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        'dnes',
-                        style: TextStyle(
-                          color: DoomOneTheme.fg,
-                          fontSize: 14,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        '$_tagDelimiterEnd ',
-                        style: TextStyle(
-                          color: DoomOneTheme.yellow,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        '$_tagDelimiterStart',
-                        style: TextStyle(
-                          color: DoomOneTheme.magenta,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        'udelat',
-                        style: TextStyle(
-                          color: DoomOneTheme.fg,
-                          fontSize: 14,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                      Text(
-                        '$_tagDelimiterEnd',
-                        style: TextStyle(
-                          color: DoomOneTheme.magenta,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'monospace',
-                        ),
-                      ),
-                    ],
                   ),
                 ),
               ],
@@ -657,55 +510,6 @@ class _AISettingsTabState extends State<_AISettingsTab> {
     if (temp < 1.3) return 'Střední';
     if (temp < 1.7) return 'Vysoká';
     return 'Maximální';
-  }
-
-  /// Vytvořit chip pro volbu oddělovače
-  Widget _buildDelimiterChip(String start, String end, String label) {
-    final isSelected = _tagDelimiterStart == start && _tagDelimiterEnd == end;
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _tagDelimiterStart = start;
-          _tagDelimiterEnd = end;
-        });
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? DoomOneTheme.cyan.withOpacity(0.2)
-              : DoomOneTheme.base2,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base4,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '$start tag $end',
-              style: TextStyle(
-                color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.fg,
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base5,
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 
@@ -1246,9 +1050,14 @@ class _TagManagementTab extends StatefulWidget {
 }
 
 class _TagManagementTabState extends State<_TagManagementTab> {
+  final DatabaseHelper _db = DatabaseHelper();
   final TagService _tagService = TagService();
   List<TagDefinition> _allTags = [];
   bool _isLoading = true;
+
+  // Nastavení oddělovačů tagů
+  String _tagDelimiterStart = '*';
+  String _tagDelimiterEnd = '*';
 
   @override
   void initState() {
@@ -1260,10 +1069,42 @@ class _TagManagementTabState extends State<_TagManagementTab> {
   Future<void> _loadTags() async {
     setState(() => _isLoading = true);
     final tags = await _tagService.loadAllDefinitionsFromDb();
+    final settings = await _db.getSettings();
+
     setState(() {
       _allTags = tags;
+      _tagDelimiterStart = settings['tag_delimiter_start'] as String? ?? '*';
+      _tagDelimiterEnd = settings['tag_delimiter_end'] as String? ?? '*';
       _isLoading = false;
     });
+  }
+
+  /// Uložit oddělovače do databáze
+  Future<void> _saveDelimiters() async {
+    try {
+      await _db.updateSettings(
+        tagDelimiterStart: _tagDelimiterStart,
+        tagDelimiterEnd: _tagDelimiterEnd,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Oddělovače byly uloženy'),
+            backgroundColor: DoomOneTheme.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Chyba při ukládání: $e'),
+            backgroundColor: DoomOneTheme.red,
+          ),
+        );
+      }
+    }
   }
 
   /// Zobrazit dialog pro editaci tagu
@@ -1669,6 +1510,171 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         ),
         Divider(height: 1, color: DoomOneTheme.base3),
 
+        // Nastavení oddělovačů tagů
+        Container(
+          color: DoomOneTheme.bgAlt,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.settings, color: DoomOneTheme.cyan, size: 20),
+                  const SizedBox(width: 8),
+                  Text(
+                    '🏷️ ODDĚLOVAČE TAGŮ',
+                    style: TextStyle(
+                      color: DoomOneTheme.cyan,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Zvol symboly pro označení tagů v textu:',
+                style: TextStyle(
+                  color: DoomOneTheme.base5,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Předvolené vzory oddělovačů
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildDelimiterChip('*', '*', 'Hvězdičky'),
+                  _buildDelimiterChip('@', '@', 'Zavináče'),
+                  _buildDelimiterChip('!', '!', 'Vykřičníky'),
+                  _buildDelimiterChip('#', '#', 'Mřížky'),
+                  _buildDelimiterChip('[', ']', 'Hranaté závorky'),
+                  _buildDelimiterChip('{', '}', 'Složené závorky'),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              // Live preview
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: DoomOneTheme.base2,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Náhled: ',
+                      style: TextStyle(
+                        color: DoomOneTheme.base5,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      '$_tagDelimiterStart',
+                      style: TextStyle(
+                        color: DoomOneTheme.cyan,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      'a',
+                      style: TextStyle(
+                        color: DoomOneTheme.fg,
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      '$_tagDelimiterEnd ',
+                      style: TextStyle(
+                        color: DoomOneTheme.cyan,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      '$_tagDelimiterStart',
+                      style: TextStyle(
+                        color: DoomOneTheme.yellow,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      'dnes',
+                      style: TextStyle(
+                        color: DoomOneTheme.fg,
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      '$_tagDelimiterEnd ',
+                      style: TextStyle(
+                        color: DoomOneTheme.yellow,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      '$_tagDelimiterStart',
+                      style: TextStyle(
+                        color: DoomOneTheme.magenta,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      'udelat',
+                      style: TextStyle(
+                        color: DoomOneTheme.fg,
+                        fontSize: 14,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                    Text(
+                      '$_tagDelimiterEnd',
+                      style: TextStyle(
+                        color: DoomOneTheme.magenta,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'monospace',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Save button
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton.icon(
+                  onPressed: _saveDelimiters,
+                  icon: const Icon(Icons.save, size: 16),
+                  label: const Text('ULOŽIT'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: DoomOneTheme.green,
+                    foregroundColor: DoomOneTheme.bg,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: DoomOneTheme.base3),
+
         // Seznam tagů seskupených podle typu
         Expanded(
           child: ListView(
@@ -1834,6 +1840,55 @@ class _TagManagementTabState extends State<_TagManagementTab> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Vytvořit chip pro volbu oddělovače
+  Widget _buildDelimiterChip(String start, String end, String label) {
+    final isSelected = _tagDelimiterStart == start && _tagDelimiterEnd == end;
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _tagDelimiterStart = start;
+          _tagDelimiterEnd = end;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? DoomOneTheme.cyan.withOpacity(0.2)
+              : DoomOneTheme.base2,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base4,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$start tag $end',
+              style: TextStyle(
+                color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.fg,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'monospace',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base5,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

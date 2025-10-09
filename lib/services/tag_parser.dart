@@ -221,7 +221,7 @@ class TagParser {
     // Přidat obecné tagy na konec
     if (tags != null && tags.isNotEmpty) {
       for (final tag in tags) {
-        buffer.write(', $start$tag$end');
+        buffer.write(' $start$tag$end');
       }
     }
 
