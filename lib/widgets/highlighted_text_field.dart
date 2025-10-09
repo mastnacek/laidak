@@ -260,7 +260,7 @@ class HighlightedTextEditingController extends TextEditingController {
 
       // Pokud je 6-znakový, přidat alfa kanál (FF = plně viditelné)
       if (hex.length == 6) {
-        hex = 'FF' + hex;
+        hex = 'FF$hex';
       }
 
       // Parsovat jako int a vytvořit Color

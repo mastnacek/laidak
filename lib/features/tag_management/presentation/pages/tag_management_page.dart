@@ -628,7 +628,7 @@ class _TagDialogState extends State<_TagDialog> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<TagType>(
-          value: _selectedType,
+          initialValue: _selectedType,
           dropdownColor: theme.appColors.base2,
           style: TextStyle(color: theme.appColors.fg),
           decoration: InputDecoration(

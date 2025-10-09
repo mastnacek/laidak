@@ -2,7 +2,6 @@ import '../../../../models/tag_definition.dart' as old_model;
 import '../../../../services/tag_service.dart';
 import '../../domain/entities/tag_definition.dart';
 import '../../domain/repositories/tag_management_repository.dart';
-import '../models/tag_definition_model.dart';
 
 /// Implementace TagManagementRepository využívající existující TagService
 ///

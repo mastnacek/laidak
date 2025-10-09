@@ -55,6 +55,29 @@
 
 ---
 
+## 🤖 AI Split Feature - Implementační Plán
+
+### 📋 Kompletní guide: [rodel.md](rodel.md)
+
+**Funkce**: Rozdělit TODO úkol na podúkoly pomocí AI (OpenRouter API)
+
+**Kdy použít**: Implementace nové feature `lib/features/ai_split/`
+
+**Postup**:
+1. Přečti si kompletní plán v [rodel.md](rodel.md)
+2. Následuj 9-kroků implementace (Feature-First + BLoC architektura)
+3. Dodržuj SCÉNÁŘ 1 z [mapa-bloc.md](mapa-bloc.md) - Přidání nové feature
+
+**Klíčové komponenty**:
+- 🎨 UI: `AiSplitButton` (🤖 ikona), `AiSplitDialog`, `SubtaskListView`
+- 🧠 State: `AiSplitCubit` (states: Initial, Loading, Success, Error)
+- 🗄️ Data: `OpenRouterDataSource`, `AiSplitRepository`
+- 💾 DB: `subtasks` tabulka s CASCADE delete na `parent_todo_id`
+
+**Poznámka**: Tato feature je inspirována Tauri verzí programu - viz analýza v [rodel.md](rodel.md)
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -201,10 +224,12 @@ Tento workflow je POVINNÝ pro všechny úkoly!
 Companion dokumenty:
 - bloc.md - Detailní BLoC best practices guide
 - mapa-bloc.md - Navigační decision tree
+- rodel.md - AI Split Feature implementační plán (OpenRouter API integrace)
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.0
+Verze: 1.1
 Vytvořeno: 2025-10-09
+Aktualizováno: 2025-10-09 (přidána AI Split feature)
 Autor: Claude Code (AI asistent)
 
 ---

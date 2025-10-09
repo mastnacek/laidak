@@ -171,7 +171,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                                 onChanged: (value) {
                                   setState(() => _glowEnabled = value);
                                 },
-                                activeColor: theme.colorScheme.primary,
+                                activeThumbColor: theme.colorScheme.primary,
                               ),
                             ],
                           ),
