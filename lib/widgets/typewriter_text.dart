@@ -33,12 +33,68 @@ class _TypewriterTextState extends State<TypewriterText> with SingleTickerProvid
         if (mounted) {
           setState(() {
             _currentIndex++;
-            _displayedText = widget.text.substring(0, _currentIndex);
+            // Bezpečný substring - nerozdělit surrogate pair
+            _displayedText = _safeSubstring(widget.text, 0, _currentIndex);
           });
           _startTyping();
         }
       });
     }
+  }
+
+  /// Bezpečný substring, který nerozděí surrogate pairs (emoji)
+  String _safeSubstring(String text, int start, int end) {
+    if (end <= start || end > text.length) {
+      return text.substring(start, text.length);
+    }
+
+    // Zkontrolovat, jestli jsme uprostřed surrogate pair
+    int safeEnd = end;
+    if (safeEnd > 0 && safeEnd < text.length) {
+      final prevCodeUnit = text.codeUnitAt(safeEnd - 1);
+      // High surrogate (0xD800-0xDBFF) následovaný low surrogate
+      if (prevCodeUnit >= 0xD800 && prevCodeUnit <= 0xDBFF) {
+        // Jsme uprostřed surrogate pair - posuňme end o 1 zpět
+        safeEnd--;
+      }
+    }
+
+    try {
+      return text.substring(start, safeEnd);
+    } catch (e) {
+      // Fallback - sanitizace celého textu
+      return _sanitizeText(text.substring(start, safeEnd));
+    }
+  }
+
+  /// Odstranění nevalidních UTF-16 znaků
+  String _sanitizeText(String text) {
+    final buffer = StringBuffer();
+    for (int i = 0; i < text.length; i++) {
+      final codeUnit = text.codeUnitAt(i);
+
+      // High surrogate musí být následován low surrogate
+      if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) {
+        if (i + 1 < text.length) {
+          final nextCodeUnit = text.codeUnitAt(i + 1);
+          if (nextCodeUnit >= 0xDC00 && nextCodeUnit <= 0xDFFF) {
+            buffer.writeCharCode(codeUnit);
+            buffer.writeCharCode(nextCodeUnit);
+            i++;
+            continue;
+          }
+        }
+        continue; // Skip lonely high surrogate
+      }
+
+      // Lonely low surrogate
+      if (codeUnit >= 0xDC00 && codeUnit <= 0xDFFF) {
+        continue; // Skip
+      }
+
+      buffer.writeCharCode(codeUnit);
+    }
+    return buffer.toString();
   }
 
   @override
