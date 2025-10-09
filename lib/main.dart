@@ -175,15 +175,32 @@ class _TodoListPageState extends State<TodoListPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hlavní text úkolu
-            Text(
-              todo.task,
-              style: TextStyle(
-                decoration: todo.isCompleted
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-                color: todo.isCompleted ? DoomOneTheme.base5 : DoomOneTheme.fg,
-                fontSize: 16,
+            // ID a text úkolu
+            RichText(
+              text: TextSpan(
+                children: [
+                  // ID úkolu
+                  TextSpan(
+                    text: '[${todo.id}] ',
+                    style: TextStyle(
+                      color: DoomOneTheme.base5,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'monospace',
+                    ),
+                  ),
+                  // Text úkolu
+                  TextSpan(
+                    text: todo.task,
+                    style: TextStyle(
+                      decoration: todo.isCompleted
+                          ? TextDecoration.lineThrough
+                          : TextDecoration.none,
+                      color: todo.isCompleted ? DoomOneTheme.base5 : DoomOneTheme.fg,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 4),
