@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/doom_one_theme.dart';
-import '../services/tag_parser.dart';
 
 /// TextField s live syntax highlighting pro tagy
+/// Používá EditableText s vlastním TextEditingController
 class HighlightedTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
@@ -20,30 +21,91 @@ class HighlightedTextField extends StatefulWidget {
 }
 
 class _HighlightedTextFieldState extends State<HighlightedTextField> {
-  final ScrollController _scrollController = ScrollController();
+  final FocusNode _focusNode = FocusNode();
+  late HighlightedTextEditingController _highlightController;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_onTextChanged);
+    // Wrap původní controller do highlighting controlleru
+    _highlightController = HighlightedTextEditingController(
+      text: widget.controller.text,
+    );
+
+    // Sync s původním controllerem
+    widget.controller.addListener(_syncFromOriginal);
+    _highlightController.addListener(_syncToOriginal);
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onTextChanged);
-    _scrollController.dispose();
+    widget.controller.removeListener(_syncFromOriginal);
+    _highlightController.removeListener(_syncToOriginal);
+    _highlightController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _onTextChanged() {
-    setState(() {});
+  void _syncFromOriginal() {
+    if (_highlightController.text != widget.controller.text) {
+      _highlightController.value = widget.controller.value;
+    }
   }
 
-  /// Zvýraznit text podle tagů
-  List<TextSpan> _buildHighlightedText(String text) {
-    if (text.isEmpty) return [];
+  void _syncToOriginal() {
+    if (widget.controller.text != _highlightController.text) {
+      widget.controller.value = _highlightController.value;
+    }
+  }
 
-    final spans = <TextSpan>[];
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: DoomOneTheme.base2,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: _focusNode.hasFocus ? DoomOneTheme.blue : DoomOneTheme.base4,
+          width: _focusNode.hasFocus ? 2 : 1,
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      child: EditableText(
+        controller: _highlightController,
+        focusNode: _focusNode,
+        style: TextStyle(
+          color: DoomOneTheme.fg,
+          fontSize: 16,
+        ),
+        cursorColor: DoomOneTheme.cyan,
+        backgroundCursorColor: DoomOneTheme.base4,
+        maxLines: null,
+        onSubmitted: widget.onSubmitted,
+      ),
+    );
+  }
+}
+
+/// Custom TextEditingController s syntax highlighting
+class HighlightedTextEditingController extends TextEditingController {
+  HighlightedTextEditingController({String? text}) : super(text: text);
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final text = this.text;
+    if (text.isEmpty) {
+      return TextSpan(text: '', style: style);
+    }
+
+    return _buildHighlightedSpan(text, style);
+  }
+
+  TextSpan _buildHighlightedSpan(String text, TextStyle? baseStyle) {
+    final spans = <InlineSpan>[];
     final tagRegex = RegExp(r'\*([^*]+)\*');
     int lastMatchEnd = 0;
 
@@ -52,17 +114,17 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
       if (match.start > lastMatchEnd) {
         spans.add(TextSpan(
           text: text.substring(lastMatchEnd, match.start),
-          style: TextStyle(color: DoomOneTheme.fg),
+          style: baseStyle?.copyWith(color: DoomOneTheme.fg),
         ));
       }
 
       // Tag s barvou podle typu
-      final tagContent = match.group(1)?.toLowerCase() ?? '';
+      final tagContent = match.group(1) ?? '';
       final tagColor = _getTagColor(tagContent);
 
       spans.add(TextSpan(
         text: match.group(0), // Celý tag včetně *
-        style: TextStyle(
+        style: baseStyle?.copyWith(
           color: tagColor,
           fontWeight: FontWeight.bold,
         ),
@@ -75,22 +137,26 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
     if (lastMatchEnd < text.length) {
       spans.add(TextSpan(
         text: text.substring(lastMatchEnd),
-        style: TextStyle(color: DoomOneTheme.fg),
+        style: baseStyle?.copyWith(color: DoomOneTheme.fg),
       ));
     }
 
-    return spans;
+    return TextSpan(
+      style: baseStyle,
+      children: spans,
+    );
   }
 
-  /// Získat barvu pro tag podle typu
   Color _getTagColor(String tagContent) {
+    final lower = tagContent.toLowerCase();
+
     // Priorita
-    if (tagContent == 'a') return DoomOneTheme.red;
-    if (tagContent == 'b') return DoomOneTheme.yellow;
-    if (tagContent == 'c') return DoomOneTheme.green;
+    if (lower == 'a') return DoomOneTheme.red;
+    if (lower == 'b') return DoomOneTheme.yellow;
+    if (lower == 'c') return DoomOneTheme.green;
 
     // Datum
-    if (tagContent == 'dnes' || tagContent == 'zitra') {
+    if (lower == 'dnes' || lower == 'zitra') {
       return DoomOneTheme.blue;
     }
 
@@ -100,92 +166,11 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
       'pripravit', 'domluvit', 'zkontrolovat', 'opravit',
       'nacist', 'poslouchat'
     ];
-    if (actions.contains(tagContent)) {
+    if (actions.contains(lower)) {
       return DoomOneTheme.magenta;
     }
 
     // Obecný tag
     return DoomOneTheme.cyan;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Invisible text pro správné měření výšky
-        Opacity(
-          opacity: 0,
-          child: TextField(
-            controller: widget.controller,
-            maxLines: null,
-            style: TextStyle(
-              color: DoomOneTheme.fg,
-              fontSize: 16,
-            ),
-          ),
-        ),
-
-        // Highlighted overlay (read-only, synchronized scroll)
-        Positioned.fill(
-          child: IgnorePointer(
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              child: RichText(
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'monospace',
-                    height: 1.4,
-                  ),
-                  children: _buildHighlightedText(widget.controller.text),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // Actual TextField (transparent text)
-        TextField(
-          controller: widget.controller,
-          scrollController: _scrollController,
-          maxLines: null,
-          style: TextStyle(
-            color: Colors.transparent, // Transparentní text (vidíme overlay)
-            fontSize: 16,
-            fontFamily: 'monospace',
-            height: 1.4,
-          ),
-          cursorColor: DoomOneTheme.cyan,
-          cursorWidth: 2,
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            hintStyle: TextStyle(
-              color: DoomOneTheme.base5,
-              fontSize: 14,
-            ),
-            filled: true,
-            fillColor: DoomOneTheme.base2,
-            border: OutlineInputBorder(
-              borderSide: BorderSide(color: DoomOneTheme.base4),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: DoomOneTheme.base4, width: 1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(color: DoomOneTheme.blue, width: 2),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 16,
-            ),
-          ),
-          onSubmitted: widget.onSubmitted,
-        ),
-      ],
-    );
   }
 }
