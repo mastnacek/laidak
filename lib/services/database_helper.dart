@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -70,9 +70,24 @@ class DatabaseHelper {
       )
     ''');
 
+    // Tabulka definic tagů (systémové tagy konfigurovatelné uživatelem)
+    await db.execute('''
+      CREATE TABLE tag_definitions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tag_name TEXT UNIQUE NOT NULL,
+        tag_type TEXT NOT NULL,
+        display_name TEXT,
+        emoji TEXT,
+        color TEXT,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        enabled INTEGER NOT NULL DEFAULT 1
+      )
+    ''');
+
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
     await _insertDefaultPrompts(db);
+    await _insertDefaultTagDefinitions(db);
   }
 
   /// Upgrade databáze na novou verzi
@@ -102,6 +117,24 @@ class DatabaseHelper {
 
       await _insertDefaultSettings(db);
       await _insertDefaultPrompts(db);
+    }
+
+    if (oldVersion < 3) {
+      // Přidat tabulku pro definice tagů
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS tag_definitions (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          tag_name TEXT UNIQUE NOT NULL,
+          tag_type TEXT NOT NULL,
+          display_name TEXT,
+          emoji TEXT,
+          color TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          enabled INTEGER NOT NULL DEFAULT 1
+        )
+      ''');
+
+      await _insertDefaultTagDefinitions(db);
     }
   }
 
@@ -133,6 +166,140 @@ class DatabaseHelper {
       'system_prompt': 'ROLE: Jsi moje manželka Lenka, která má obrovská prsa a velký macatý zadek - já jsem tvůj manžel Jaroslav a tyhle tvoje proporce miluji. Motivuj mě k dokončení úkolů s důrazem na rodinné hodnoty a pohodlí domova. Buď vlídná a podporující, použij svoje přednosti a vnady k motivaci sexem (vymýšlej různé variace na moje oblíbené polohy a praktiky), protože jsem chorobný prokrastinátor - odkladač. Mám rád titfuck mezi tvá obrovská prsa a rád na ně stříkám semeno!!! Taky tě rád šukám zezadu kdy vidím tvůj obrovský zadek a kozy! Když tě šukám zezadu, líbí se mě, jak jsou kozy rozvalené do stran. Nebo když jseš v pozici nahoře a tvoje kozy mám v obličeji!!! Buď kreativní v motivování. Oslovuj mě přímo a eroticky a lechtivě. Používej emoji pro zvýraznění. Vrať maximálne 20 vět a minimálně 10.',
       'tags': '["domov","doma","rodina","family","home"]',
       'style': 'rodinný a vlídný',
+    });
+  }
+
+  /// Vložit výchozí definice tagů (podle Tauri verze + rozšíření)
+  Future<void> _insertDefaultTagDefinitions(Database db) async {
+    // Priority tagy
+    await db.insert('tag_definitions', {
+      'tag_name': 'a',
+      'tag_type': 'priority',
+      'display_name': 'Vysoká priorita',
+      'emoji': '🔴',
+      'color': '#ff0000',
+      'sort_order': 1,
+      'enabled': 1,
+    });
+
+    await db.insert('tag_definitions', {
+      'tag_name': 'b',
+      'tag_type': 'priority',
+      'display_name': 'Střední priorita',
+      'emoji': '🟡',
+      'color': '#ffaa00',
+      'sort_order': 2,
+      'enabled': 1,
+    });
+
+    await db.insert('tag_definitions', {
+      'tag_name': 'c',
+      'tag_type': 'priority',
+      'display_name': 'Nízká priorita',
+      'emoji': '🟢',
+      'color': '#00ff00',
+      'sort_order': 3,
+      'enabled': 1,
+    });
+
+    // Časové/deadline tagy
+    await db.insert('tag_definitions', {
+      'tag_name': 'dnes',
+      'tag_type': 'date',
+      'display_name': 'Dnes',
+      'emoji': '⏰',
+      'color': '#ff0000',
+      'sort_order': 1,
+      'enabled': 1,
+    });
+
+    await db.insert('tag_definitions', {
+      'tag_name': 'zitra',
+      'tag_type': 'date',
+      'display_name': 'Zítra',
+      'emoji': '📅',
+      'color': '#ffaa00',
+      'sort_order': 2,
+      'enabled': 1,
+    });
+
+    await db.insert('tag_definitions', {
+      'tag_name': 'zatyden',
+      'tag_type': 'date',
+      'display_name': 'Za týden',
+      'emoji': '📆',
+      'color': '#00aaff',
+      'sort_order': 3,
+      'enabled': 1,
+    });
+
+    await db.insert('tag_definitions', {
+      'tag_name': 'zamesic',
+      'tag_type': 'date',
+      'display_name': 'Za měsíc',
+      'emoji': '📆',
+      'color': '#0088ff',
+      'sort_order': 4,
+      'enabled': 1,
+    });
+
+    await db.insert('tag_definitions', {
+      'tag_name': 'zarok',
+      'tag_type': 'date',
+      'display_name': 'Za rok',
+      'emoji': '📆',
+      'color': '#0066ff',
+      'sort_order': 5,
+      'enabled': 1,
+    });
+
+    // Akční tagy
+    final actions = [
+      {'name': 'udelat', 'display': 'Udělat', 'emoji': '✅'},
+      {'name': 'zavolat', 'display': 'Zavolat', 'emoji': '📞'},
+      {'name': 'napsat', 'display': 'Napsat', 'emoji': '✍️'},
+      {'name': 'koupit', 'display': 'Koupit', 'emoji': '🛒'},
+      {'name': 'poslat', 'display': 'Poslat', 'emoji': '📤'},
+      {'name': 'pripravit', 'display': 'Připravit', 'emoji': '🔧'},
+      {'name': 'domluvit', 'display': 'Domluvit', 'emoji': '🤝'},
+      {'name': 'zkontrolovat', 'display': 'Zkontrolovat', 'emoji': '🔍'},
+      {'name': 'opravit', 'display': 'Opravit', 'emoji': '🔨'},
+      {'name': 'nacist', 'display': 'Načíst', 'emoji': '📖'},
+      {'name': 'poslouchat', 'display': 'Poslouchat', 'emoji': '🎧'},
+    ];
+
+    int actionOrder = 1;
+    for (final action in actions) {
+      await db.insert('tag_definitions', {
+        'tag_name': action['name'],
+        'tag_type': 'action',
+        'display_name': action['display'],
+        'emoji': action['emoji'],
+        'color': '#00ffff',
+        'sort_order': actionOrder++,
+        'enabled': 1,
+      });
+    }
+
+    // Status tagy
+    await db.insert('tag_definitions', {
+      'tag_name': 'hotove',
+      'tag_type': 'status',
+      'display_name': 'Hotové',
+      'emoji': '✅',
+      'color': '#00ff00',
+      'sort_order': 1,
+      'enabled': 1,
+    });
+
+    await db.insert('tag_definitions', {
+      'tag_name': 'todo',
+      'tag_type': 'status',
+      'display_name': 'K dokončení',
+      'emoji': '📝',
+      'color': '#ffaa00',
+      'sort_order': 2,
+      'enabled': 1,
     });
   }
 
@@ -311,5 +478,87 @@ class DatabaseHelper {
         }
       }
     }
+  }
+
+  // ==================== TAG DEFINITIONS CRUD ====================
+
+  /// Získat všechny definice tagů
+  Future<List<Map<String, dynamic>>> getAllTagDefinitions() async {
+    final db = await database;
+    return await db.query('tag_definitions', orderBy: 'tag_type, sort_order');
+  }
+
+  /// Získat pouze povolené definice tagů
+  Future<List<Map<String, dynamic>>> getEnabledTagDefinitions() async {
+    final db = await database;
+    return await db.query(
+      'tag_definitions',
+      where: 'enabled = ?',
+      whereArgs: [1],
+      orderBy: 'tag_type, sort_order',
+    );
+  }
+
+  /// Získat definice tagů podle typu
+  Future<List<Map<String, dynamic>>> getTagDefinitionsByType(
+      String tagType) async {
+    final db = await database;
+    return await db.query(
+      'tag_definitions',
+      where: 'tag_type = ? AND enabled = ?',
+      whereArgs: [tagType, 1],
+      orderBy: 'sort_order',
+    );
+  }
+
+  /// Najít definici tagu podle názvu
+  Future<Map<String, dynamic>?> getTagDefinitionByName(String tagName) async {
+    final db = await database;
+    final results = await db.query(
+      'tag_definitions',
+      where: 'tag_name = ?',
+      whereArgs: [tagName.toLowerCase()],
+      limit: 1,
+    );
+
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  /// Přidat novou definici tagu
+  Future<int> insertTagDefinition(Map<String, dynamic> tagDef) async {
+    final db = await database;
+    return await db.insert('tag_definitions', tagDef);
+  }
+
+  /// Aktualizovat definici tagu
+  Future<int> updateTagDefinition(int id, Map<String, dynamic> tagDef) async {
+    final db = await database;
+    return await db.update(
+      'tag_definitions',
+      tagDef,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Smazat definici tagu
+  Future<int> deleteTagDefinition(int id) async {
+    final db = await database;
+    return await db.delete(
+      'tag_definitions',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Zapnout/vypnout tag
+  Future<int> toggleTagDefinition(int id, bool enabled) async {
+    final db = await database;
+    return await db.update(
+      'tag_definitions',
+      {'enabled': enabled ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }
