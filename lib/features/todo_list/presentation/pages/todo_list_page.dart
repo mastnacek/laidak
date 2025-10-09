@@ -200,7 +200,6 @@ class _TodoInputFormState extends State<_TodoInputForm> {
               taskText: parsed.cleanText,
               priority: parsed.priority,
               dueDate: parsed.dueDate,
-              action: parsed.action,
               tags: parsed.tags,
             ),
           );

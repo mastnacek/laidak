@@ -21,19 +21,17 @@ final class AddTodoEvent extends TodoListEvent {
   final String taskText;
   final String? priority;
   final DateTime? dueDate;
-  final String? action;
   final List<String> tags;
 
   const AddTodoEvent({
     required this.taskText,
     this.priority,
     this.dueDate,
-    this.action,
     this.tags = const [],
   });
 
   @override
-  List<Object?> get props => [taskText, priority, dueDate, action, tags];
+  List<Object?> get props => [taskText, priority, dueDate, tags];
 }
 
 /// Aktualizovat existující todo
