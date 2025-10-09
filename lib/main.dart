@@ -3,6 +3,7 @@ import 'theme/doom_one_theme.dart';
 import 'models/todo_item.dart';
 import 'services/database_helper.dart';
 import 'services/tag_parser.dart';
+import 'widgets/highlighted_text_field.dart';
 
 void main() {
   runApp(const TodoApp());
@@ -107,16 +108,9 @@ class _TodoListPageState extends State<TodoListPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: HighlightedTextField(
                     controller: _textController,
-                    style: TextStyle(color: DoomOneTheme.fg),
-                    decoration: InputDecoration(
-                      hintText: '*a* *dnes* *udelat* nakoupit, *rodina*',
-                      hintStyle: TextStyle(
-                        color: DoomOneTheme.base5,
-                        fontSize: 14,
-                      ),
-                    ),
+                    hintText: '*a* *dnes* *udelat* nakoupit, *rodina*',
                     onSubmitted: _addTodoItem,
                   ),
                 ),
