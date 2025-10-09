@@ -329,6 +329,22 @@ class _TodoListPageState extends State<TodoListPage> {
     }
   }
 
+  /// Získat barvu rámečku úkolu podle stavu a priority
+  Color _getTodoBorderColor(TodoItem todo) {
+    if (todo.isCompleted) {
+      // Splněné úkoly = neonově cyan (Doom One styl)
+      return DoomOneTheme.cyan;
+    } else {
+      // Nesplněné úkoly = barva podle priority
+      if (todo.priority != null) {
+        return _getPriorityColor(todo.priority!);
+      } else {
+        // Bez priority = šedá
+        return DoomOneTheme.base4;
+      }
+    }
+  }
+
   /// Vytvořit kartu s úkolem
   Widget _buildTodoCard(TodoItem todo) {
     final isExpanded = _expandedTaskId == todo.id;
@@ -448,20 +464,13 @@ class _TodoListPageState extends State<TodoListPage> {
             color: DoomOneTheme.bgAlt,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: todo.isCompleted ? DoomOneTheme.green : DoomOneTheme.base3,
-              width: 1,
+              color: _getTodoBorderColor(todo),
+              width: 2,
             ),
           ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Checkbox
-            Checkbox(
-              value: todo.isCompleted,
-              onChanged: (_) => _toggleTodoItem(todo),
-            ),
-            const SizedBox(width: 8),
-
             // Obsah (ID + text + metadata)
             Expanded(
               child: Column(
