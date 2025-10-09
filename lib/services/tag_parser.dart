@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 class TagParser {
   /// Parsovat text a extrahovat tagy, prioritu, datum, akci
   static ParsedTask parse(String input) {
-    final cleanText = input;
     String? priority;
     DateTime? dueDate;
     String? action;
@@ -37,6 +36,9 @@ class TagParser {
         tags.add(tagValue);
       }
     }
+
+    // Odstranit všechny tagy z textu (včetně hvězdiček)
+    final cleanText = input.replaceAll(tagRegex, '').trim();
 
     return ParsedTask(
       originalText: input,
