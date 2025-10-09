@@ -411,10 +411,16 @@ class _TodoListPageState extends State<TodoListPage> {
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
           // Swipe doprava = toggle hotovo/nehotovo (potvrzení není potřeba)
+          // Nejdříve zavřít klávesnici (pokud je otevřená)
+          FocusScope.of(context).unfocus();
+
           await _toggleTodoItem(todo);
           return false; // Neodstranit widget
         } else {
           // Swipe doleva = smazat (požádat o potvrzení)
+          // Nejdříve zavřít klávesnici (pokud je otevřená)
+          FocusScope.of(context).unfocus();
+
           return await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
@@ -453,11 +459,18 @@ class _TodoListPageState extends State<TodoListPage> {
       },
       child: InkWell(
         onTap: () {
+          // Zavřít klávesnici při expand/collapse
+          FocusScope.of(context).unfocus();
+
           setState(() {
             _expandedTaskId = isExpanded ? null : todo.id;
           });
         },
-        onLongPress: () => _editTodoItem(todo), // Dlouhý stisk = editace
+        onLongPress: () {
+          // Zavřít klávesnici při otevření edit dialogu
+          FocusScope.of(context).unfocus();
+          _editTodoItem(todo);
+        },
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -639,6 +652,10 @@ class _TodoListPageState extends State<TodoListPage> {
   /// Získat AI motivaci pro úkol
   Future<void> _motivateTask(TodoItem todo) async {
     print('🚀 _motivateTask START pro úkol: ${todo.task}');
+
+    // Zavřít klávesnici (pokud je otevřená)
+    FocusScope.of(context).unfocus();
+
     final soundManager = SoundManager();
 
     // Spustit typing_long zvuk
