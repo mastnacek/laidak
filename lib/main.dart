@@ -409,52 +409,22 @@ class _TodoListPageState extends State<TodoListPage> {
         ),
       ),
       confirmDismiss: (direction) async {
-        if (direction == DismissDirection.startToEnd) {
-          // Swipe doprava = toggle hotovo/nehotovo (potvrzení není potřeba)
-          // Nejdříve zavřít klávesnici (pokud je otevřená)
-          FocusScope.of(context).unfocus();
+        // Zavřít klávesnici při jakékoli swipe akci
+        FocusScope.of(context).unfocus();
 
+        if (direction == DismissDirection.startToEnd) {
+          // Swipe doprava = toggle hotovo/nehotovo
           await _toggleTodoItem(todo);
           return false; // Neodstranit widget
         } else {
-          // Swipe doleva = smazat (požádat o potvrzení)
-          // Nejdříve zavřít klávesnici (pokud je otevřená)
-          FocusScope.of(context).unfocus();
-
-          return await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              backgroundColor: DoomOneTheme.bg,
-              title: Text(
-                'Smazat úkol?',
-                style: TextStyle(color: DoomOneTheme.red),
-              ),
-              content: Text(
-                'Opravdu chceš smazat úkol "${todo.task}"?',
-                style: TextStyle(color: DoomOneTheme.fg),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
-                ),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: DoomOneTheme.red,
-                    foregroundColor: DoomOneTheme.bg,
-                  ),
-                  child: const Text('Smazat'),
-                ),
-              ],
-            ),
-          ) ?? false;
+          // Swipe doleva = smazat (bez potvrzení)
+          return true; // Odstranit widget
         }
       },
-      onDismissed: (direction) {
+      onDismissed: (direction) async {
         if (direction == DismissDirection.endToStart) {
           // Smazat úkol
-          _removeTodoItem(todo);
+          await _removeTodoItem(todo);
         }
       },
       child: InkWell(
