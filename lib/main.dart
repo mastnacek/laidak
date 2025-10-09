@@ -272,6 +272,10 @@ class _TodoListPageState extends State<TodoListPage> {
               ),
             ),
 
+            // Tlačítko motivate
+            _buildMotivateButton(todo),
+            const SizedBox(width: 8),
+
             // Tlačítko smazat
             IconButton(
               icon: const Icon(Icons.delete_outline, color: DoomOneTheme.red),
@@ -317,5 +321,56 @@ class _TodoListPageState extends State<TodoListPage> {
       default:
         return DoomOneTheme.base5;
     }
+  }
+
+  /// Vytvořit pulzující růžové tlačítko motivate
+  Widget _buildMotivateButton(TodoItem todo) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 1500),
+      curve: Curves.easeInOut,
+      builder: (context, value, child) {
+        // Puls efekt: 0.8 -> 1.0 -> 0.8
+        final pulseValue = 0.8 + (0.2 * (0.5 - (value - 0.5).abs()) * 2);
+
+        return Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: DoomOneTheme.magenta.withOpacity(0.6 * pulseValue),
+                blurRadius: 12 * pulseValue,
+                spreadRadius: 3 * pulseValue,
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: Text(
+              'M',
+              style: TextStyle(
+                color: DoomOneTheme.magenta,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onPressed: () => _motivateTask(todo),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        );
+      },
+      onEnd: () {
+        // Nekonečná smyčka - restart animace
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
+  }
+
+  /// Získat AI motivaci pro úkol
+  Future<void> _motivateTask(TodoItem todo) async {
+    // TODO: Implementovat AI motivaci
+    print('🎯 Motivate task #${todo.id}: ${todo.task}');
   }
 }
