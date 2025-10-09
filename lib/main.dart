@@ -47,6 +47,7 @@ class _TodoListPageState extends State<TodoListPage> {
   final TextEditingController _textController = TextEditingController();
   bool _isLoading = true;
   int? _expandedTaskId; // ID expandovaného úkolu
+  bool _showCompleted = false; // Zobrazit hotové úkoly?
 
   @override
   void initState() {
@@ -108,10 +109,26 @@ class _TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Filtrovat úkoly podle _showCompleted
+    final displayedTodos = _showCompleted
+        ? _todoItems
+        : _todoItems.where((todo) => !todo.isCompleted).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('TODO // DOOM'),
         actions: [
+          // Toggle pro zobrazení/skrytí hotových úkolů
+          IconButton(
+            icon: Icon(
+              _showCompleted ? Icons.visibility : Icons.visibility_off,
+              color: _showCompleted ? DoomOneTheme.green : DoomOneTheme.base5,
+            ),
+            tooltip: _showCompleted ? 'Skrýt hotové úkoly' : 'Zobrazit hotové úkoly',
+            onPressed: () {
+              setState(() => _showCompleted = !_showCompleted);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Nastavení',
@@ -155,10 +172,12 @@ class _TodoListPageState extends State<TodoListPage> {
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _todoItems.isEmpty
+                : displayedTodos.isEmpty
                     ? Center(
                         child: Text(
-                          'Zatím žádné úkoly.\nPřidej první úkol!',
+                          _showCompleted
+                              ? 'Žádné hotové úkoly.'
+                              : 'Zatím žádné úkoly.\nPřidej první úkol!',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
@@ -167,9 +186,9 @@ class _TodoListPageState extends State<TodoListPage> {
                         ),
                       )
                     : ListView.builder(
-                        itemCount: _todoItems.length,
+                        itemCount: displayedTodos.length,
                         itemBuilder: (context, index) {
-                          final todo = _todoItems[index];
+                          final todo = displayedTodos[index];
                           return _buildTodoCard(todo);
                         },
                       ),
@@ -177,6 +196,137 @@ class _TodoListPageState extends State<TodoListPage> {
         ],
       ),
     );
+  }
+
+  /// Editovat úkol
+  Future<void> _editTodoItem(TodoItem todo) async {
+    final controller = TextEditingController(text: todo.task);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: DoomOneTheme.bg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: DoomOneTheme.yellow, width: 2),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Icon(Icons.edit, color: DoomOneTheme.yellow, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'EDITOVAT ÚKOL',
+                      style: TextStyle(
+                        color: DoomOneTheme.yellow,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              Divider(color: DoomOneTheme.base3, height: 24),
+
+              // TextField pro text úkolu
+              Text(
+                'Text úkolu:',
+                style: TextStyle(
+                  color: DoomOneTheme.fg,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLines: 3,
+                style: TextStyle(color: DoomOneTheme.fg, fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: 'Zadej text úkolu...',
+                  hintStyle: TextStyle(color: DoomOneTheme.base5),
+                  filled: true,
+                  fillColor: DoomOneTheme.base2,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: DoomOneTheme.base4),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: DoomOneTheme.yellow, width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Tlačítka
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                  ),
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (controller.text.trim().isNotEmpty) {
+                        Navigator.of(context).pop(controller.text.trim());
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: DoomOneTheme.yellow,
+                      foregroundColor: DoomOneTheme.bg,
+                    ),
+                    child: const Text('Uložit'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Pokud byl text změněn, uložit do databáze
+    if (result != null && result != todo.task) {
+      // Parsovat tagy z nového textu
+      final parsed = TagParser.parse(result);
+
+      // Vytvořit aktualizovaný TodoItem
+      final updatedTodo = todo.copyWith(
+        task: parsed.cleanText,
+        priority: parsed.priority,
+        dueDate: parsed.dueDate,
+        action: parsed.action,
+        tags: parsed.tags,
+      );
+
+      await _db.updateTodo(updatedTodo);
+      await _loadTodos();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Úkol byl aktualizován'),
+            backgroundColor: DoomOneTheme.green,
+          ),
+        );
+      }
+    }
   }
 
   /// Vytvořit kartu s úkolem
@@ -189,6 +339,7 @@ class _TodoListPageState extends State<TodoListPage> {
           _expandedTaskId = isExpanded ? null : todo.id;
         });
       },
+      onLongPress: () => _editTodoItem(todo), // Dlouhý stisk = editace
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: const EdgeInsets.all(12),
@@ -291,12 +442,23 @@ class _TodoListPageState extends State<TodoListPage> {
             _buildMotivateButton(todo),
             const SizedBox(width: 8),
 
+            // Tlačítko editovat
+            IconButton(
+              icon: const Icon(Icons.edit_outlined, color: DoomOneTheme.yellow),
+              onPressed: () => _editTodoItem(todo),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              tooltip: 'Editovat úkol',
+            ),
+            const SizedBox(width: 8),
+
             // Tlačítko smazat
             IconButton(
               icon: const Icon(Icons.delete_outline, color: DoomOneTheme.red),
               onPressed: () => _removeTodoItem(todo),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
+              tooltip: 'Smazat úkol',
             ),
           ],
         ),
