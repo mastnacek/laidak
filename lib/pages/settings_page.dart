@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/doom_one_theme.dart';
 import '../theme/blade_runner_theme.dart';
 import '../theme/osaka_jade_theme.dart';
+import '../theme/amoled_theme.dart';
 import '../services/database_helper.dart';
 import '../services/tag_service.dart';
 import '../models/tag_definition.dart';
@@ -1953,6 +1954,18 @@ class _ThemesTabState extends State<_ThemesTab> {
         'secondary': OsakaJadeTheme.magenta,
         'accent': OsakaJadeTheme.green,
         'background': OsakaJadeTheme.bg,
+      },
+    },
+    {
+      'id': 'amoled',
+      'name': 'AMOLED Black',
+      'description': 'Maximálně černé téma pro OLED displeje s béžovými prvky',
+      'icon': '⬛',
+      'colors': {
+        'primary': AmoledTheme.cyan,
+        'secondary': AmoledTheme.magenta,
+        'accent': AmoledTheme.green,
+        'background': AmoledTheme.bg,
       },
     },
   ];
