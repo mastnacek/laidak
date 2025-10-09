@@ -14,23 +14,28 @@ class SoundManager {
   Future<void> playTypingLong() async {
     if (_isPlaying) return;
 
+    print('🔊 SoundManager: Playing typing_long.wav');
     _isPlaying = true;
     await _player.setReleaseMode(ReleaseMode.loop);
-    await _player.setVolume(0.2);
+    await _player.setVolume(0.5); // Zvýšil jsem volume
     await _player.play(AssetSource('sounds/typing_long.wav'));
+    print('✅ SoundManager: typing_long started');
   }
 
   /// Přehrát subtle typing zvuk ve smyčce (při typewriter efektu)
   Future<void> playSubtleTyping() async {
     if (_isPlaying) {
       // Pokud hraje typing_long, zastavit ho a přepnout na subtle
+      print('🔇 SoundManager: Stopping previous sound');
       await stop();
     }
 
+    print('🔊 SoundManager: Playing subtle_long_type.wav');
     _isPlaying = true;
     await _player.setReleaseMode(ReleaseMode.loop);
-    await _player.setVolume(0.15);
+    await _player.setVolume(0.3); // Zvýšil jsem volume
     await _player.play(AssetSource('sounds/subtle_long_type.wav'));
+    print('✅ SoundManager: subtle_long_type started');
   }
 
   /// Zastavit přehrávání
