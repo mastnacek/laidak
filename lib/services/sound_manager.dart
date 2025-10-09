@@ -20,7 +20,7 @@ class SoundManager {
       await _player.setAsset('assets/sounds/typing_long.wav');
       await _player.setLoopMode(LoopMode.one);
       await _player.setVolume(0.5);
-      await _player.play();
+      _player.play(); // NEPOUŽÍVAT await - play() nikdy nekončí při loop!
       print('✅ SoundManager: typing_long started');
     } catch (e) {
       print('❌ SoundManager ERROR: $e');
@@ -41,7 +41,7 @@ class SoundManager {
       await _player.setAsset('assets/sounds/subtle_long_type.wav');
       await _player.setLoopMode(LoopMode.one);
       await _player.setVolume(0.3);
-      await _player.play();
+      _player.play(); // NEPOUŽÍVAT await - play() nikdy nekončí při loop!
       print('✅ SoundManager: subtle_long_type started');
     } catch (e) {
       print('❌ SoundManager ERROR: $e');
