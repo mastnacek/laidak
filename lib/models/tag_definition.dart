@@ -2,7 +2,6 @@
 enum TagType {
   priority, // Priorita: *a*, *b*, *c*
   date, // Datum: *dnes*, *zitra*, *zatyden*, *zamesic*, *zarok*
-  action, // Akce: *udelat*, *zavolat*, *koupit*, atd.
   status, // Status: *hotove*, *todo*
   custom, // Custom tagy: *rodina*, *prace*, atd.
 }
@@ -21,8 +20,6 @@ extension TagTypeExtension on TagType {
         return TagType.priority;
       case 'date':
         return TagType.date;
-      case 'action':
-        return TagType.action;
       case 'status':
         return TagType.status;
       case 'custom':
@@ -39,8 +36,6 @@ extension TagTypeExtension on TagType {
         return 'Priorita';
       case TagType.date:
         return 'Termín';
-      case TagType.action:
-        return 'Akce';
       case TagType.status:
         return 'Status';
       case TagType.custom:

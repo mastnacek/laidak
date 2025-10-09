@@ -13,7 +13,6 @@ final class Todo extends Equatable {
   // Parsované metadata z tagů
   final String? priority; // 'a', 'b', 'c'
   final DateTime? dueDate;
-  final String? action;
   final List<String> tags;
 
   const Todo({
@@ -23,7 +22,6 @@ final class Todo extends Equatable {
     required this.createdAt,
     this.priority,
     this.dueDate,
-    this.action,
     this.tags = const [],
   });
 
@@ -35,7 +33,6 @@ final class Todo extends Equatable {
     DateTime? createdAt,
     String? priority,
     DateTime? dueDate,
-    String? action,
     List<String>? tags,
   }) {
     return Todo(
@@ -45,7 +42,6 @@ final class Todo extends Equatable {
       createdAt: createdAt ?? this.createdAt,
       priority: priority ?? this.priority,
       dueDate: dueDate ?? this.dueDate,
-      action: action ?? this.action,
       tags: tags ?? this.tags,
     );
   }
@@ -82,7 +78,6 @@ final class Todo extends Equatable {
         createdAt,
         priority,
         dueDate,
-        action,
         tags,
       ];
 }

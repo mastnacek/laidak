@@ -8,7 +8,6 @@ class TodoItem {
   // Parsované hodnoty z tagů
   String? priority; // 'a', 'b', 'c' z *a*, *b*, *c*
   DateTime? dueDate; // Datum z *dnes*, *zitra*, nebo konkrétní datum
-  String? action; // Akce z *udelat*, *zavolat*, *napsat*, atd.
   List<String> tags; // Obecné tagy jako *rodina*, *prace*, atd.
 
   TodoItem({
@@ -18,7 +17,6 @@ class TodoItem {
     DateTime? createdAt,
     this.priority,
     this.dueDate,
-    this.action,
     List<String>? tags,
   })  : createdAt = createdAt ?? DateTime.now(),
         tags = tags ?? [];
@@ -32,7 +30,6 @@ class TodoItem {
       'createdAt': createdAt.toIso8601String(),
       'priority': priority,
       'dueDate': dueDate?.toIso8601String(),
-      'action': action,
       'tags': tags.join(','), // Ukládat jako CSV
     };
   }
@@ -48,7 +45,6 @@ class TodoItem {
       dueDate: map['dueDate'] != null
           ? DateTime.parse(map['dueDate'] as String)
           : null,
-      action: map['action'] as String?,
       tags: map['tags'] != null && (map['tags'] as String).isNotEmpty
           ? (map['tags'] as String).split(',')
           : [],
@@ -63,7 +59,6 @@ class TodoItem {
     DateTime? createdAt,
     String? priority,
     DateTime? dueDate,
-    String? action,
     List<String>? tags,
   }) {
     return TodoItem(
@@ -73,7 +68,6 @@ class TodoItem {
       createdAt: createdAt ?? this.createdAt,
       priority: priority ?? this.priority,
       dueDate: dueDate ?? this.dueDate,
-      action: action ?? this.action,
       tags: tags ?? this.tags,
     );
   }

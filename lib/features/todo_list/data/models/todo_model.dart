@@ -11,7 +11,6 @@ class TodoModel {
   final DateTime createdAt;
   final String? priority;
   final DateTime? dueDate;
-  final String? action;
   final List<String> tags;
 
   const TodoModel({
@@ -21,7 +20,6 @@ class TodoModel {
     required this.createdAt,
     this.priority,
     this.dueDate,
-    this.action,
     this.tags = const [],
   });
 
@@ -34,7 +32,6 @@ class TodoModel {
       'createdAt': createdAt.toIso8601String(),
       'priority': priority,
       'dueDate': dueDate?.toIso8601String(),
-      'action': action,
       'tags': tags.join(','), // Ukládat jako CSV
     };
   }
@@ -50,7 +47,6 @@ class TodoModel {
       dueDate: map['dueDate'] != null
           ? DateTime.parse(map['dueDate'] as String)
           : null,
-      action: map['action'] as String?,
       tags: map['tags'] != null && (map['tags'] as String).isNotEmpty
           ? (map['tags'] as String).split(',')
           : [],
@@ -66,7 +62,6 @@ class TodoModel {
       createdAt: todo.createdAt,
       priority: todo.priority,
       dueDate: todo.dueDate,
-      action: todo.action,
       tags: todo.tags,
     );
   }
@@ -80,7 +75,6 @@ class TodoModel {
       createdAt: createdAt,
       priority: priority,
       dueDate: dueDate,
-      action: action,
       tags: tags,
     );
   }

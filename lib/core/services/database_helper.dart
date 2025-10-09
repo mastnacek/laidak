@@ -42,7 +42,6 @@ class DatabaseHelper {
         createdAt TEXT NOT NULL,
         priority TEXT,
         dueDate TEXT,
-        action TEXT,
         tags TEXT
       )
     ''');
@@ -276,34 +275,6 @@ class DatabaseHelper {
       'sort_order': 5,
       'enabled': 1,
     });
-
-    // Akční tagy
-    final actions = [
-      {'name': 'udelat', 'display': 'Udělat', 'emoji': '✅'},
-      {'name': 'zavolat', 'display': 'Zavolat', 'emoji': '📞'},
-      {'name': 'napsat', 'display': 'Napsat', 'emoji': '✍️'},
-      {'name': 'koupit', 'display': 'Koupit', 'emoji': '🛒'},
-      {'name': 'poslat', 'display': 'Poslat', 'emoji': '📤'},
-      {'name': 'pripravit', 'display': 'Připravit', 'emoji': '🔧'},
-      {'name': 'domluvit', 'display': 'Domluvit', 'emoji': '🤝'},
-      {'name': 'zkontrolovat', 'display': 'Zkontrolovat', 'emoji': '🔍'},
-      {'name': 'opravit', 'display': 'Opravit', 'emoji': '🔨'},
-      {'name': 'nacist', 'display': 'Načíst', 'emoji': '📖'},
-      {'name': 'poslouchat', 'display': 'Poslouchat', 'emoji': '🎧'},
-    ];
-
-    int actionOrder = 1;
-    for (final action in actions) {
-      await db.insert('tag_definitions', {
-        'tag_name': action['name'],
-        'tag_type': 'action',
-        'display_name': action['display'],
-        'emoji': action['emoji'],
-        'color': '#00ffff',
-        'sort_order': actionOrder++,
-        'enabled': 1,
-      });
-    }
 
     // Status tagy
     await db.insert('tag_definitions', {

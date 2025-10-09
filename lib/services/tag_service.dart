@@ -92,11 +92,6 @@ class TagService {
     return getDefinitionsByType(TagType.date);
   }
 
-  /// Získat definice pro akci
-  List<TagDefinition> getActionDefinitions() {
-    return getDefinitionsByType(TagType.action);
-  }
-
   /// Získat definice pro status
   List<TagDefinition> getStatusDefinitions() {
     return getDefinitionsByType(TagType.status);
