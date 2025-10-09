@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/doom_one_theme.dart';
 import '../services/database_helper.dart';
+import '../services/tag_service.dart';
+import '../models/tag_definition.dart';
 
 /// Stránka s nastavením AI motivace
 class SettingsPage extends StatefulWidget {
@@ -16,7 +18,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -48,6 +50,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
               icon: Icon(Icons.psychology),
               text: 'MOTIVAČNÍ PROMPTY',
             ),
+            Tab(
+              icon: Icon(Icons.label),
+              text: 'SPRÁVA TAGŮ',
+            ),
           ],
         ),
       ),
@@ -56,6 +62,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
         children: const [
           _AISettingsTab(),
           _PromptsTab(),
+          _TagManagementTab(),
         ],
       ),
     );
@@ -1017,6 +1024,607 @@ class _PromptsTabState extends State<_PromptsTab> {
         TextField(
           controller: controller,
           maxLines: maxLines,
+          style: TextStyle(color: DoomOneTheme.fg),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: DoomOneTheme.base5),
+            filled: true,
+            fillColor: DoomOneTheme.base2,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(color: DoomOneTheme.base4),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Tab pro správu tagů
+class _TagManagementTab extends StatefulWidget {
+  const _TagManagementTab();
+
+  @override
+  State<_TagManagementTab> createState() => _TagManagementTabState();
+}
+
+class _TagManagementTabState extends State<_TagManagementTab> {
+  final TagService _tagService = TagService();
+  List<TagDefinition> _allTags = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTags();
+  }
+
+  /// Načíst všechny tagy z databáze
+  Future<void> _loadTags() async {
+    setState(() => _isLoading = true);
+    final tags = await _tagService.loadAllDefinitionsFromDb();
+    setState(() {
+      _allTags = tags;
+      _isLoading = false;
+    });
+  }
+
+  /// Zobrazit dialog pro editaci tagu
+  Future<void> _editTag(TagDefinition tag) async {
+    final nameController = TextEditingController(text: tag.tagName);
+    final displayNameController = TextEditingController(text: tag.displayName ?? '');
+    final emojiController = TextEditingController(text: tag.emoji ?? '');
+    final colorController = TextEditingController(text: tag.color ?? '');
+    TagType selectedType = tag.tagType;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          backgroundColor: DoomOneTheme.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: DoomOneTheme.cyan, width: 2),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            constraints: BoxConstraints(
+              maxWidth: 600,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Icon(Icons.edit, color: DoomOneTheme.cyan, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'EDITOVAT TAG',
+                          style: TextStyle(
+                            color: DoomOneTheme.cyan,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                    ],
+                  ),
+                  Divider(color: DoomOneTheme.base3, height: 24),
+
+                  _buildDialogField('Název tagu (bez hvězdiček)', nameController, 'např. dnes, a, udelat'),
+                  const SizedBox(height: 16),
+
+                  _buildDialogField('Zobrazovaný název', displayNameController, 'např. Dnešní termín, Vysoká priorita'),
+                  const SizedBox(height: 16),
+
+                  _buildDialogField('Emoji', emojiController, '🔥'),
+                  const SizedBox(height: 16),
+
+                  _buildDialogField('Barva (hex)', colorController, '#FF5555'),
+                  const SizedBox(height: 16),
+
+                  // Typ tagu dropdown
+                  Text(
+                    'Typ tagu',
+                    style: TextStyle(
+                      color: DoomOneTheme.fg,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<TagType>(
+                    value: selectedType,
+                    dropdownColor: DoomOneTheme.base2,
+                    style: TextStyle(color: DoomOneTheme.fg),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: DoomOneTheme.base2,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: DoomOneTheme.base4),
+                      ),
+                    ),
+                    items: TagType.values.map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(type.displayName),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() => selectedType = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Tlačítka
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final updatedTag = tag.copyWith(
+                            tagName: nameController.text.trim().toLowerCase(),
+                            displayName: displayNameController.text.trim(),
+                            emoji: emojiController.text.trim(),
+                            color: colorController.text.trim(),
+                            tagType: selectedType,
+                          );
+
+                          await _tagService.updateDefinition(updatedTag);
+                          if (context.mounted) Navigator.of(context).pop(true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: DoomOneTheme.cyan,
+                          foregroundColor: DoomOneTheme.bg,
+                        ),
+                        child: const Text('Uložit'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (result == true) {
+      await _loadTags();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Tag byl úspěšně uložen'),
+            backgroundColor: DoomOneTheme.green,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Přidat nový tag
+  Future<void> _addTag() async {
+    final nameController = TextEditingController();
+    final displayNameController = TextEditingController();
+    final emojiController = TextEditingController();
+    final colorController = TextEditingController();
+    TagType selectedType = TagType.custom;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          backgroundColor: DoomOneTheme.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: DoomOneTheme.green, width: 2),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            constraints: BoxConstraints(
+              maxWidth: 600,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.add_circle, color: DoomOneTheme.green, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'NOVÝ TAG',
+                          style: TextStyle(
+                            color: DoomOneTheme.green,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                    ],
+                  ),
+                  Divider(color: DoomOneTheme.base3, height: 24),
+
+                  _buildDialogField('Název tagu (bez hvězdiček)', nameController, 'např. vikend, projekt'),
+                  const SizedBox(height: 16),
+
+                  _buildDialogField('Zobrazovaný název', displayNameController, 'např. Víkendový úkol'),
+                  const SizedBox(height: 16),
+
+                  _buildDialogField('Emoji', emojiController, '🏖️'),
+                  const SizedBox(height: 16),
+
+                  _buildDialogField('Barva (hex)', colorController, '#50FA7B'),
+                  const SizedBox(height: 16),
+
+                  Text(
+                    'Typ tagu',
+                    style: TextStyle(
+                      color: DoomOneTheme.fg,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<TagType>(
+                    value: selectedType,
+                    dropdownColor: DoomOneTheme.base2,
+                    style: TextStyle(color: DoomOneTheme.fg),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: DoomOneTheme.base2,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: DoomOneTheme.base4),
+                      ),
+                    ),
+                    items: TagType.values.map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(type.displayName),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() => selectedType = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                      ),
+                      const SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: () async {
+                          if (nameController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text('Název tagu nesmí být prázdný'),
+                                backgroundColor: DoomOneTheme.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          final newTag = TagDefinition(
+                            tagName: nameController.text.trim().toLowerCase(),
+                            tagType: selectedType,
+                            displayName: displayNameController.text.trim(),
+                            emoji: emojiController.text.trim(),
+                            color: colorController.text.trim(),
+                            enabled: true,
+                          );
+
+                          try {
+                            await _tagService.addDefinition(newTag);
+                            if (context.mounted) Navigator.of(context).pop(true);
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Chyba: $e'),
+                                  backgroundColor: DoomOneTheme.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: DoomOneTheme.green,
+                          foregroundColor: DoomOneTheme.bg,
+                        ),
+                        child: const Text('Přidat'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (result == true) {
+      await _loadTags();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Tag byl úspěšně přidán'),
+            backgroundColor: DoomOneTheme.green,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Smazat tag
+  Future<void> _deleteTag(TagDefinition tag) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: DoomOneTheme.bg,
+        title: Text('Smazat tag?', style: TextStyle(color: DoomOneTheme.red)),
+        content: Text(
+          'Opravdu chceš smazat tag "*${tag.tagName}*"?',
+          style: TextStyle(color: DoomOneTheme.fg),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DoomOneTheme.red,
+              foregroundColor: DoomOneTheme.bg,
+            ),
+            child: const Text('Smazat'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && tag.id != null) {
+      await _tagService.deleteDefinition(tag.id!);
+      await _loadTags();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('🗑️ Tag byl smazán'),
+            backgroundColor: DoomOneTheme.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Zapnout/vypnout tag
+  Future<void> _toggleTag(TagDefinition tag) async {
+    if (tag.id != null) {
+      await _tagService.toggleDefinition(tag.id!, !tag.enabled);
+      await _loadTags();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Seskupit tagy podle typu
+    final tagsByType = <TagType, List<TagDefinition>>{};
+    for (final tag in _allTags) {
+      tagsByType.putIfAbsent(tag.tagType, () => []).add(tag);
+    }
+
+    return Column(
+      children: [
+        // Info panel
+        Container(
+          color: DoomOneTheme.bgAlt,
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(Icons.info_outline, color: DoomOneTheme.yellow),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Zde můžeš spravovat systémové tagy. Nové tagy se automaticky rozpoznávají v textu úkolů.',
+                  style: TextStyle(color: DoomOneTheme.fg, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: DoomOneTheme.base3),
+
+        // Seznam tagů seskupených podle typu
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(8),
+            children: TagType.values.map((type) {
+              final tags = tagsByType[type] ?? [];
+              if (tags.isEmpty) return const SizedBox.shrink();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    child: Text(
+                      type.displayName.toUpperCase(),
+                      style: TextStyle(
+                        color: DoomOneTheme.cyan,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                  ...tags.map((tag) => _buildTagCard(tag)),
+                  const SizedBox(height: 8),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+
+        // Add button (sticky bottom)
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: DoomOneTheme.bg,
+            border: Border(top: BorderSide(color: DoomOneTheme.base3)),
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _addTag,
+              icon: const Icon(Icons.add),
+              label: const Text('PŘIDAT NOVÝ TAG'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: DoomOneTheme.green,
+                foregroundColor: DoomOneTheme.bg,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTagCard(TagDefinition tag) {
+    return Card(
+      color: tag.enabled ? DoomOneTheme.bgAlt : DoomOneTheme.base2,
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(
+          color: tag.enabled ? DoomOneTheme.base3 : DoomOneTheme.base4,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Emoji a název
+            Expanded(
+              child: Row(
+                children: [
+                  if (tag.emoji != null && tag.emoji!.isNotEmpty)
+                    Text(
+                      tag.emoji!,
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '*${tag.tagName}*',
+                          style: TextStyle(
+                            color: tag.enabled ? DoomOneTheme.cyan : DoomOneTheme.base5,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                        if (tag.displayName != null && tag.displayName!.isNotEmpty)
+                          Text(
+                            tag.displayName!,
+                            style: TextStyle(
+                              color: tag.enabled ? DoomOneTheme.base5 : DoomOneTheme.base6,
+                              fontSize: 12,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Enable/disable switch
+            Switch(
+              value: tag.enabled,
+              onChanged: (_) => _toggleTag(tag),
+              activeColor: DoomOneTheme.green,
+            ),
+
+            // Edit button
+            IconButton(
+              icon: Icon(Icons.edit, color: DoomOneTheme.cyan, size: 20),
+              onPressed: () => _editTag(tag),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            const SizedBox(width: 12),
+
+            // Delete button
+            IconButton(
+              icon: Icon(Icons.delete, color: DoomOneTheme.red, size: 20),
+              onPressed: () => _deleteTag(tag),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDialogField(String label, TextEditingController controller, String hint) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: DoomOneTheme.fg,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
           style: TextStyle(color: DoomOneTheme.fg),
           decoration: InputDecoration(
             hintText: hint,
