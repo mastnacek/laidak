@@ -455,7 +455,7 @@ class DatabaseHelper {
     // Pokusit se najít prompt podle tagů
     for (final prompt in prompts) {
       final promptTagsJson = prompt['tags'] as String;
-      final promptTags = (promptTagsJson as String)
+      final promptTags = (promptTagsJson)
           .replaceAll('[', '')
           .replaceAll(']', '')
           .replaceAll('"', '')

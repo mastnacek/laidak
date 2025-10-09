@@ -18,7 +18,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -41,6 +41,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           indicatorColor: DoomOneTheme.cyan,
           labelColor: DoomOneTheme.cyan,
           unselectedLabelColor: DoomOneTheme.base5,
+          isScrollable: true,
           tabs: const [
             Tab(
               icon: Icon(Icons.settings_suggest),
@@ -54,6 +55,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
               icon: Icon(Icons.label),
               text: 'SPRÁVA TAGŮ',
             ),
+            Tab(
+              icon: Icon(Icons.palette),
+              text: 'THEMES',
+            ),
           ],
         ),
       ),
@@ -63,6 +68,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           _AISettingsTab(),
           _PromptsTab(),
           _TagManagementTab(),
+          _ThemesTab(),
         ],
       ),
     );
