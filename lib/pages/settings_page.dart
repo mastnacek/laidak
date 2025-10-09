@@ -1140,6 +1140,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
     final emojiController = TextEditingController(text: tag.emoji ?? '');
     final colorController = TextEditingController(text: tag.color ?? '');
     TagType selectedType = tag.tagType;
+    bool glowEnabled = tag.glowEnabled;
+    double glowStrength = tag.glowStrength;
 
     final result = await showDialog<bool>(
       context: context,
@@ -1217,6 +1219,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                       if (result != null) {
                         setDialogState(() {
                           colorController.text = result['color'] as String;
+                          glowEnabled = result['glowEnabled'] as bool;
+                          glowStrength = result['glowStrength'] as double;
                         });
                       }
                     },
@@ -1312,6 +1316,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                             emoji: emojiController.text.trim(),
                             color: colorController.text.trim(),
                             tagType: selectedType,
+                            glowEnabled: glowEnabled,
+                            glowStrength: glowStrength,
                           );
 
                           await _tagService.updateDefinition(updatedTag);
@@ -1353,6 +1359,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
     final emojiController = TextEditingController();
     final colorController = TextEditingController();
     TagType selectedType = TagType.custom;
+    bool glowEnabled = false;
+    double glowStrength = 0.5;
 
     final result = await showDialog<bool>(
       context: context,
@@ -1405,7 +1413,72 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   _buildDialogField('Emoji', emojiController, '🏖️'),
                   const SizedBox(height: 16),
 
-                  _buildDialogField('Barva (hex)', colorController, '#50FA7B'),
+                  // Color picker button
+                  Text(
+                    'Barva',
+                    style: TextStyle(
+                      color: theme.appColors.fg,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () async {
+                      final result = await showDialog<Map<String, dynamic>>(
+                        context: context,
+                        builder: (context) => ColorPickerDialog(
+                          initialColor: colorController.text.trim().isEmpty ? '#50FA7B' : colorController.text.trim(),
+                          initialGlowEnabled: glowEnabled,
+                          initialGlowStrength: glowStrength,
+                        ),
+                      );
+
+                      if (result != null) {
+                        setDialogState(() {
+                          colorController.text = result['color'] as String;
+                          glowEnabled = result['glowEnabled'] as bool;
+                          glowStrength = result['glowStrength'] as double;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.appColors.base2,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: theme.appColors.base4),
+                      ),
+                      child: Row(
+                        children: [
+                          // Color preview box
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: ColorUtils.isValidHex(colorController.text)
+                                  ? ColorUtils.hexToColor(colorController.text)
+                                  : theme.appColors.green,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: theme.appColors.base6, width: 2),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              colorController.text.trim().isEmpty ? 'Vyberte barvu' : colorController.text,
+                              style: TextStyle(
+                                color: theme.appColors.fg,
+                                fontSize: 14,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                          Icon(Icons.palette, color: theme.appColors.green),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   Text(
@@ -1469,6 +1542,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                             displayName: displayNameController.text.trim(),
                             emoji: emojiController.text.trim(),
                             color: colorController.text.trim(),
+                            glowEnabled: glowEnabled,
+                            glowStrength: glowStrength,
                             enabled: true,
                           );
 
