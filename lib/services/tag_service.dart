@@ -1,5 +1,5 @@
 import '../models/tag_definition.dart';
-import 'database_helper.dart';
+import '../core/services/database_helper.dart';
 
 /// Singleton služba pro správu tagů s cachingem pro rychlý přístup
 ///

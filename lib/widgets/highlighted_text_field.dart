@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/doom_one_theme.dart';
+import '../core/theme/doom_one_theme.dart';
 
 /// TextField s live syntax highlighting pro tagy
 /// Používá EditableText s vlastním TextEditingController

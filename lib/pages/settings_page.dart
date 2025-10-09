@@ -101,6 +101,9 @@ class _AISettingsTabState extends State<_AISettingsTab> {
   bool _isEnabled = true;
   bool _obscureApiKey = true;
 
+  // Getter pro theme - dostupný ve všech metodách
+  ThemeData get theme => Theme.of(context);
+
   // Populární modely
   final List<String> _popularModels = [
     'anthropic/claude-3.5-sonnet',
@@ -539,6 +542,9 @@ class _PromptsTabState extends State<_PromptsTab> {
   final DatabaseHelper _db = DatabaseHelper();
   List<Map<String, dynamic>> _prompts = [];
   bool _isLoading = true;
+
+  // Getter pro theme - dostupný ve všech metodách
+  ThemeData get theme => Theme.of(context);
 
   @override
   void initState() {
@@ -1073,6 +1079,9 @@ class _TagManagementTabState extends State<_TagManagementTab> {
   // Nastavení oddělovačů tagů
   String _tagDelimiterStart = '*';
   String _tagDelimiterEnd = '*';
+
+  // Getter pro theme - dostupný ve všech metodách
+  ThemeData get theme => Theme.of(context);
 
   @override
   void initState() {
@@ -1925,6 +1934,9 @@ class _ThemesTabState extends State<_ThemesTab> {
   String _selectedTheme = 'doom_one';
   bool _isLoading = true;
 
+  // Getter pro theme - dostupný ve všech metodách
+  ThemeData get theme => Theme.of(context);
+
   /// Definice dostupných témat
   final List<Map<String, dynamic>> _availableThemes = [
     {
@@ -2056,8 +2068,8 @@ class _ThemesTabState extends State<_ThemesTab> {
             padding: const EdgeInsets.all(16),
             itemCount: _availableThemes.length,
             itemBuilder: (context, index) {
-              final theme = _availableThemes[index];
-              final isSelected = _selectedTheme == theme['id'];
+              final themeItem = _availableThemes[index];
+              final isSelected = _selectedTheme == themeItem['id'];
 
               return Card(
                 color: isSelected ? theme.appColors.bgAlt : theme.appColors.base2,
@@ -2070,7 +2082,7 @@ class _ThemesTabState extends State<_ThemesTab> {
                   ),
                 ),
                 child: InkWell(
-                  onTap: () => _saveTheme(theme['id'] as String),
+                  onTap: () => _saveTheme(themeItem['id'] as String),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -2081,7 +2093,7 @@ class _ThemesTabState extends State<_ThemesTab> {
                         Row(
                           children: [
                             Text(
-                              theme['icon'] as String,
+                              themeItem['icon'] as String,
                               style: const TextStyle(fontSize: 32),
                             ),
                             const SizedBox(width: 12),
@@ -2090,7 +2102,7 @@ class _ThemesTabState extends State<_ThemesTab> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    theme['name'] as String,
+                                    themeItem['name'] as String,
                                     style: TextStyle(
                                       color: isSelected
                                           ? theme.appColors.cyan
@@ -2101,7 +2113,7 @@ class _ThemesTabState extends State<_ThemesTab> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    theme['description'] as String,
+                                    themeItem['description'] as String,
                                     style: TextStyle(
                                       color: theme.appColors.base5,
                                       fontSize: 13,
@@ -2161,22 +2173,22 @@ class _ThemesTabState extends State<_ThemesTab> {
                           children: [
                             _buildColorChip(
                               'Primary',
-                              (theme['colors'] as Map<String, Color>)['primary']!,
+                              (themeItem['colors'] as Map<String, Color>)['primary']!,
                             ),
                             const SizedBox(width: 8),
                             _buildColorChip(
                               'Secondary',
-                              (theme['colors'] as Map<String, Color>)['secondary']!,
+                              (themeItem['colors'] as Map<String, Color>)['secondary']!,
                             ),
                             const SizedBox(width: 8),
                             _buildColorChip(
                               'Accent',
-                              (theme['colors'] as Map<String, Color>)['accent']!,
+                              (themeItem['colors'] as Map<String, Color>)['accent']!,
                             ),
                             const SizedBox(width: 8),
                             _buildColorChip(
                               'Background',
-                              (theme['colors'] as Map<String, Color>)['background']!,
+                              (themeItem['colors'] as Map<String, Color>)['background']!,
                             ),
                           ],
                         ),

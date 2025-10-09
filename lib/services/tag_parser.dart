@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 import '../models/tag_definition.dart';
 import 'tag_service.dart';
-import 'database_helper.dart';
+import '../core/services/database_helper.dart';
 
 /// Služba pro parsování tagů z textu úkolu
 ///
