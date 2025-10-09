@@ -48,6 +48,7 @@ dependencies:
 
   # Audio přehrávač (just_audio funguje lépe na Windows)
   just_audio: ^0.9.36
+  just_audio_windows: ^0.2.0  # Windows implementace pro just_audio
 
 dev_dependencies:
   flutter_test:

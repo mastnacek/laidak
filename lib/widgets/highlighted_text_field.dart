@@ -105,15 +105,18 @@ class HighlightedTextEditingController extends TextEditingController {
   }
 
   TextSpan _buildHighlightedSpan(String text, TextStyle? baseStyle) {
+    // Sanitizace textu - odstranění nevalidních UTF-16 znaků
+    final sanitizedText = _sanitizeText(text);
+
     final spans = <InlineSpan>[];
     final tagRegex = RegExp(r'\*([^*]+)\*');
     int lastMatchEnd = 0;
 
-    for (final match in tagRegex.allMatches(text)) {
+    for (final match in tagRegex.allMatches(sanitizedText)) {
       // Text před tagem (normální barva)
       if (match.start > lastMatchEnd) {
         spans.add(TextSpan(
-          text: text.substring(lastMatchEnd, match.start),
+          text: sanitizedText.substring(lastMatchEnd, match.start),
           style: baseStyle?.copyWith(color: DoomOneTheme.fg),
         ));
       }
@@ -134,9 +137,9 @@ class HighlightedTextEditingController extends TextEditingController {
     }
 
     // Zbytek textu za posledním tagem
-    if (lastMatchEnd < text.length) {
+    if (lastMatchEnd < sanitizedText.length) {
       spans.add(TextSpan(
-        text: text.substring(lastMatchEnd),
+        text: sanitizedText.substring(lastMatchEnd),
         style: baseStyle?.copyWith(color: DoomOneTheme.fg),
       ));
     }
@@ -145,6 +148,40 @@ class HighlightedTextEditingController extends TextEditingController {
       style: baseStyle,
       children: spans,
     );
+  }
+
+  /// Odstranění nevalidních UTF-16 znaků (lonely surrogates)
+  String _sanitizeText(String text) {
+    final buffer = StringBuffer();
+    for (int i = 0; i < text.length; i++) {
+      final codeUnit = text.codeUnitAt(i);
+
+      // High surrogate (0xD800-0xDBFF) musí být následován low surrogate
+      if (codeUnit >= 0xD800 && codeUnit <= 0xDBFF) {
+        if (i + 1 < text.length) {
+          final nextCodeUnit = text.codeUnitAt(i + 1);
+          if (nextCodeUnit >= 0xDC00 && nextCodeUnit <= 0xDFFF) {
+            // Validní surrogate pair
+            buffer.writeCharCode(codeUnit);
+            buffer.writeCharCode(nextCodeUnit);
+            i++; // Skip next code unit
+            continue;
+          }
+        }
+        // Lonely high surrogate - skip
+        continue;
+      }
+
+      // Low surrogate (0xDC00-0xDFFF) bez předchozího high surrogate
+      if (codeUnit >= 0xDC00 && codeUnit <= 0xDFFF) {
+        // Lonely low surrogate - skip
+        continue;
+      }
+
+      // Normální znak
+      buffer.writeCharCode(codeUnit);
+    }
+    return buffer.toString();
   }
 
   Color _getTagColor(String tagContent) {
