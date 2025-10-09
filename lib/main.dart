@@ -448,6 +448,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Vytvořit dialog s AI motivací
   Widget _buildMotivationDialog(TodoItem todo, String motivation) {
+    final soundManager = SoundManager();
+
     return Dialog(
       backgroundColor: DoomOneTheme.bg,
       shape: RoundedRectangleBorder(
@@ -456,7 +458,10 @@ class _TodoListPageState extends State<TodoListPage> {
       ),
       child: Container(
         padding: const EdgeInsets.all(24),
-        constraints: const BoxConstraints(maxWidth: 500),
+        constraints: BoxConstraints(
+          maxWidth: 600,
+          maxHeight: MediaQuery.of(context).size.height * 0.8, // Max 80% výšky obrazovky
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -502,15 +507,24 @@ class _TodoListPageState extends State<TodoListPage> {
             ),
             const SizedBox(height: 20),
 
-            // Motivation text s typewriter efektem
-            TypewriterText(
-              text: motivation,
-              style: TextStyle(
-                color: DoomOneTheme.fg,
-                fontSize: 16,
-                height: 1.5,
+            // Motivation text s typewriter efektem - Scrollable
+            Flexible(
+              child: SingleChildScrollView(
+                child: TypewriterText(
+                  text: motivation,
+                  style: TextStyle(
+                    color: DoomOneTheme.fg,
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
+                  duration: const Duration(milliseconds: 20),
+                  onComplete: () {
+                    // Zastavit zvuk po dokončení typewriter efektu
+                    print('🎬 Typewriter dokončen - zastavuji zvuk');
+                    soundManager.stop();
+                  },
+                ),
               ),
-              duration: const Duration(milliseconds: 20),
             ),
             const SizedBox(height: 24),
 

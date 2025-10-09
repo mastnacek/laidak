@@ -5,12 +5,14 @@ class TypewriterText extends StatefulWidget {
   final String text;
   final TextStyle? style;
   final Duration duration;
+  final VoidCallback? onComplete; // Callback po dokončení
 
   const TypewriterText({
     super.key,
     required this.text,
     this.style,
     this.duration = const Duration(milliseconds: 30),
+    this.onComplete,
   });
 
   @override
@@ -39,6 +41,11 @@ class _TypewriterTextState extends State<TypewriterText> with SingleTickerProvid
           _startTyping();
         }
       });
+    } else {
+      // Dokončeno - zavolat callback
+      if (widget.onComplete != null) {
+        widget.onComplete!();
+      }
     }
   }
 
