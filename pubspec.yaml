@@ -46,8 +46,8 @@ dependencies:
   # HTTP pro API calls
   http: ^1.1.0
 
-  # Audio přehrávač
-  audioplayers: ^6.0.0
+  # Audio přehrávač (just_audio funguje lépe na Windows)
+  just_audio: ^0.9.36
 
 dev_dependencies:
   flutter_test:

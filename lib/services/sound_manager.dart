@@ -1,4 +1,4 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 
 /// Singleton služba pro správu zvuků
 class SoundManager {
@@ -14,28 +14,39 @@ class SoundManager {
   Future<void> playTypingLong() async {
     if (_isPlaying) return;
 
-    print('🔊 SoundManager: Playing typing_long.wav');
-    _isPlaying = true;
-    await _player.setReleaseMode(ReleaseMode.loop);
-    await _player.setVolume(0.5); // Zvýšil jsem volume
-    await _player.play(AssetSource('sounds/typing_long.wav'));
-    print('✅ SoundManager: typing_long started');
+    try {
+      print('🔊 SoundManager: Playing typing_long.wav');
+      _isPlaying = true;
+      await _player.setAsset('assets/sounds/typing_long.wav');
+      await _player.setLoopMode(LoopMode.one);
+      await _player.setVolume(0.5);
+      await _player.play();
+      print('✅ SoundManager: typing_long started');
+    } catch (e) {
+      print('❌ SoundManager ERROR: $e');
+      _isPlaying = false;
+    }
   }
 
   /// Přehrát subtle typing zvuk ve smyčce (při typewriter efektu)
   Future<void> playSubtleTyping() async {
     if (_isPlaying) {
-      // Pokud hraje typing_long, zastavit ho a přepnout na subtle
       print('🔇 SoundManager: Stopping previous sound');
       await stop();
     }
 
-    print('🔊 SoundManager: Playing subtle_long_type.wav');
-    _isPlaying = true;
-    await _player.setReleaseMode(ReleaseMode.loop);
-    await _player.setVolume(0.3); // Zvýšil jsem volume
-    await _player.play(AssetSource('sounds/subtle_long_type.wav'));
-    print('✅ SoundManager: subtle_long_type started');
+    try {
+      print('🔊 SoundManager: Playing subtle_long_type.wav');
+      _isPlaying = true;
+      await _player.setAsset('assets/sounds/subtle_long_type.wav');
+      await _player.setLoopMode(LoopMode.one);
+      await _player.setVolume(0.3);
+      await _player.play();
+      print('✅ SoundManager: subtle_long_type started');
+    } catch (e) {
+      print('❌ SoundManager ERROR: $e');
+      _isPlaying = false;
+    }
   }
 
   /// Zastavit přehrávání
@@ -43,6 +54,7 @@ class SoundManager {
     if (_isPlaying) {
       await _player.stop();
       _isPlaying = false;
+      print('⏹️ SoundManager: Stopped');
     }
   }
 
