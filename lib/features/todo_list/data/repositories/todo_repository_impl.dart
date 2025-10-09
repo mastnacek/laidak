@@ -73,7 +73,6 @@ class TodoRepositoryImpl implements TodoRepository {
       createdAt: item.createdAt,
       priority: item.priority,
       dueDate: item.dueDate,
-      action: item.action,
       tags: item.tags,
     );
   }
@@ -87,7 +86,6 @@ class TodoRepositoryImpl implements TodoRepository {
       createdAt: todo.createdAt,
       priority: todo.priority,
       dueDate: todo.dueDate,
-      action: todo.action,
       tags: todo.tags,
     );
   }

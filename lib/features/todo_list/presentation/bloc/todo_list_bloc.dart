@@ -58,7 +58,6 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
         createdAt: DateTime.now(),
         priority: event.priority,
         dueDate: event.dueDate,
-        action: event.action,
         tags: event.tags,
       );
 

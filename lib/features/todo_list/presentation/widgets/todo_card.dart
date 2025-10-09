@@ -206,14 +206,6 @@ class TodoCard extends StatelessWidget {
                             color: theme.appColors.blue,
                           ),
 
-                        // Akce
-                        if (todo.action != null)
-                          TodoTagChip(
-                            text:
-                                '${TagParser.getActionIcon(todo.action)} ${todo.action}',
-                            color: theme.appColors.magenta,
-                          ),
-
                         // Obecné tagy
                         ...todo.tags.map((tag) => TodoTagChip(
                               text: tag,
@@ -275,7 +267,6 @@ class TodoCard extends StatelessWidget {
       cleanText: todo.task,
       priority: todo.priority,
       dueDate: todo.dueDate,
-      action: todo.action,
       tags: todo.tags,
     );
 
@@ -377,7 +368,6 @@ class TodoCard extends StatelessWidget {
         task: parsed.cleanText,
         priority: parsed.priority,
         dueDate: parsed.dueDate,
-        action: parsed.action,
         tags: parsed.tags,
       );
 

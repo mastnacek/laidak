@@ -30,11 +30,10 @@ class TagParser {
     return RegExp('$start([^$end]+)$end');
   }
 
-  /// Parsovat text a extrahovat tagy, prioritu, datum, akci
+  /// Parsovat text a extrahovat tagy, prioritu, datum
   static Future<ParsedTask> parse(String input) async {
     String? priority;
     DateTime? dueDate;
-    String? action;
     final tags = <String>[];
 
     // RegEx pro nalezení všech tagů s aktuálními oddělovači
@@ -57,10 +56,6 @@ class TagParser {
 
           case TagType.date:
             dueDate = _parseDateTag(tagValue);
-            break;
-
-          case TagType.action:
-            action = tagValue;
             break;
 
           case TagType.status:
@@ -86,7 +81,6 @@ class TagParser {
       cleanText: cleanText,
       priority: priority,
       dueDate: dueDate,
-      action: action,
       tags: tags,
     );
   }
@@ -190,7 +184,6 @@ class TagParser {
     required String cleanText,
     String? priority,
     DateTime? dueDate,
-    String? action,
     List<String>? tags,
   }) async {
     final delimiters = await _getDelimiters();
@@ -208,11 +201,6 @@ class TagParser {
     if (dueDate != null) {
       final dateTag = formatDate(dueDate);
       buffer.write('$start$dateTag$end ');
-    }
-
-    // Přidat akci
-    if (action != null) {
-      buffer.write('$start$action$end ');
     }
 
     // Přidat čistý text
@@ -235,7 +223,6 @@ class ParsedTask {
   final String cleanText;
   final String? priority;
   final DateTime? dueDate;
-  final String? action;
   final List<String> tags;
 
   ParsedTask({
@@ -243,7 +230,6 @@ class ParsedTask {
     required this.cleanText,
     this.priority,
     this.dueDate,
-    this.action,
     required this.tags,
   });
 }
