@@ -449,6 +449,7 @@ class _TodoListPageState extends State<TodoListPage> {
   /// Vytvořit dialog s AI motivací
   Widget _buildMotivationDialog(TodoItem todo, String motivation) {
     final soundManager = SoundManager();
+    final scrollController = ScrollController();
 
     return Dialog(
       backgroundColor: DoomOneTheme.bg,
@@ -510,6 +511,7 @@ class _TodoListPageState extends State<TodoListPage> {
             // Motivation text s typewriter efektem - Scrollable
             Flexible(
               child: SingleChildScrollView(
+                controller: scrollController,
                 child: TypewriterText(
                   text: motivation,
                   style: TextStyle(
@@ -518,6 +520,7 @@ class _TodoListPageState extends State<TodoListPage> {
                     height: 1.5,
                   ),
                   duration: const Duration(milliseconds: 20),
+                  scrollController: scrollController,
                   onComplete: () {
                     // Zastavit zvuk po dokončení typewriter efektu
                     print('🎬 Typewriter dokončen - zastavuji zvuk');

@@ -6,6 +6,7 @@ class TypewriterText extends StatefulWidget {
   final TextStyle? style;
   final Duration duration;
   final VoidCallback? onComplete; // Callback po dokončení
+  final ScrollController? scrollController; // Pro auto-scroll
 
   const TypewriterText({
     super.key,
@@ -13,6 +14,7 @@ class TypewriterText extends StatefulWidget {
     this.style,
     this.duration = const Duration(milliseconds: 30),
     this.onComplete,
+    this.scrollController,
   });
 
   @override
@@ -38,6 +40,10 @@ class _TypewriterTextState extends State<TypewriterText> with SingleTickerProvid
             // Bezpečný substring - nerozdělit surrogate pair
             _displayedText = _safeSubstring(widget.text, 0, _currentIndex);
           });
+
+          // Auto-scroll dolů po každém přidání znaku
+          _autoScroll();
+
           _startTyping();
         }
       });
@@ -46,6 +52,22 @@ class _TypewriterTextState extends State<TypewriterText> with SingleTickerProvid
       if (widget.onComplete != null) {
         widget.onComplete!();
       }
+    }
+  }
+
+  /// Automaticky scrollovat dolů při přidávání textu
+  void _autoScroll() {
+    if (widget.scrollController != null && widget.scrollController!.hasClients) {
+      // Počkat na příští frame, aby se text vykreslil
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (widget.scrollController!.hasClients) {
+          widget.scrollController!.animateTo(
+            widget.scrollController!.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 100),
+            curve: Curves.easeOut,
+          );
+        }
+      });
     }
   }
 
