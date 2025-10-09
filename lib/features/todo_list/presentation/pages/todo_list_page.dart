@@ -22,7 +22,6 @@ class TodoListPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('TODO // DOOM'),
         actions: [
           // BlocBuilder pro toggle zobrazení hotových úkolů
           BlocBuilder<TodoListBloc, TodoListState>(
