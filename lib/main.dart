@@ -5,7 +5,9 @@ import 'theme/doom_one_theme.dart';
 import 'models/todo_item.dart';
 import 'services/database_helper.dart';
 import 'services/tag_parser.dart';
+import 'services/ai_service.dart';
 import 'widgets/highlighted_text_field.dart';
+import 'widgets/typewriter_text.dart';
 
 void main() {
   // Inicializovat FFI pro desktop platformy (Windows, Linux, macOS)
@@ -370,7 +372,134 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Získat AI motivaci pro úkol
   Future<void> _motivateTask(TodoItem todo) async {
-    // TODO: Implementovat AI motivaci
-    print('🎯 Motivate task #${todo.id}: ${todo.task}');
+    // Zobrazit loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: DoomOneTheme.magenta,
+        ),
+      ),
+    );
+
+    try {
+      // Zavolat AI API
+      final motivation = await AIService.getMotivation(
+        taskText: todo.task,
+        priority: todo.priority,
+        tags: todo.tags,
+      );
+
+      // Zavřít loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Zobrazit motivaci v dialogu s typewriter efektem
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => _buildMotivationDialog(todo, motivation),
+        );
+      }
+    } catch (e) {
+      // Zavřít loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Zobrazit error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Chyba při získávání motivace: $e'),
+            backgroundColor: DoomOneTheme.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Vytvořit dialog s AI motivací
+  Widget _buildMotivationDialog(TodoItem todo, String motivation) {
+    return Dialog(
+      backgroundColor: DoomOneTheme.bg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: DoomOneTheme.magenta, width: 2),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        constraints: const BoxConstraints(maxWidth: 500),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Icon(Icons.auto_awesome, color: DoomOneTheme.magenta, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'AI MOTIVACE',
+                    style: TextStyle(
+                      color: DoomOneTheme.magenta,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+            Divider(color: DoomOneTheme.base3, height: 24),
+
+            // Task preview
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: DoomOneTheme.bgAlt,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: DoomOneTheme.base3),
+              ),
+              child: Text(
+                '📋 ${todo.task}',
+                style: TextStyle(
+                  color: DoomOneTheme.fg,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Motivation text s typewriter efektem
+            TypewriterText(
+              text: motivation,
+              style: TextStyle(
+                color: DoomOneTheme.fg,
+                fontSize: 16,
+                height: 1.5,
+              ),
+              duration: const Duration(milliseconds: 20),
+            ),
+            const SizedBox(height: 24),
+
+            // Close button
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: DoomOneTheme.magenta,
+                  foregroundColor: DoomOneTheme.bg,
+                ),
+                child: const Text('Zavřít'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
