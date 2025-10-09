@@ -39,7 +39,16 @@ class _TodoListPageState extends State<TodoListPage> {
   @override
   void initState() {
     super.initState();
-    _loadTodos();
+    _initializeApp();
+  }
+
+  /// Inicializovat aplikaci - migrace + načtení úkolů
+  Future<void> _initializeApp() async {
+    // Spustit migraci starých úkolů (odstranit tagy z textu)
+    await _db.migrateOldTasks();
+
+    // Načíst úkoly
+    await _loadTodos();
   }
 
   /// Načíst úkoly z databáze

@@ -97,4 +97,33 @@ class DatabaseHelper {
     final db = await database;
     await db.close();
   }
+
+  /// Migrovat staré úkoly - přeparsovat tagy a odstranit je z textu
+  Future<void> migrateOldTasks() async {
+    final db = await database;
+
+    // Načíst všechny úkoly jako raw data
+    final maps = await db.query('todos');
+
+    for (final map in maps) {
+      final taskText = map['task'] as String;
+
+      // Zkontrolovat, jestli text obsahuje tagy
+      if (taskText.contains('*')) {
+        // Přeparsovat pomocí TagParser
+        final tagRegex = RegExp(r'\*([^*]+)\*');
+        final cleanText = taskText.replaceAll(tagRegex, '').trim();
+
+        // Pokud se text změnil, aktualizovat v databázi
+        if (cleanText != taskText) {
+          await db.update(
+            'todos',
+            {'task': cleanText},
+            where: 'id = ?',
+            whereArgs: [map['id']],
+          );
+        }
+      }
+    }
+  }
 }
