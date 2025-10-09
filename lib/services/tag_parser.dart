@@ -40,6 +40,13 @@ class TagParser {
     // Odstranit všechny tagy z textu (včetně hvězdiček)
     final cleanText = input.replaceAll(tagRegex, '').trim();
 
+    // Debug výpis
+    print('🔍 TagParser.parse():');
+    print('   Input: "$input"');
+    print('   Clean: "$cleanText"');
+    print('   Priority: $priority');
+    print('   Tags: $tags');
+
     return ParsedTask(
       originalText: input,
       cleanText: cleanText,

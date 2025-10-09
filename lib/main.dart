@@ -1,4 +1,6 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'theme/doom_one_theme.dart';
 import 'models/todo_item.dart';
 import 'services/database_helper.dart';
@@ -6,6 +8,12 @@ import 'services/tag_parser.dart';
 import 'widgets/highlighted_text_field.dart';
 
 void main() {
+  // Inicializovat FFI pro desktop platformy (Windows, Linux, macOS)
+  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
   runApp(const TodoApp());
 }
 
@@ -39,16 +47,7 @@ class _TodoListPageState extends State<TodoListPage> {
   @override
   void initState() {
     super.initState();
-    _initializeApp();
-  }
-
-  /// Inicializovat aplikaci - migrace + načtení úkolů
-  Future<void> _initializeApp() async {
-    // Spustit migraci starých úkolů (odstranit tagy z textu)
-    await _db.migrateOldTasks();
-
-    // Načíst úkoly
-    await _loadTodos();
+    _loadTodos();
   }
 
   /// Načíst úkoly z databáze
