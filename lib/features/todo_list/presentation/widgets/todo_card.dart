@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../../core/services/ai_service.dart';
 import '../../../../core/services/sound_manager.dart';
+import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/typewriter_text.dart';
 import '../../domain/entities/todo.dart';
@@ -485,9 +485,9 @@ class TodoCard extends StatelessWidget {
     );
 
     try {
-      print('🤖 Volám AIService.getMotivation...');
-      // Zavolat AI API
-      final motivation = await AIService.getMotivation(
+      print('🤖 Volám MotivationCubit.fetchMotivation...');
+      // Zavolat AI Cubit
+      final motivation = await context.read<MotivationCubit>().fetchMotivation(
         taskText: todo.task,
         priority: todo.priority,
         tags: todo.tags,

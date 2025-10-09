@@ -9,6 +9,8 @@ import 'features/todo_list/presentation/bloc/todo_list_bloc.dart';
 import 'features/todo_list/presentation/bloc/todo_list_event.dart';
 import 'features/todo_list/presentation/pages/todo_list_page.dart';
 import 'features/todo_list/data/repositories/todo_repository_impl.dart';
+import 'features/ai_motivation/presentation/cubit/motivation_cubit.dart';
+import 'features/ai_motivation/data/repositories/motivation_repository_impl.dart';
 import 'core/services/database_helper.dart';
 import 'services/tag_service.dart';
 
@@ -39,6 +41,10 @@ void main() async {
         BlocProvider(
           create: (_) => TodoListBloc(TodoRepositoryImpl(db))
             ..add(const LoadTodosEvent()), // Automaticky načíst todos
+        ),
+        // MotivationCubit pro AI motivaci
+        BlocProvider(
+          create: (_) => MotivationCubit(MotivationRepositoryImpl(db)),
         ),
       ],
       child: const TodoApp(),
