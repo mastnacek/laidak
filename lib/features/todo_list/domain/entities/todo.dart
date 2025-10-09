@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../ai_split/domain/entities/subtask.dart';
 
 /// Domain entita pro TODO úkol
 ///
@@ -15,6 +16,11 @@ final class Todo extends Equatable {
   final DateTime? dueDate;
   final List<String> tags;
 
+  // AI Split metadata
+  final List<Subtask>? subtasks;
+  final String? aiRecommendations;
+  final String? aiDeadlineAnalysis;
+
   const Todo({
     this.id,
     required this.task,
@@ -23,6 +29,9 @@ final class Todo extends Equatable {
     this.priority,
     this.dueDate,
     this.tags = const [],
+    this.subtasks,
+    this.aiRecommendations,
+    this.aiDeadlineAnalysis,
   });
 
   /// Vytvořit kopii s upravenými hodnotami
@@ -34,6 +43,9 @@ final class Todo extends Equatable {
     String? priority,
     DateTime? dueDate,
     List<String>? tags,
+    List<Subtask>? subtasks,
+    String? aiRecommendations,
+    String? aiDeadlineAnalysis,
   }) {
     return Todo(
       id: id ?? this.id,
@@ -43,6 +55,9 @@ final class Todo extends Equatable {
       priority: priority ?? this.priority,
       dueDate: dueDate ?? this.dueDate,
       tags: tags ?? this.tags,
+      subtasks: subtasks ?? this.subtasks,
+      aiRecommendations: aiRecommendations ?? this.aiRecommendations,
+      aiDeadlineAnalysis: aiDeadlineAnalysis ?? this.aiDeadlineAnalysis,
     );
   }
 
@@ -79,5 +94,8 @@ final class Todo extends Equatable {
         priority,
         dueDate,
         tags,
+        subtasks,
+        aiRecommendations,
+        aiDeadlineAnalysis,
       ];
 }
