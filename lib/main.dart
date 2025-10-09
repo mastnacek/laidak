@@ -541,26 +541,6 @@ class _TodoListPageState extends State<TodoListPage> {
 
             // Tlačítko motivate
             _buildMotivateButton(todo),
-            const SizedBox(width: 8),
-
-            // Tlačítko editovat
-            IconButton(
-              icon: const Icon(Icons.edit_outlined, color: DoomOneTheme.yellow),
-              onPressed: () => _editTodoItem(todo),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: 'Editovat úkol',
-            ),
-            const SizedBox(width: 8),
-
-            // Tlačítko smazat
-            IconButton(
-              icon: const Icon(Icons.delete_outline, color: DoomOneTheme.red),
-              onPressed: () => _removeTodoItem(todo),
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              tooltip: 'Smazat úkol',
-            ),
           ],
         ),
         ),
