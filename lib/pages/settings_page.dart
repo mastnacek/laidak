@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/doom_one_theme.dart';
 import '../theme/blade_runner_theme.dart';
 import '../theme/osaka_jade_theme.dart';
 import '../theme/amoled_theme.dart';
+import '../providers/theme_provider.dart';
 import '../services/database_helper.dart';
 import '../services/tag_service.dart';
 import '../models/tag_definition.dart';
@@ -1986,18 +1988,21 @@ class _ThemesTabState extends State<_ThemesTab> {
     });
   }
 
-  /// Uložit vybrané téma do databáze
+  /// Uložit a okamžitě aplikovat vybrané téma
   Future<void> _saveTheme(String themeId) async {
     try {
-      await _db.updateSettings(selectedTheme: themeId);
+      // Zavolat ThemeProvider.changeTheme() - okamžitě aplikuje téma
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      await themeProvider.changeTheme(themeId);
+
       setState(() => _selectedTheme = themeId);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('✅ Téma bylo uloženo. Restartuj aplikaci pro aplikování změn.'),
+            content: const Text('✅ Téma bylo okamžitě aplikováno!'),
             backgroundColor: DoomOneTheme.green,
-            duration: const Duration(seconds: 4),
+            duration: const Duration(seconds: 2),
           ),
         );
       }

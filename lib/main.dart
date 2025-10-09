@@ -1,8 +1,10 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'theme/doom_one_theme.dart';
 import 'models/todo_item.dart';
+import 'providers/theme_provider.dart';
 import 'services/database_helper.dart';
 import 'services/tag_parser.dart';
 import 'services/tag_service.dart';
@@ -25,7 +27,12 @@ void main() async {
   // Inicializovat TagService (načíst definice tagů do cache)
   await TagService().init();
 
-  runApp(const TodoApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const TodoApp(),
+    ),
+  );
 }
 
 class TodoApp extends StatelessWidget {
@@ -33,10 +40,14 @@ class TodoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TODO Doom',
-      theme: DoomOneTheme.darkTheme,
-      home: const TodoListPage(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'TODO Doom',
+          theme: themeProvider.currentTheme,
+          home: const TodoListPage(),
+        );
+      },
     );
   }
 }

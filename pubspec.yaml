@@ -50,6 +50,9 @@ dependencies:
   just_audio: ^0.9.36
   just_audio_windows: ^0.2.0  # Windows implementace pro just_audio
 
+  # State management pro dynamické změny tématu
+  provider: ^6.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
