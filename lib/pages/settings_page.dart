@@ -9,6 +9,8 @@ import '../features/settings/presentation/cubit/settings_cubit.dart';
 import '../core/services/database_helper.dart';
 import '../services/tag_service.dart';
 import '../models/tag_definition.dart';
+import '../widgets/color_picker_dialog.dart';
+import '../utils/color_utils.dart';
 
 /// Stránka s nastavením AI motivace
 class SettingsPage extends StatefulWidget {
@@ -1191,7 +1193,70 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   _buildDialogField('Emoji', emojiController, '🔥'),
                   const SizedBox(height: 16),
 
-                  _buildDialogField('Barva (hex)', colorController, '#FF5555'),
+                  // Color picker button
+                  Text(
+                    'Barva',
+                    style: TextStyle(
+                      color: theme.appColors.fg,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: () async {
+                      final result = await showDialog<Map<String, dynamic>>(
+                        context: context,
+                        builder: (context) => ColorPickerDialog(
+                          initialColor: colorController.text.trim().isEmpty ? '#50FA7B' : colorController.text.trim(),
+                          initialGlowEnabled: tag.glowEnabled,
+                          initialGlowStrength: tag.glowStrength,
+                        ),
+                      );
+
+                      if (result != null) {
+                        setDialogState(() {
+                          colorController.text = result['color'] as String;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.appColors.base2,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: theme.appColors.base4),
+                      ),
+                      child: Row(
+                        children: [
+                          // Color preview box
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: ColorUtils.isValidHex(colorController.text)
+                                  ? ColorUtils.hexToColor(colorController.text)
+                                  : theme.appColors.cyan,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: theme.appColors.base6, width: 2),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              colorController.text.trim().isEmpty ? 'Vyberte barvu' : colorController.text,
+                              style: TextStyle(
+                                color: theme.appColors.fg,
+                                fontSize: 14,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                          Icon(Icons.palette, color: theme.appColors.cyan),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
 
                   // Typ tagu dropdown

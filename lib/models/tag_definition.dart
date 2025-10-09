@@ -52,6 +52,8 @@ class TagDefinition {
   final String? displayName; // zobrazovaný název, např. "Vysoká priorita"
   final String? emoji; // emoji pro zobrazení
   final String? color; // hex barva pro zvýraznění
+  final bool glowEnabled; // je zapnutý glow efekt?
+  final double glowStrength; // síla glow efektu (0.0 - 1.0)
   final int sortOrder; // pořadí zobrazení v rámci typu
   final bool enabled; // je tag povolen?
 
@@ -62,6 +64,8 @@ class TagDefinition {
     this.displayName,
     this.emoji,
     this.color,
+    this.glowEnabled = false,
+    this.glowStrength = 0.5,
     this.sortOrder = 0,
     this.enabled = true,
   });
@@ -75,6 +79,8 @@ class TagDefinition {
       'display_name': displayName,
       'emoji': emoji,
       'color': color,
+      'glow_enabled': glowEnabled ? 1 : 0,
+      'glow_strength': glowStrength,
       'sort_order': sortOrder,
       'enabled': enabled ? 1 : 0,
     };
@@ -89,6 +95,8 @@ class TagDefinition {
       displayName: map['display_name'] as String?,
       emoji: map['emoji'] as String?,
       color: map['color'] as String?,
+      glowEnabled: (map['glow_enabled'] as int? ?? 0) == 1,
+      glowStrength: (map['glow_strength'] as num?)?.toDouble() ?? 0.5,
       sortOrder: map['sort_order'] as int? ?? 0,
       enabled: (map['enabled'] as int? ?? 1) == 1,
     );
@@ -102,6 +110,8 @@ class TagDefinition {
     String? displayName,
     String? emoji,
     String? color,
+    bool? glowEnabled,
+    double? glowStrength,
     int? sortOrder,
     bool? enabled,
   }) {
@@ -112,6 +122,8 @@ class TagDefinition {
       displayName: displayName ?? this.displayName,
       emoji: emoji ?? this.emoji,
       color: color ?? this.color,
+      glowEnabled: glowEnabled ?? this.glowEnabled,
+      glowStrength: glowStrength ?? this.glowStrength,
       sortOrder: sortOrder ?? this.sortOrder,
       enabled: enabled ?? this.enabled,
     );

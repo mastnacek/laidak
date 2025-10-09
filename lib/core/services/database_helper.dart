@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -81,6 +81,8 @@ class DatabaseHelper {
         display_name TEXT,
         emoji TEXT,
         color TEXT,
+        glow_enabled INTEGER NOT NULL DEFAULT 0,
+        glow_strength REAL NOT NULL DEFAULT 0.5,
         sort_order INTEGER NOT NULL DEFAULT 0,
         enabled INTEGER NOT NULL DEFAULT 1
       )
@@ -154,6 +156,17 @@ class DatabaseHelper {
       // Přidat sloupec pro vybrané téma
       await db.execute('''
         ALTER TABLE settings ADD COLUMN selected_theme TEXT NOT NULL DEFAULT 'doom_one'
+      ''');
+    }
+
+    if (oldVersion < 6) {
+      // Přidat sloupce pro glow efekt tagů
+      await db.execute('''
+        ALTER TABLE tag_definitions ADD COLUMN glow_enabled INTEGER NOT NULL DEFAULT 0
+      ''');
+
+      await db.execute('''
+        ALTER TABLE tag_definitions ADD COLUMN glow_strength REAL NOT NULL DEFAULT 0.5
       ''');
     }
   }
