@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/todo_item.dart';
+import '../../models/todo_item.dart';
 
 /// Singleton služba pro správu SQLite databáze
 class DatabaseHelper {

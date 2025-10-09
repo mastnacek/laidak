@@ -1,16 +1,17 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'theme/doom_one_theme.dart';
-import 'theme/theme_colors.dart';
+import 'core/theme/doom_one_theme.dart';
+import 'core/theme/theme_colors.dart';
 import 'models/todo_item.dart';
-import 'providers/theme_provider.dart';
-import 'services/database_helper.dart';
+import 'features/settings/presentation/cubit/settings_cubit.dart';
+import 'features/settings/presentation/cubit/settings_state.dart';
+import 'core/services/database_helper.dart';
 import 'services/tag_parser.dart';
 import 'services/tag_service.dart';
-import 'services/ai_service.dart';
-import 'services/sound_manager.dart';
+import 'core/services/ai_service.dart';
+import 'core/services/sound_manager.dart';
 import 'widgets/highlighted_text_field.dart';
 import 'widgets/typewriter_text.dart';
 import 'pages/settings_page.dart';
@@ -29,8 +30,8 @@ void main() async {
   await TagService().init();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    BlocProvider(
+      create: (_) => SettingsCubit(DatabaseHelper()),
       child: const TodoApp(),
     ),
   );
@@ -41,11 +42,16 @@ class TodoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, state) {
+        // Získat theme ze state nebo použít fallback
+        final theme = state is SettingsLoaded
+            ? state.currentTheme
+            : DoomOneTheme.darkTheme; // Fallback při načítání
+
         return MaterialApp(
           title: 'TODO Doom',
-          theme: themeProvider.currentTheme,
+          theme: theme,
           home: const TodoListPage(),
         );
       },
@@ -220,6 +226,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Editovat úkol
   Future<void> _editTodoItem(TodoItem todo) async {
+    final theme = Theme.of(context);
+
     // Rekonstruovat text s tagy pro editaci (async)
     final textWithTags = await TagParser.reconstructWithTags(
       cleanText: todo.task,
@@ -377,6 +385,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Vytvořit kartu s úkolem
   Widget _buildTodoCard(TodoItem todo) {
+    final theme = Theme.of(context);
     final isExpanded = _expandedTaskId == todo.id;
 
     return Dismissible(
@@ -607,6 +616,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Vytvořit pulzující růžové tlačítko motivate
   Widget _buildMotivateButton(TodoItem todo) {
+    final theme = Theme.of(context);
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: const Duration(milliseconds: 2000),
@@ -652,6 +663,8 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Získat AI motivaci pro úkol
   Future<void> _motivateTask(TodoItem todo) async {
+    final theme = Theme.of(context);
+
     print('🚀 _motivateTask START pro úkol: ${todo.task}');
 
     // Zavřít klávesnici (pokud je otevřená)
@@ -668,7 +681,7 @@ class _TodoListPageState extends State<TodoListPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
+      builder: (context) => Center(
         child: CircularProgressIndicator(
           color: theme.appColors.magenta,
         ),
@@ -731,6 +744,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   /// Vytvořit dialog s AI motivací
   Widget _buildMotivationDialog(TodoItem todo, String motivation) {
+    final theme = Theme.of(context);
     final soundManager = SoundManager();
     final scrollController = ScrollController();
 

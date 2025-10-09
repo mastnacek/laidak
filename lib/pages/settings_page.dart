@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../theme/doom_one_theme.dart';
-import '../theme/blade_runner_theme.dart';
-import '../theme/osaka_jade_theme.dart';
-import '../theme/amoled_theme.dart';
-import '../theme/theme_colors.dart';
-import '../providers/theme_provider.dart';
-import '../services/database_helper.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../core/theme/doom_one_theme.dart';
+import '../core/theme/blade_runner_theme.dart';
+import '../core/theme/osaka_jade_theme.dart';
+import '../core/theme/amoled_theme.dart';
+import '../core/theme/theme_colors.dart';
+import '../features/settings/presentation/cubit/settings_cubit.dart';
+import '../core/services/database_helper.dart';
 import '../services/tag_service.dart';
 import '../models/tag_definition.dart';
 
@@ -1996,9 +1996,8 @@ class _ThemesTabState extends State<_ThemesTab> {
   /// Uložit a okamžitě aplikovat vybrané téma
   Future<void> _saveTheme(String themeId) async {
     try {
-      // Zavolat ThemeProvider.changeTheme() - okamžitě aplikuje téma
-      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-      await themeProvider.changeTheme(themeId);
+      // Zavolat SettingsCubit.changeTheme() - okamžitě aplikuje téma
+      context.read<SettingsCubit>().changeTheme(themeId);
 
       setState(() => _selectedTheme = themeId);
 
