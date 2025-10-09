@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'theme/doom_one_theme.dart';
+import 'theme/theme_colors.dart';
 import 'models/todo_item.dart';
 import 'providers/theme_provider.dart';
 import 'services/database_helper.dart';
@@ -127,6 +128,7 @@ class _TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     // Filtrovat úkoly podle _showCompleted
     final displayedTodos = _showCompleted
         ? _todoItems
@@ -140,7 +142,7 @@ class _TodoListPageState extends State<TodoListPage> {
           IconButton(
             icon: Icon(
               _showCompleted ? Icons.visibility : Icons.visibility_off,
-              color: _showCompleted ? DoomOneTheme.green : DoomOneTheme.base5,
+              color: _showCompleted ? theme.appColors.green : theme.appColors.base5,
             ),
             tooltip: _showCompleted ? 'Skrýt hotové úkoly' : 'Zobrazit hotové úkoly',
             onPressed: () {
@@ -162,7 +164,7 @@ class _TodoListPageState extends State<TodoListPage> {
         children: [
           // Formulář pro přidání nového úkolu
           Container(
-            color: DoomOneTheme.bgAlt,
+            color: theme.appColors.bgAlt,
             padding: const EdgeInsets.all(16.0),
             child: Row(
               children: [
@@ -184,7 +186,7 @@ class _TodoListPageState extends State<TodoListPage> {
               ],
             ),
           ),
-          Divider(height: 1, color: DoomOneTheme.base3),
+          Divider(height: 1, color: theme.appColors.base3),
 
           // Seznam úkolů
           Expanded(
@@ -199,7 +201,7 @@ class _TodoListPageState extends State<TodoListPage> {
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 16,
-                            color: DoomOneTheme.base5,
+                            color: theme.appColors.base5,
                           ),
                         ),
                       )
@@ -232,10 +234,10 @@ class _TodoListPageState extends State<TodoListPage> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: DoomOneTheme.bg,
+        backgroundColor: theme.appColors.bg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: DoomOneTheme.yellow, width: 2),
+          side: BorderSide(color: theme.appColors.yellow, width: 2),
         ),
         child: Container(
           padding: const EdgeInsets.all(24),
@@ -247,31 +249,31 @@ class _TodoListPageState extends State<TodoListPage> {
               // Header
               Row(
                 children: [
-                  Icon(Icons.edit, color: DoomOneTheme.yellow, size: 28),
+                  Icon(Icons.edit, color: theme.appColors.yellow, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'EDITOVAT ÚKOL',
                       style: TextStyle(
-                        color: DoomOneTheme.yellow,
+                        color: theme.appColors.yellow,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                    icon: Icon(Icons.close, color: theme.appColors.base5),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
-              Divider(color: DoomOneTheme.base3, height: 24),
+              Divider(color: theme.appColors.base3, height: 24),
 
               // TextField pro text úkolu
               Text(
                 'Text úkolu:',
                 style: TextStyle(
-                  color: DoomOneTheme.fg,
+                  color: theme.appColors.fg,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -281,19 +283,19 @@ class _TodoListPageState extends State<TodoListPage> {
                 controller: controller,
                 autofocus: true,
                 maxLines: 3,
-                style: TextStyle(color: DoomOneTheme.fg, fontSize: 16),
+                style: TextStyle(color: theme.appColors.fg, fontSize: 16),
                 decoration: InputDecoration(
                   hintText: 'Zadej text úkolu...',
-                  hintStyle: TextStyle(color: DoomOneTheme.base5),
+                  hintStyle: TextStyle(color: theme.appColors.base5),
                   filled: true,
-                  fillColor: DoomOneTheme.base2,
+                  fillColor: theme.appColors.base2,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: DoomOneTheme.base4),
+                    borderSide: BorderSide(color: theme.appColors.base4),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: DoomOneTheme.yellow, width: 2),
+                    borderSide: BorderSide(color: theme.appColors.yellow, width: 2),
                   ),
                 ),
               ),
@@ -305,7 +307,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                    child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
                   ),
                   const SizedBox(width: 12),
                   ElevatedButton(
@@ -315,8 +317,8 @@ class _TodoListPageState extends State<TodoListPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: DoomOneTheme.yellow,
-                      foregroundColor: DoomOneTheme.bg,
+                      backgroundColor: theme.appColors.yellow,
+                      foregroundColor: theme.appColors.bg,
                     ),
                     child: const Text('Uložit'),
                   ),
@@ -349,7 +351,7 @@ class _TodoListPageState extends State<TodoListPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Úkol byl aktualizován'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
           ),
         );
       }
@@ -357,17 +359,18 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   /// Získat barvu rámečku úkolu podle stavu a priority
-  Color _getTodoBorderColor(TodoItem todo) {
+  Color _getTodoBorderColor(TodoItem todo, BuildContext context) {
+    final theme = Theme.of(context);
     if (todo.isCompleted) {
       // Splněné úkoly = neonově cyan (Doom One styl)
-      return DoomOneTheme.cyan;
+      return theme.appColors.cyan;
     } else {
       // Nesplněné úkoly = barva podle priority
       if (todo.priority != null) {
-        return _getPriorityColor(todo.priority!);
+        return _getPriorityColor(todo.priority!, context);
       } else {
         // Bez priority = šedá
-        return DoomOneTheme.base4;
+        return theme.appColors.base4;
       }
     }
   }
@@ -382,7 +385,7 @@ class _TodoListPageState extends State<TodoListPage> {
       background: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: todo.isCompleted ? DoomOneTheme.yellow : DoomOneTheme.green,
+          color: todo.isCompleted ? theme.appColors.yellow : theme.appColors.green,
           borderRadius: BorderRadius.circular(8),
         ),
         alignment: Alignment.centerLeft,
@@ -391,14 +394,14 @@ class _TodoListPageState extends State<TodoListPage> {
           children: [
             Icon(
               todo.isCompleted ? Icons.refresh : Icons.check_circle,
-              color: DoomOneTheme.bg,
+              color: theme.appColors.bg,
               size: 32,
             ),
             const SizedBox(width: 12),
             Text(
               todo.isCompleted ? 'VRÁTIT' : 'HOTOVO',
               style: TextStyle(
-                color: DoomOneTheme.bg,
+                color: theme.appColors.bg,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -410,7 +413,7 @@ class _TodoListPageState extends State<TodoListPage> {
       secondaryBackground: Container(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: BoxDecoration(
-          color: DoomOneTheme.red,
+          color: theme.appColors.red,
           borderRadius: BorderRadius.circular(8),
         ),
         alignment: Alignment.centerRight,
@@ -421,7 +424,7 @@ class _TodoListPageState extends State<TodoListPage> {
             Text(
               'SMAZAT',
               style: TextStyle(
-                color: DoomOneTheme.bg,
+                color: theme.appColors.bg,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -429,7 +432,7 @@ class _TodoListPageState extends State<TodoListPage> {
             const SizedBox(width: 12),
             Icon(
               Icons.delete_forever,
-              color: DoomOneTheme.bg,
+              color: theme.appColors.bg,
               size: 32,
             ),
           ],
@@ -471,10 +474,10 @@ class _TodoListPageState extends State<TodoListPage> {
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: DoomOneTheme.bgAlt,
+            color: theme.appColors.bgAlt,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: _getTodoBorderColor(todo),
+              color: _getTodoBorderColor(todo, context),
               width: 2,
             ),
           ),
@@ -493,7 +496,7 @@ class _TodoListPageState extends State<TodoListPage> {
                       Text(
                         '[${todo.id}]',
                         style: TextStyle(
-                          color: DoomOneTheme.base5,
+                          color: theme.appColors.base5,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           fontFamily: 'monospace',
@@ -511,8 +514,8 @@ class _TodoListPageState extends State<TodoListPage> {
                                 ? TextDecoration.lineThrough
                                 : TextDecoration.none,
                             color: todo.isCompleted
-                                ? DoomOneTheme.base5
-                                : DoomOneTheme.fg,
+                                ? theme.appColors.base5
+                                : theme.appColors.fg,
                             fontSize: 16,
                           ),
                         ),
@@ -530,27 +533,27 @@ class _TodoListPageState extends State<TodoListPage> {
                       if (todo.priority != null)
                         _buildTag(
                           '${TagParser.getPriorityIcon(todo.priority)} ${todo.priority!.toUpperCase()}',
-                          _getPriorityColor(todo.priority!),
+                          _getPriorityColor(todo.priority!, context),
                         ),
 
                       // Datum
                       if (todo.dueDate != null)
                         _buildTag(
                           '📅 ${TagParser.formatDate(todo.dueDate!)}',
-                          DoomOneTheme.blue,
+                          theme.appColors.blue,
                         ),
 
                       // Akce
                       if (todo.action != null)
                         _buildTag(
                           '${TagParser.getActionIcon(todo.action)} ${todo.action}',
-                          DoomOneTheme.magenta,
+                          theme.appColors.magenta,
                         ),
 
                       // Obecné tagy
                       ...todo.tags.map((tag) => _buildTag(
                             tag,
-                            DoomOneTheme.cyan,
+                            theme.appColors.cyan,
                           )),
                     ],
                   ),
@@ -588,16 +591,17 @@ class _TodoListPageState extends State<TodoListPage> {
   }
 
   /// Získat barvu pro prioritu
-  Color _getPriorityColor(String priority) {
+  Color _getPriorityColor(String priority, BuildContext context) {
+    final theme = Theme.of(context);
     switch (priority) {
       case 'a':
-        return DoomOneTheme.red;
+        return theme.appColors.red;
       case 'b':
-        return DoomOneTheme.yellow;
+        return theme.appColors.yellow;
       case 'c':
-        return DoomOneTheme.green;
+        return theme.appColors.green;
       default:
-        return DoomOneTheme.base5;
+        return theme.appColors.base5;
     }
   }
 
@@ -616,7 +620,7 @@ class _TodoListPageState extends State<TodoListPage> {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: DoomOneTheme.magenta.withOpacity(0.3 * pulseValue),
+                color: theme.appColors.magenta.withOpacity(0.3 * pulseValue),
                 blurRadius: 6 * pulseValue,
                 spreadRadius: 1 * pulseValue,
               ),
@@ -626,7 +630,7 @@ class _TodoListPageState extends State<TodoListPage> {
             icon: Text(
               'M',
               style: TextStyle(
-                color: DoomOneTheme.magenta,
+                color: theme.appColors.magenta,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -666,7 +670,7 @@ class _TodoListPageState extends State<TodoListPage> {
       barrierDismissible: false,
       builder: (context) => const Center(
         child: CircularProgressIndicator(
-          color: DoomOneTheme.magenta,
+          color: theme.appColors.magenta,
         ),
       ),
     );
@@ -717,7 +721,7 @@ class _TodoListPageState extends State<TodoListPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Chyba při získávání motivace: $e'),
-            backgroundColor: DoomOneTheme.red,
+            backgroundColor: theme.appColors.red,
           ),
         );
       }
@@ -731,10 +735,10 @@ class _TodoListPageState extends State<TodoListPage> {
     final scrollController = ScrollController();
 
     return Dialog(
-      backgroundColor: DoomOneTheme.bg,
+      backgroundColor: theme.appColors.bg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: DoomOneTheme.magenta, width: 2),
+        side: BorderSide(color: theme.appColors.magenta, width: 2),
       ),
       child: Container(
         padding: const EdgeInsets.all(24),
@@ -749,38 +753,38 @@ class _TodoListPageState extends State<TodoListPage> {
             // Header
             Row(
               children: [
-                Icon(Icons.auto_awesome, color: DoomOneTheme.magenta, size: 28),
+                Icon(Icons.auto_awesome, color: theme.appColors.magenta, size: 28),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'AI MOTIVACE',
                     style: TextStyle(
-                      color: DoomOneTheme.magenta,
+                      color: theme.appColors.magenta,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                  icon: Icon(Icons.close, color: theme.appColors.base5),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
-            Divider(color: DoomOneTheme.base3, height: 24),
+            Divider(color: theme.appColors.base3, height: 24),
 
             // Task preview
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: DoomOneTheme.bgAlt,
+                color: theme.appColors.bgAlt,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: DoomOneTheme.base3),
+                border: Border.all(color: theme.appColors.base3),
               ),
               child: Text(
                 '📋 ${todo.task}',
                 style: TextStyle(
-                  color: DoomOneTheme.fg,
+                  color: theme.appColors.fg,
                   fontSize: 14,
                 ),
               ),
@@ -794,7 +798,7 @@ class _TodoListPageState extends State<TodoListPage> {
                 child: TypewriterText(
                   text: motivation,
                   style: TextStyle(
-                    color: DoomOneTheme.fg,
+                    color: theme.appColors.fg,
                     fontSize: 16,
                     height: 1.5,
                   ),
@@ -816,8 +820,8 @@ class _TodoListPageState extends State<TodoListPage> {
               child: ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: DoomOneTheme.magenta,
-                  foregroundColor: DoomOneTheme.bg,
+                  backgroundColor: theme.appColors.magenta,
+                  foregroundColor: theme.appColors.bg,
                 ),
                 child: const Text('Zavřít'),
               ),

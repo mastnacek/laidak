@@ -34,6 +34,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('NASTAVENÍ'),
@@ -43,9 +44,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: DoomOneTheme.cyan,
-          labelColor: DoomOneTheme.cyan,
-          unselectedLabelColor: DoomOneTheme.base5,
+          indicatorColor: theme.appColors.cyan,
+          labelColor: theme.appColors.cyan,
+          unselectedLabelColor: theme.appColors.base5,
           isScrollable: true,
           tabs: const [
             Tab(
@@ -157,7 +158,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Nastavení bylo úspěšně uloženo'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
           ),
         );
       }
@@ -166,7 +167,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ Chyba při ukládání: $e'),
-            backgroundColor: DoomOneTheme.red,
+            backgroundColor: theme.appColors.red,
           ),
         );
       }
@@ -175,6 +176,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -188,19 +190,19 @@ class _AISettingsTabState extends State<_AISettingsTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: DoomOneTheme.blue.withOpacity(0.1),
+              color: theme.appColors.blue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: DoomOneTheme.blue, width: 1),
+              border: Border.all(color: theme.appColors.blue, width: 1),
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: DoomOneTheme.blue, size: 24),
+                Icon(Icons.info_outline, color: theme.appColors.blue, size: 24),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'Konfigurace AI modelu pro motivační zprávy.\nAPI klíč můžeš získat na openrouter.ai',
                     style: TextStyle(
-                      color: DoomOneTheme.fg,
+                      color: theme.appColors.fg,
                       fontSize: 13,
                       height: 1.4,
                     ),
@@ -215,15 +217,15 @@ class _AISettingsTabState extends State<_AISettingsTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: DoomOneTheme.bgAlt,
+              color: theme.appColors.bgAlt,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: DoomOneTheme.base3),
+              border: Border.all(color: theme.appColors.base3),
             ),
             child: Row(
               children: [
                 Icon(
                   _isEnabled ? Icons.check_circle : Icons.cancel,
-                  color: _isEnabled ? DoomOneTheme.green : DoomOneTheme.red,
+                  color: _isEnabled ? theme.appColors.green : theme.appColors.red,
                   size: 28,
                 ),
                 const SizedBox(width: 12),
@@ -234,7 +236,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                       Text(
                         'AI Motivace',
                         style: TextStyle(
-                          color: DoomOneTheme.fg,
+                          color: theme.appColors.fg,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -242,7 +244,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                       Text(
                         _isEnabled ? 'Zapnuto' : 'Vypnuto',
                         style: TextStyle(
-                          color: DoomOneTheme.base5,
+                          color: theme.appColors.base5,
                           fontSize: 12,
                         ),
                       ),
@@ -254,7 +256,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                   onChanged: (value) {
                     setState(() => _isEnabled = value);
                   },
-                  activeColor: DoomOneTheme.green,
+                  activeColor: theme.appColors.green,
                 ),
               ],
             ),
@@ -268,30 +270,30 @@ class _AISettingsTabState extends State<_AISettingsTab> {
             controller: _apiKeyController,
             obscureText: _obscureApiKey,
             style: TextStyle(
-              color: DoomOneTheme.fg,
+              color: theme.appColors.fg,
               fontFamily: 'monospace',
             ),
             decoration: InputDecoration(
               hintText: 'sk-or-v1-xxxxxxxxxxxxxxxx',
-              hintStyle: TextStyle(color: DoomOneTheme.base5),
+              hintStyle: TextStyle(color: theme.appColors.base5),
               filled: true,
-              fillColor: DoomOneTheme.base2,
+              fillColor: theme.appColors.base2,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.base4),
+                borderSide: BorderSide(color: theme.appColors.base4),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.base4),
+                borderSide: BorderSide(color: theme.appColors.base4),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.cyan, width: 2),
+                borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
               ),
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscureApiKey ? Icons.visibility : Icons.visibility_off,
-                  color: DoomOneTheme.base5,
+                  color: theme.appColors.base5,
                 ),
                 onPressed: () {
                   setState(() => _obscureApiKey = !_obscureApiKey);
@@ -307,25 +309,25 @@ class _AISettingsTabState extends State<_AISettingsTab> {
           TextField(
             controller: _modelController,
             style: TextStyle(
-              color: DoomOneTheme.fg,
+              color: theme.appColors.fg,
               fontFamily: 'monospace',
             ),
             decoration: InputDecoration(
               hintText: 'mistralai/mistral-medium-3.1',
-              hintStyle: TextStyle(color: DoomOneTheme.base5),
+              hintStyle: TextStyle(color: theme.appColors.base5),
               filled: true,
-              fillColor: DoomOneTheme.base2,
+              fillColor: theme.appColors.base2,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.base4),
+                borderSide: BorderSide(color: theme.appColors.base4),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.base4),
+                borderSide: BorderSide(color: theme.appColors.base4),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.cyan, width: 2),
+                borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
               ),
             ),
           ),
@@ -335,7 +337,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
           Text(
             'Populární modely:',
             style: TextStyle(
-              color: DoomOneTheme.base5,
+              color: theme.appColors.base5,
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
@@ -353,13 +355,13 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _modelController.text == model
-                        ? DoomOneTheme.cyan.withOpacity(0.2)
-                        : DoomOneTheme.base2,
+                        ? theme.appColors.cyan.withOpacity(0.2)
+                        : theme.appColors.base2,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
                       color: _modelController.text == model
-                          ? DoomOneTheme.cyan
-                          : DoomOneTheme.base4,
+                          ? theme.appColors.cyan
+                          : theme.appColors.base4,
                       width: 1,
                     ),
                   ),
@@ -367,8 +369,8 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                     model.split('/').last,
                     style: TextStyle(
                       color: _modelController.text == model
-                          ? DoomOneTheme.cyan
-                          : DoomOneTheme.base5,
+                          ? theme.appColors.cyan
+                          : theme.appColors.base5,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -388,23 +390,23 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                 child: TextField(
                   controller: _temperatureController,
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  style: TextStyle(color: DoomOneTheme.fg),
+                  style: TextStyle(color: theme.appColors.fg),
                   decoration: InputDecoration(
                     hintText: '0.0 - 2.0',
-                    hintStyle: TextStyle(color: DoomOneTheme.base5),
+                    hintStyle: TextStyle(color: theme.appColors.base5),
                     filled: true,
-                    fillColor: DoomOneTheme.base2,
+                    fillColor: theme.appColors.base2,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: DoomOneTheme.base4),
+                      borderSide: BorderSide(color: theme.appColors.base4),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: DoomOneTheme.base4),
+                      borderSide: BorderSide(color: theme.appColors.base4),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: DoomOneTheme.cyan, width: 2),
+                      borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
                     ),
                   ),
                 ),
@@ -413,14 +415,14 @@ class _AISettingsTabState extends State<_AISettingsTab> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: DoomOneTheme.yellow.withOpacity(0.1),
+                  color: theme.appColors.yellow.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: DoomOneTheme.yellow),
+                  border: Border.all(color: theme.appColors.yellow),
                 ),
                 child: Text(
                   _getTemperatureLabel(),
                   style: TextStyle(
-                    color: DoomOneTheme.yellow,
+                    color: theme.appColors.yellow,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -436,30 +438,30 @@ class _AISettingsTabState extends State<_AISettingsTab> {
           TextField(
             controller: _maxTokensController,
             keyboardType: TextInputType.number,
-            style: TextStyle(color: DoomOneTheme.fg),
+            style: TextStyle(color: theme.appColors.fg),
             decoration: InputDecoration(
               hintText: '100 - 4000',
-              hintStyle: TextStyle(color: DoomOneTheme.base5),
+              hintStyle: TextStyle(color: theme.appColors.base5),
               filled: true,
-              fillColor: DoomOneTheme.base2,
+              fillColor: theme.appColors.base2,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.base4),
+                borderSide: BorderSide(color: theme.appColors.base4),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.base4),
+                borderSide: BorderSide(color: theme.appColors.base4),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: DoomOneTheme.cyan, width: 2),
+                borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
               ),
               suffixIcon: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
                   'tokens',
                   style: TextStyle(
-                    color: DoomOneTheme.base5,
+                    color: theme.appColors.base5,
                     fontSize: 12,
                   ),
                 ),
@@ -474,8 +476,8 @@ class _AISettingsTabState extends State<_AISettingsTab> {
             child: ElevatedButton(
               onPressed: _saveSettings,
               style: ElevatedButton.styleFrom(
-                backgroundColor: DoomOneTheme.green,
-                foregroundColor: DoomOneTheme.bg,
+                backgroundColor: theme.appColors.green,
+                foregroundColor: theme.appColors.bg,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -507,7 +509,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
     return Text(
       title,
       style: TextStyle(
-        color: DoomOneTheme.fg,
+        color: theme.appColors.fg,
         fontSize: 14,
         fontWeight: FontWeight.bold,
       ),
@@ -568,10 +570,10 @@ class _PromptsTabState extends State<_PromptsTab> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: DoomOneTheme.bg,
+        backgroundColor: theme.appColors.bg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: DoomOneTheme.cyan, width: 2),
+          side: BorderSide(color: theme.appColors.cyan, width: 2),
         ),
         child: Container(
           padding: const EdgeInsets.all(24),
@@ -587,25 +589,25 @@ class _PromptsTabState extends State<_PromptsTab> {
                 // Header
                 Row(
                   children: [
-                    Icon(Icons.edit, color: DoomOneTheme.cyan, size: 28),
+                    Icon(Icons.edit, color: theme.appColors.cyan, size: 28),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'EDITOVAT PROMPT',
                         style: TextStyle(
-                          color: DoomOneTheme.cyan,
+                          color: theme.appColors.cyan,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                      icon: Icon(Icons.close, color: theme.appColors.base5),
                       onPressed: () => Navigator.of(context).pop(false),
                     ),
                   ],
                 ),
-                Divider(color: DoomOneTheme.base3, height: 24),
+                Divider(color: theme.appColors.base3, height: 24),
 
                 _buildDialogField('Kategorie', categoryController, 'práce, domov, sport...'),
                 const SizedBox(height: 16),
@@ -622,7 +624,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                      child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
@@ -645,8 +647,8 @@ class _PromptsTabState extends State<_PromptsTab> {
                         if (context.mounted) Navigator.of(context).pop(true);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: DoomOneTheme.cyan,
-                        foregroundColor: DoomOneTheme.bg,
+                        backgroundColor: theme.appColors.cyan,
+                        foregroundColor: theme.appColors.bg,
                       ),
                       child: const Text('Uložit'),
                     ),
@@ -665,7 +667,7 @@ class _PromptsTabState extends State<_PromptsTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Prompt byl úspěšně uložen'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
           ),
         );
       }
@@ -684,10 +686,10 @@ class _PromptsTabState extends State<_PromptsTab> {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => Dialog(
-        backgroundColor: DoomOneTheme.bg,
+        backgroundColor: theme.appColors.bg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: DoomOneTheme.green, width: 2),
+          side: BorderSide(color: theme.appColors.green, width: 2),
         ),
         child: Container(
           padding: const EdgeInsets.all(24),
@@ -702,25 +704,25 @@ class _PromptsTabState extends State<_PromptsTab> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.add_circle, color: DoomOneTheme.green, size: 28),
+                    Icon(Icons.add_circle, color: theme.appColors.green, size: 28),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'NOVÝ PROMPT',
                         style: TextStyle(
-                          color: DoomOneTheme.green,
+                          color: theme.appColors.green,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                      icon: Icon(Icons.close, color: theme.appColors.base5),
                       onPressed: () => Navigator.of(context).pop(false),
                     ),
                   ],
                 ),
-                Divider(color: DoomOneTheme.base3, height: 24),
+                Divider(color: theme.appColors.base3, height: 24),
 
                 _buildDialogField('Kategorie', categoryController, 'práce, domov, sport...'),
                 const SizedBox(height: 16),
@@ -736,7 +738,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                      child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
                     ),
                     const SizedBox(width: 12),
                     ElevatedButton(
@@ -745,7 +747,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: const Text('Kategorie nesmí být prázdná'),
-                              backgroundColor: DoomOneTheme.red,
+                              backgroundColor: theme.appColors.red,
                             ),
                           );
                           return;
@@ -768,15 +770,15 @@ class _PromptsTabState extends State<_PromptsTab> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Chyba: $e'),
-                                backgroundColor: DoomOneTheme.red,
+                                backgroundColor: theme.appColors.red,
                               ),
                             );
                           }
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: DoomOneTheme.green,
-                        foregroundColor: DoomOneTheme.bg,
+                        backgroundColor: theme.appColors.green,
+                        foregroundColor: theme.appColors.bg,
                       ),
                       child: const Text('Přidat'),
                     ),
@@ -795,7 +797,7 @@ class _PromptsTabState extends State<_PromptsTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Prompt byl úspěšně přidán'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
           ),
         );
       }
@@ -807,22 +809,22 @@ class _PromptsTabState extends State<_PromptsTab> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DoomOneTheme.bg,
-        title: Text('Smazat prompt?', style: TextStyle(color: DoomOneTheme.red)),
+        backgroundColor: theme.appColors.bg,
+        title: Text('Smazat prompt?', style: TextStyle(color: theme.appColors.red)),
         content: Text(
           'Opravdu chceš smazat prompt "${prompt['category']}"?',
-          style: TextStyle(color: DoomOneTheme.fg),
+          style: TextStyle(color: theme.appColors.fg),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+            child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: DoomOneTheme.red,
-              foregroundColor: DoomOneTheme.bg,
+              backgroundColor: theme.appColors.red,
+              foregroundColor: theme.appColors.bg,
             ),
             child: const Text('Smazat'),
           ),
@@ -839,7 +841,7 @@ class _PromptsTabState extends State<_PromptsTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('🗑️ Prompt byl smazán'),
-            backgroundColor: DoomOneTheme.red,
+            backgroundColor: theme.appColors.red,
           ),
         );
       }
@@ -848,6 +850,7 @@ class _PromptsTabState extends State<_PromptsTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -856,22 +859,22 @@ class _PromptsTabState extends State<_PromptsTab> {
       children: [
         // Info panel
         Container(
-          color: DoomOneTheme.bgAlt,
+          color: theme.appColors.bgAlt,
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: DoomOneTheme.magenta),
+              Icon(Icons.info_outline, color: theme.appColors.magenta),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Zde můžeš upravit AI prompty pro různé kategorie úkolů.',
-                  style: TextStyle(color: DoomOneTheme.fg, fontSize: 14),
+                  style: TextStyle(color: theme.appColors.fg, fontSize: 14),
                 ),
               ),
             ],
           ),
         ),
-        Divider(height: 1, color: DoomOneTheme.base3),
+        Divider(height: 1, color: theme.appColors.base3),
 
         // Seznam promptů
         Expanded(
@@ -880,7 +883,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                   child: Text(
                     'Žádné prompty.\nPřidej první!',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: DoomOneTheme.base5),
+                    style: TextStyle(fontSize: 16, color: theme.appColors.base5),
                   ),
                 )
               : ListView.builder(
@@ -894,8 +897,8 @@ class _PromptsTabState extends State<_PromptsTab> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: DoomOneTheme.bg,
-            border: Border(top: BorderSide(color: DoomOneTheme.base3)),
+            color: theme.appColors.bg,
+            border: Border(top: BorderSide(color: theme.appColors.base3)),
           ),
           child: SizedBox(
             width: double.infinity,
@@ -904,8 +907,8 @@ class _PromptsTabState extends State<_PromptsTab> {
               icon: const Icon(Icons.add),
               label: const Text('PŘIDAT NOVÝ PROMPT'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: DoomOneTheme.green,
-                foregroundColor: DoomOneTheme.bg,
+                backgroundColor: theme.appColors.green,
+                foregroundColor: theme.appColors.bg,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
@@ -925,11 +928,11 @@ class _PromptsTabState extends State<_PromptsTab> {
         .toList();
 
     return Card(
-      color: DoomOneTheme.bgAlt,
+      color: theme.appColors.bgAlt,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: DoomOneTheme.base3),
+        side: BorderSide(color: theme.appColors.base3),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -942,21 +945,21 @@ class _PromptsTabState extends State<_PromptsTab> {
                   child: Text(
                     prompt['category'] as String,
                     style: TextStyle(
-                      color: DoomOneTheme.cyan,
+                      color: theme.appColors.cyan,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.edit, color: DoomOneTheme.cyan, size: 20),
+                  icon: Icon(Icons.edit, color: theme.appColors.cyan, size: 20),
                   onPressed: () => _editPrompt(prompt),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
                 ),
                 const SizedBox(width: 12),
                 IconButton(
-                  icon: Icon(Icons.delete, color: DoomOneTheme.red, size: 20),
+                  icon: Icon(Icons.delete, color: theme.appColors.red, size: 20),
                   onPressed: () => _deletePrompt(prompt),
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(),
@@ -967,7 +970,7 @@ class _PromptsTabState extends State<_PromptsTab> {
             Text(
               'Styl: ${prompt['style']}',
               style: TextStyle(
-                color: DoomOneTheme.base5,
+                color: theme.appColors.base5,
                 fontSize: 12,
                 fontStyle: FontStyle.italic,
               ),
@@ -980,14 +983,14 @@ class _PromptsTabState extends State<_PromptsTab> {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: DoomOneTheme.magenta.withOpacity(0.2),
+                    color: theme.appColors.magenta.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: DoomOneTheme.magenta, width: 1),
+                    border: Border.all(color: theme.appColors.magenta, width: 1),
                   ),
                   child: Text(
                     tag,
                     style: TextStyle(
-                      color: DoomOneTheme.magenta,
+                      color: theme.appColors.magenta,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -999,7 +1002,7 @@ class _PromptsTabState extends State<_PromptsTab> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: DoomOneTheme.base2,
+                color: theme.appColors.base2,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -1007,7 +1010,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: DoomOneTheme.fg,
+                  color: theme.appColors.fg,
                   fontSize: 13,
                   height: 1.4,
                 ),
@@ -1026,7 +1029,7 @@ class _PromptsTabState extends State<_PromptsTab> {
         Text(
           label,
           style: TextStyle(
-            color: DoomOneTheme.fg,
+            color: theme.appColors.fg,
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
@@ -1035,15 +1038,15 @@ class _PromptsTabState extends State<_PromptsTab> {
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: TextStyle(color: DoomOneTheme.fg),
+          style: TextStyle(color: theme.appColors.fg),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: DoomOneTheme.base5),
+            hintStyle: TextStyle(color: theme.appColors.base5),
             filled: true,
-            fillColor: DoomOneTheme.base2,
+            fillColor: theme.appColors.base2,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: DoomOneTheme.base4),
+              borderSide: BorderSide(color: theme.appColors.base4),
             ),
           ),
         ),
@@ -1102,7 +1105,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Oddělovače byly uloženy'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
           ),
         );
       }
@@ -1111,7 +1114,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ Chyba při ukládání: $e'),
-            backgroundColor: DoomOneTheme.red,
+            backgroundColor: theme.appColors.red,
           ),
         );
       }
@@ -1130,10 +1133,10 @@ class _TagManagementTabState extends State<_TagManagementTab> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => Dialog(
-          backgroundColor: DoomOneTheme.bg,
+          backgroundColor: theme.appColors.bg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: DoomOneTheme.cyan, width: 2),
+            side: BorderSide(color: theme.appColors.cyan, width: 2),
           ),
           child: Container(
             padding: const EdgeInsets.all(24),
@@ -1149,25 +1152,25 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   // Header
                   Row(
                     children: [
-                      Icon(Icons.edit, color: DoomOneTheme.cyan, size: 28),
+                      Icon(Icons.edit, color: theme.appColors.cyan, size: 28),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'EDITOVAT TAG',
                           style: TextStyle(
-                            color: DoomOneTheme.cyan,
+                            color: theme.appColors.cyan,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                        icon: Icon(Icons.close, color: theme.appColors.base5),
                         onPressed: () => Navigator.of(context).pop(false),
                       ),
                     ],
                   ),
-                  Divider(color: DoomOneTheme.base3, height: 24),
+                  Divider(color: theme.appColors.base3, height: 24),
 
                   _buildDialogField('Název tagu (bez hvězdiček)', nameController, 'např. dnes, a, udelat'),
                   const SizedBox(height: 16),
@@ -1185,7 +1188,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   Text(
                     'Typ tagu',
                     style: TextStyle(
-                      color: DoomOneTheme.fg,
+                      color: theme.appColors.fg,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1193,14 +1196,14 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<TagType>(
                     value: selectedType,
-                    dropdownColor: DoomOneTheme.base2,
-                    style: TextStyle(color: DoomOneTheme.fg),
+                    dropdownColor: theme.appColors.base2,
+                    style: TextStyle(color: theme.appColors.fg),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: DoomOneTheme.base2,
+                      fillColor: theme.appColors.base2,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: DoomOneTheme.base4),
+                        borderSide: BorderSide(color: theme.appColors.base4),
                       ),
                     ),
                     items: TagType.values.map((type) {
@@ -1223,7 +1226,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                        child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
@@ -1240,8 +1243,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           if (context.mounted) Navigator.of(context).pop(true);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: DoomOneTheme.cyan,
-                          foregroundColor: DoomOneTheme.bg,
+                          backgroundColor: theme.appColors.cyan,
+                          foregroundColor: theme.appColors.bg,
                         ),
                         child: const Text('Uložit'),
                       ),
@@ -1261,7 +1264,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Tag byl úspěšně uložen'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
           ),
         );
       }
@@ -1280,10 +1283,10 @@ class _TagManagementTabState extends State<_TagManagementTab> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => Dialog(
-          backgroundColor: DoomOneTheme.bg,
+          backgroundColor: theme.appColors.bg,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: DoomOneTheme.green, width: 2),
+            side: BorderSide(color: theme.appColors.green, width: 2),
           ),
           child: Container(
             padding: const EdgeInsets.all(24),
@@ -1298,25 +1301,25 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.add_circle, color: DoomOneTheme.green, size: 28),
+                      Icon(Icons.add_circle, color: theme.appColors.green, size: 28),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'NOVÝ TAG',
                           style: TextStyle(
-                            color: DoomOneTheme.green,
+                            color: theme.appColors.green,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       IconButton(
-                        icon: Icon(Icons.close, color: DoomOneTheme.base5),
+                        icon: Icon(Icons.close, color: theme.appColors.base5),
                         onPressed: () => Navigator.of(context).pop(false),
                       ),
                     ],
                   ),
-                  Divider(color: DoomOneTheme.base3, height: 24),
+                  Divider(color: theme.appColors.base3, height: 24),
 
                   _buildDialogField('Název tagu (bez hvězdiček)', nameController, 'např. vikend, projekt'),
                   const SizedBox(height: 16),
@@ -1333,7 +1336,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   Text(
                     'Typ tagu',
                     style: TextStyle(
-                      color: DoomOneTheme.fg,
+                      color: theme.appColors.fg,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1341,14 +1344,14 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   const SizedBox(height: 8),
                   DropdownButtonFormField<TagType>(
                     value: selectedType,
-                    dropdownColor: DoomOneTheme.base2,
-                    style: TextStyle(color: DoomOneTheme.fg),
+                    dropdownColor: theme.appColors.base2,
+                    style: TextStyle(color: theme.appColors.fg),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: DoomOneTheme.base2,
+                      fillColor: theme.appColors.base2,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: DoomOneTheme.base4),
+                        borderSide: BorderSide(color: theme.appColors.base4),
                       ),
                     ),
                     items: TagType.values.map((type) {
@@ -1370,7 +1373,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+                        child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
                       ),
                       const SizedBox(width: 12),
                       ElevatedButton(
@@ -1379,7 +1382,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: const Text('Název tagu nesmí být prázdný'),
-                                backgroundColor: DoomOneTheme.red,
+                                backgroundColor: theme.appColors.red,
                               ),
                             );
                             return;
@@ -1402,15 +1405,15 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('Chyba: $e'),
-                                  backgroundColor: DoomOneTheme.red,
+                                  backgroundColor: theme.appColors.red,
                                 ),
                               );
                             }
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: DoomOneTheme.green,
-                          foregroundColor: DoomOneTheme.bg,
+                          backgroundColor: theme.appColors.green,
+                          foregroundColor: theme.appColors.bg,
                         ),
                         child: const Text('Přidat'),
                       ),
@@ -1430,7 +1433,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Tag byl úspěšně přidán'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
           ),
         );
       }
@@ -1442,22 +1445,22 @@ class _TagManagementTabState extends State<_TagManagementTab> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: DoomOneTheme.bg,
-        title: Text('Smazat tag?', style: TextStyle(color: DoomOneTheme.red)),
+        backgroundColor: theme.appColors.bg,
+        title: Text('Smazat tag?', style: TextStyle(color: theme.appColors.red)),
         content: Text(
           'Opravdu chceš smazat tag "*${tag.tagName}*"?',
-          style: TextStyle(color: DoomOneTheme.fg),
+          style: TextStyle(color: theme.appColors.fg),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text('Zrušit', style: TextStyle(color: DoomOneTheme.base5)),
+            child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: DoomOneTheme.red,
-              foregroundColor: DoomOneTheme.bg,
+              backgroundColor: theme.appColors.red,
+              foregroundColor: theme.appColors.bg,
             ),
             child: const Text('Smazat'),
           ),
@@ -1473,7 +1476,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('🗑️ Tag byl smazán'),
-            backgroundColor: DoomOneTheme.red,
+            backgroundColor: theme.appColors.red,
           ),
         );
       }
@@ -1490,6 +1493,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -1509,38 +1513,38 @@ class _TagManagementTabState extends State<_TagManagementTab> {
             children: [
               // Info panel
               Container(
-                color: DoomOneTheme.bgAlt,
+                color: theme.appColors.bgAlt,
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: DoomOneTheme.yellow),
+                    Icon(Icons.info_outline, color: theme.appColors.yellow),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Zde můžeš spravovat systémové tagy. Nové tagy se automaticky rozpoznávají v textu úkolů.',
-                        style: TextStyle(color: DoomOneTheme.fg, fontSize: 14),
+                        style: TextStyle(color: theme.appColors.fg, fontSize: 14),
                       ),
                     ),
                   ],
                 ),
               ),
-              Divider(height: 1, color: DoomOneTheme.base3),
+              Divider(height: 1, color: theme.appColors.base3),
 
               // Nastavení oddělovačů tagů
               Container(
-                color: DoomOneTheme.bgAlt,
+                color: theme.appColors.bgAlt,
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.settings, color: DoomOneTheme.cyan, size: 20),
+                        Icon(Icons.settings, color: theme.appColors.cyan, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           '🏷️ ODDĚLOVAČE TAGŮ',
                           style: TextStyle(
-                            color: DoomOneTheme.cyan,
+                            color: theme.appColors.cyan,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.2,
@@ -1552,7 +1556,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                     Text(
                       'Zvol symboly pro označení tagů v textu:',
                       style: TextStyle(
-                        color: DoomOneTheme.base5,
+                        color: theme.appColors.base5,
                         fontSize: 13,
                       ),
                     ),
@@ -1577,7 +1581,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: DoomOneTheme.base2,
+                        color: theme.appColors.base2,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
@@ -1585,14 +1589,14 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             'Náhled: ',
                             style: TextStyle(
-                              color: DoomOneTheme.base5,
+                              color: theme.appColors.base5,
                               fontSize: 12,
                             ),
                           ),
                           Text(
                             '$_tagDelimiterStart',
                             style: TextStyle(
-                              color: DoomOneTheme.cyan,
+                              color: theme.appColors.cyan,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1601,7 +1605,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             'a',
                             style: TextStyle(
-                              color: DoomOneTheme.fg,
+                              color: theme.appColors.fg,
                               fontSize: 14,
                               fontFamily: 'monospace',
                             ),
@@ -1609,7 +1613,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             '$_tagDelimiterEnd ',
                             style: TextStyle(
-                              color: DoomOneTheme.cyan,
+                              color: theme.appColors.cyan,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1618,7 +1622,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             '$_tagDelimiterStart',
                             style: TextStyle(
-                              color: DoomOneTheme.yellow,
+                              color: theme.appColors.yellow,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1627,7 +1631,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             'dnes',
                             style: TextStyle(
-                              color: DoomOneTheme.fg,
+                              color: theme.appColors.fg,
                               fontSize: 14,
                               fontFamily: 'monospace',
                             ),
@@ -1635,7 +1639,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             '$_tagDelimiterEnd ',
                             style: TextStyle(
-                              color: DoomOneTheme.yellow,
+                              color: theme.appColors.yellow,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1644,7 +1648,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             '$_tagDelimiterStart',
                             style: TextStyle(
-                              color: DoomOneTheme.magenta,
+                              color: theme.appColors.magenta,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1653,7 +1657,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             'udelat',
                             style: TextStyle(
-                              color: DoomOneTheme.fg,
+                              color: theme.appColors.fg,
                               fontSize: 14,
                               fontFamily: 'monospace',
                             ),
@@ -1661,7 +1665,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             '$_tagDelimiterEnd',
                             style: TextStyle(
-                              color: DoomOneTheme.magenta,
+                              color: theme.appColors.magenta,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'monospace',
@@ -1680,8 +1684,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                         icon: const Icon(Icons.save, size: 16),
                         label: const Text('ULOŽIT'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: DoomOneTheme.green,
-                          foregroundColor: DoomOneTheme.bg,
+                          backgroundColor: theme.appColors.green,
+                          foregroundColor: theme.appColors.bg,
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         ),
                       ),
@@ -1689,7 +1693,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   ],
                 ),
               ),
-              Divider(height: 1, color: DoomOneTheme.base3),
+              Divider(height: 1, color: theme.appColors.base3),
 
               // Seznam tagů seskupených podle typu
               ...TagType.values.map((type) {
@@ -1704,7 +1708,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                       child: Text(
                         type.displayName.toUpperCase(),
                         style: TextStyle(
-                          color: DoomOneTheme.cyan,
+                          color: theme.appColors.cyan,
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 1.2,
@@ -1724,8 +1728,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: DoomOneTheme.bg,
-            border: Border(top: BorderSide(color: DoomOneTheme.base3)),
+            color: theme.appColors.bg,
+            border: Border(top: BorderSide(color: theme.appColors.base3)),
           ),
           child: SizedBox(
             width: double.infinity,
@@ -1734,8 +1738,8 @@ class _TagManagementTabState extends State<_TagManagementTab> {
               icon: const Icon(Icons.add),
               label: const Text('PŘIDAT NOVÝ TAG'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: DoomOneTheme.green,
-                foregroundColor: DoomOneTheme.bg,
+                backgroundColor: theme.appColors.green,
+                foregroundColor: theme.appColors.bg,
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
             ),
@@ -1747,12 +1751,12 @@ class _TagManagementTabState extends State<_TagManagementTab> {
 
   Widget _buildTagCard(TagDefinition tag) {
     return Card(
-      color: tag.enabled ? DoomOneTheme.bgAlt : DoomOneTheme.base2,
+      color: tag.enabled ? theme.appColors.bgAlt : theme.appColors.base2,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: tag.enabled ? DoomOneTheme.base3 : DoomOneTheme.base4,
+          color: tag.enabled ? theme.appColors.base3 : theme.appColors.base4,
         ),
       ),
       child: Padding(
@@ -1776,7 +1780,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                         Text(
                           '*${tag.tagName}*',
                           style: TextStyle(
-                            color: tag.enabled ? DoomOneTheme.cyan : DoomOneTheme.base5,
+                            color: tag.enabled ? theme.appColors.cyan : theme.appColors.base5,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'monospace',
@@ -1786,7 +1790,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                           Text(
                             tag.displayName!,
                             style: TextStyle(
-                              color: tag.enabled ? DoomOneTheme.base5 : DoomOneTheme.base6,
+                              color: tag.enabled ? theme.appColors.base5 : theme.appColors.base6,
                               fontSize: 12,
                             ),
                           ),
@@ -1801,12 +1805,12 @@ class _TagManagementTabState extends State<_TagManagementTab> {
             Switch(
               value: tag.enabled,
               onChanged: (_) => _toggleTag(tag),
-              activeColor: DoomOneTheme.green,
+              activeColor: theme.appColors.green,
             ),
 
             // Edit button
             IconButton(
-              icon: Icon(Icons.edit, color: DoomOneTheme.cyan, size: 20),
+              icon: Icon(Icons.edit, color: theme.appColors.cyan, size: 20),
               onPressed: () => _editTag(tag),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -1815,7 +1819,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
 
             // Delete button
             IconButton(
-              icon: Icon(Icons.delete, color: DoomOneTheme.red, size: 20),
+              icon: Icon(Icons.delete, color: theme.appColors.red, size: 20),
               onPressed: () => _deleteTag(tag),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -1833,7 +1837,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         Text(
           label,
           style: TextStyle(
-            color: DoomOneTheme.fg,
+            color: theme.appColors.fg,
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
@@ -1841,15 +1845,15 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         const SizedBox(height: 8),
         TextField(
           controller: controller,
-          style: TextStyle(color: DoomOneTheme.fg),
+          style: TextStyle(color: theme.appColors.fg),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: DoomOneTheme.base5),
+            hintStyle: TextStyle(color: theme.appColors.base5),
             filled: true,
-            fillColor: DoomOneTheme.base2,
+            fillColor: theme.appColors.base2,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: DoomOneTheme.base4),
+              borderSide: BorderSide(color: theme.appColors.base4),
             ),
           ),
         ),
@@ -1872,11 +1876,11 @@ class _TagManagementTabState extends State<_TagManagementTab> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? DoomOneTheme.cyan.withOpacity(0.2)
-              : DoomOneTheme.base2,
+              ? theme.appColors.cyan.withOpacity(0.2)
+              : theme.appColors.base2,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base4,
+            color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -1886,7 +1890,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
             Text(
               '$start tag $end',
               style: TextStyle(
-                color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.fg,
+                color: isSelected ? theme.appColors.cyan : theme.appColors.fg,
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
@@ -1896,7 +1900,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base5,
+                color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
                 fontSize: 11,
               ),
             ),
@@ -2001,7 +2005,7 @@ class _ThemesTabState extends State<_ThemesTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('✅ Téma bylo okamžitě aplikováno!'),
-            backgroundColor: DoomOneTheme.green,
+            backgroundColor: theme.appColors.green,
             duration: const Duration(seconds: 2),
           ),
         );
@@ -2011,7 +2015,7 @@ class _ThemesTabState extends State<_ThemesTab> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('❌ Chyba při ukládání: $e'),
-            backgroundColor: DoomOneTheme.red,
+            backgroundColor: theme.appColors.red,
           ),
         );
       }
@@ -2020,6 +2024,7 @@ class _ThemesTabState extends State<_ThemesTab> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -2028,22 +2033,22 @@ class _ThemesTabState extends State<_ThemesTab> {
       children: [
         // Info panel
         Container(
-          color: DoomOneTheme.bgAlt,
+          color: theme.appColors.bgAlt,
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: DoomOneTheme.blue),
+              Icon(Icons.info_outline, color: theme.appColors.blue),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Vyber vizuální téma aplikace. Pro aplikování změn je potřeba restartovat aplikaci.',
-                  style: TextStyle(color: DoomOneTheme.fg, fontSize: 14),
+                  style: TextStyle(color: theme.appColors.fg, fontSize: 14),
                 ),
               ),
             ],
           ),
         ),
-        Divider(height: 1, color: DoomOneTheme.base3),
+        Divider(height: 1, color: theme.appColors.base3),
 
         // Seznam témat
         Expanded(
@@ -2055,12 +2060,12 @@ class _ThemesTabState extends State<_ThemesTab> {
               final isSelected = _selectedTheme == theme['id'];
 
               return Card(
-                color: isSelected ? DoomOneTheme.bgAlt : DoomOneTheme.base2,
+                color: isSelected ? theme.appColors.bgAlt : theme.appColors.base2,
                 margin: const EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
-                    color: isSelected ? DoomOneTheme.cyan : DoomOneTheme.base3,
+                    color: isSelected ? theme.appColors.cyan : theme.appColors.base3,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -2088,8 +2093,8 @@ class _ThemesTabState extends State<_ThemesTab> {
                                     theme['name'] as String,
                                     style: TextStyle(
                                       color: isSelected
-                                          ? DoomOneTheme.cyan
-                                          : DoomOneTheme.fg,
+                                          ? theme.appColors.cyan
+                                          : theme.appColors.fg,
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -2098,7 +2103,7 @@ class _ThemesTabState extends State<_ThemesTab> {
                                   Text(
                                     theme['description'] as String,
                                     style: TextStyle(
-                                      color: DoomOneTheme.base5,
+                                      color: theme.appColors.base5,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -2112,10 +2117,10 @@ class _ThemesTabState extends State<_ThemesTab> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: DoomOneTheme.cyan.withOpacity(0.2),
+                                  color: theme.appColors.cyan.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: DoomOneTheme.cyan,
+                                    color: theme.appColors.cyan,
                                     width: 1,
                                   ),
                                 ),
@@ -2123,14 +2128,14 @@ class _ThemesTabState extends State<_ThemesTab> {
                                   children: [
                                     Icon(
                                       Icons.check_circle,
-                                      color: DoomOneTheme.cyan,
+                                      color: theme.appColors.cyan,
                                       size: 16,
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
                                       'AKTIVNÍ',
                                       style: TextStyle(
-                                        color: DoomOneTheme.cyan,
+                                        color: theme.appColors.cyan,
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -2146,7 +2151,7 @@ class _ThemesTabState extends State<_ThemesTab> {
                         Text(
                           'Náhled barev:',
                           style: TextStyle(
-                            color: DoomOneTheme.base5,
+                            color: theme.appColors.base5,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -2198,7 +2203,7 @@ class _ThemesTabState extends State<_ThemesTab> {
               color: color,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
-                color: DoomOneTheme.base4,
+                color: theme.appColors.base4,
                 width: 1,
               ),
             ),
@@ -2207,7 +2212,7 @@ class _ThemesTabState extends State<_ThemesTab> {
           Text(
             label,
             style: TextStyle(
-              color: DoomOneTheme.base5,
+              color: theme.appColors.base5,
               fontSize: 10,
             ),
             textAlign: TextAlign.center,
