@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -87,6 +87,25 @@ class DatabaseHelper {
         enabled INTEGER NOT NULL DEFAULT 1
       )
     ''');
+
+    // Tabulka podúkolů pro AI split
+    await db.execute('''
+      CREATE TABLE subtasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        parent_todo_id INTEGER NOT NULL,
+        subtask_number INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        completed INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY(parent_todo_id) REFERENCES todos(id) ON DELETE CASCADE,
+        UNIQUE(parent_todo_id, subtask_number)
+      )
+    ''');
+
+    await db.execute(
+        'CREATE INDEX idx_subtasks_parent_todo_id ON subtasks(parent_todo_id)');
+    await db
+        .execute('CREATE INDEX idx_subtasks_completed ON subtasks(completed)');
 
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
@@ -168,6 +187,36 @@ class DatabaseHelper {
       await db.execute('''
         ALTER TABLE tag_definitions ADD COLUMN glow_strength REAL NOT NULL DEFAULT 0.5
       ''');
+    }
+
+    if (oldVersion < 7) {
+      // Přidat AI metadata sloupce do todos
+      await db.execute('''
+        ALTER TABLE todos ADD COLUMN ai_recommendations TEXT
+      ''');
+
+      await db.execute('''
+        ALTER TABLE todos ADD COLUMN ai_deadline_analysis TEXT
+      ''');
+
+      // Vytvořit subtasks tabulku
+      await db.execute('''
+        CREATE TABLE subtasks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          parent_todo_id INTEGER NOT NULL,
+          subtask_number INTEGER NOT NULL,
+          text TEXT NOT NULL,
+          completed INTEGER NOT NULL DEFAULT 0,
+          created_at INTEGER NOT NULL,
+          FOREIGN KEY(parent_todo_id) REFERENCES todos(id) ON DELETE CASCADE,
+          UNIQUE(parent_todo_id, subtask_number)
+        )
+      ''');
+
+      await db.execute(
+          'CREATE INDEX idx_subtasks_parent_todo_id ON subtasks(parent_todo_id)');
+      await db.execute(
+          'CREATE INDEX idx_subtasks_completed ON subtasks(completed)');
     }
   }
 
@@ -580,5 +629,73 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  // ==================== SUBTASKS CRUD ====================
+
+  /// Přidat nový subtask
+  Future<int> insertSubtask(Map<String, dynamic> subtask) async {
+    final db = await database;
+    return await db.insert('subtasks', subtask);
+  }
+
+  /// Získat všechny subtasks pro TODO
+  Future<List<Map<String, dynamic>>> getSubtasksByTodoId(int todoId) async {
+    final db = await database;
+    return await db.query(
+      'subtasks',
+      where: 'parent_todo_id = ?',
+      whereArgs: [todoId],
+      orderBy: 'subtask_number ASC',
+    );
+  }
+
+  /// Aktualizovat subtask
+  Future<int> updateSubtask(int id, Map<String, dynamic> subtask) async {
+    final db = await database;
+    return await db.update(
+      'subtasks',
+      subtask,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Smazat subtask
+  Future<int> deleteSubtask(int id) async {
+    final db = await database;
+    return await db.delete('subtasks', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Toggle subtask completed
+  Future<int> toggleSubtaskCompleted(int id, bool completed) async {
+    final db = await database;
+    return await db.update(
+      'subtasks',
+      {'completed': completed ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Update TODO s AI metadata
+  Future<int> updateTodoAIMetadata(
+    int id, {
+    String? aiRecommendations,
+    String? aiDeadlineAnalysis,
+  }) async {
+    final db = await database;
+    final updates = <String, dynamic>{};
+
+    if (aiRecommendations != null) {
+      updates['ai_recommendations'] = aiRecommendations;
+    }
+    if (aiDeadlineAnalysis != null) {
+      updates['ai_deadline_analysis'] = aiDeadlineAnalysis;
+    }
+
+    if (updates.isEmpty) return 0;
+
+    return await db.update('todos', updates, where: 'id = ?', whereArgs: [id]);
   }
 }
