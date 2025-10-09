@@ -329,20 +329,20 @@ class _TodoListPageState extends State<TodoListPage> {
   Widget _buildMotivateButton(TodoItem todo) {
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 2000),
       curve: Curves.easeInOut,
       builder: (context, value, child) {
-        // Puls efekt: 0.8 -> 1.0 -> 0.8
-        final pulseValue = 0.8 + (0.2 * (0.5 - (value - 0.5).abs()) * 2);
+        // Jemný puls efekt: 0.9 -> 1.0 -> 0.9
+        final pulseValue = 0.9 + (0.1 * (0.5 - (value - 0.5).abs()) * 2);
 
         return Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: DoomOneTheme.magenta.withOpacity(0.6 * pulseValue),
-                blurRadius: 12 * pulseValue,
-                spreadRadius: 3 * pulseValue,
+                color: DoomOneTheme.magenta.withOpacity(0.3 * pulseValue),
+                blurRadius: 6 * pulseValue,
+                spreadRadius: 1 * pulseValue,
               ),
             ],
           ),
