@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/database_helper.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../services/tag_service.dart';
 import '../../../../utils/color_utils.dart';
 import '../../../../widgets/color_picker_dialog.dart';
 import '../../data/repositories/tag_management_repository_impl.dart';
@@ -17,7 +18,7 @@ class TagManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => TagManagementCubit(
-        repository: TagManagementRepositoryImpl(),
+        repository: TagManagementRepositoryImpl(TagService()),
         db: DatabaseHelper(),
       )..loadTags(),
       child: const _TagManagementView(),

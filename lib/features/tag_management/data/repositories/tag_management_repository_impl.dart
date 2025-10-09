@@ -1,3 +1,4 @@
+import '../../../../models/tag_definition.dart' as old_model;
 import '../../../../services/tag_service.dart';
 import '../../domain/entities/tag_definition.dart';
 import '../../domain/repositories/tag_management_repository.dart';
@@ -22,7 +23,7 @@ class TagManagementRepositoryImpl implements TagManagementRepository {
       return TagDefinition(
         id: oldModel.id,
         tagName: oldModel.tagName,
-        tagType: oldModel.tagType,
+        tagType: _convertTagType(oldModel.tagType),
         displayName: oldModel.displayName,
         emoji: oldModel.emoji,
         color: oldModel.color,
@@ -65,7 +66,7 @@ class TagManagementRepositoryImpl implements TagManagementRepository {
     return TagDefinition(
       id: oldModel.id,
       tagName: oldModel.tagName,
-      tagType: oldModel.tagType,
+      tagType: _convertTagType(oldModel.tagType),
       displayName: oldModel.displayName,
       emoji: oldModel.emoji,
       color: oldModel.color,
@@ -91,7 +92,7 @@ class TagManagementRepositoryImpl implements TagManagementRepository {
     final oldTagDefinition = _OldTagDefinition(
       id: definition.id,
       tagName: definition.tagName,
-      tagType: definition.tagType,
+      tagType: _convertTagTypeReverse(definition.tagType),
       displayName: definition.displayName,
       emoji: definition.emoji,
       color: definition.color,
@@ -110,7 +111,7 @@ class TagManagementRepositoryImpl implements TagManagementRepository {
 class _OldTagDefinition {
   final int? id;
   final String tagName;
-  final TagType tagType;
+  final old_model.TagType tagType;
   final String? displayName;
   final String? emoji;
   final String? color;
@@ -145,5 +146,33 @@ class _OldTagDefinition {
       'sort_order': sortOrder,
       'enabled': enabled ? 1 : 0,
     };
+  }
+}
+
+/// Helper: Převést starý TagType na nový TagType
+TagType _convertTagType(old_model.TagType oldType) {
+  switch (oldType) {
+    case old_model.TagType.priority:
+      return TagType.priority;
+    case old_model.TagType.date:
+      return TagType.date;
+    case old_model.TagType.status:
+      return TagType.status;
+    case old_model.TagType.custom:
+      return TagType.custom;
+  }
+}
+
+/// Helper: Převést nový TagType na starý TagType
+old_model.TagType _convertTagTypeReverse(TagType newType) {
+  switch (newType) {
+    case TagType.priority:
+      return old_model.TagType.priority;
+    case TagType.date:
+      return old_model.TagType.date;
+    case TagType.status:
+      return old_model.TagType.status;
+    case TagType.custom:
+      return old_model.TagType.custom;
   }
 }
