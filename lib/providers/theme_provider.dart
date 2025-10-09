@@ -54,7 +54,7 @@ class ThemeProvider with ChangeNotifier {
       print('✅ Téma změněno na: $themeId');
     } catch (e) {
       print('❌ Chyba při změně tématu: $e');
-      throw e;
+      rethrow;
     }
   }
 

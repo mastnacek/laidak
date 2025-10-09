@@ -100,7 +100,7 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
 
 /// Custom TextEditingController s syntax highlighting
 class HighlightedTextEditingController extends TextEditingController {
-  HighlightedTextEditingController({String? text}) : super(text: text);
+  HighlightedTextEditingController({super.text});
 
   @override
   TextSpan buildTextSpan({

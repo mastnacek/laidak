@@ -257,7 +257,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                   onChanged: (value) {
                     setState(() => _isEnabled = value);
                   },
-                  activeColor: theme.appColors.green,
+                  activeThumbColor: theme.appColors.green,
                 ),
               ],
             ),
@@ -1196,7 +1196,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<TagType>(
-                    value: selectedType,
+                    initialValue: selectedType,
                     dropdownColor: theme.appColors.base2,
                     style: TextStyle(color: theme.appColors.fg),
                     decoration: InputDecoration(
@@ -1344,7 +1344,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<TagType>(
-                    value: selectedType,
+                    initialValue: selectedType,
                     dropdownColor: theme.appColors.base2,
                     style: TextStyle(color: theme.appColors.fg),
                     decoration: InputDecoration(
@@ -1595,7 +1595,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                             ),
                           ),
                           Text(
-                            '$_tagDelimiterStart',
+                            _tagDelimiterStart,
                             style: TextStyle(
                               color: theme.appColors.cyan,
                               fontSize: 14,
@@ -1621,7 +1621,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                             ),
                           ),
                           Text(
-                            '$_tagDelimiterStart',
+                            _tagDelimiterStart,
                             style: TextStyle(
                               color: theme.appColors.yellow,
                               fontSize: 14,
@@ -1647,7 +1647,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                             ),
                           ),
                           Text(
-                            '$_tagDelimiterStart',
+                            _tagDelimiterStart,
                             style: TextStyle(
                               color: theme.appColors.magenta,
                               fontSize: 14,
@@ -1664,7 +1664,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                             ),
                           ),
                           Text(
-                            '$_tagDelimiterEnd',
+                            _tagDelimiterEnd,
                             style: TextStyle(
                               color: theme.appColors.magenta,
                               fontSize: 14,
@@ -1720,7 +1720,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
                     const SizedBox(height: 8),
                   ],
                 );
-              }).toList(),
+              }),
             ],
           ),
         ),
@@ -1806,7 +1806,7 @@ class _TagManagementTabState extends State<_TagManagementTab> {
             Switch(
               value: tag.enabled,
               onChanged: (_) => _toggleTag(tag),
-              activeColor: theme.appColors.green,
+              activeThumbColor: theme.appColors.green,
             ),
 
             // Edit button

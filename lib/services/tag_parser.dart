@@ -27,7 +27,7 @@ class TagParser {
     final end = RegExp.escape(delimiters['end']!);
 
     // Pattern: start + obsah + end
-    return RegExp('$start([^${end}]+)$end');
+    return RegExp('$start([^$end]+)$end');
   }
 
   /// Parsovat text a extrahovat tagy, prioritu, datum, akci
