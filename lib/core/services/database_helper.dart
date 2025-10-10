@@ -33,7 +33,7 @@ class DatabaseHelper {
 
   /// Vytvořit tabulky při první inicializaci
   Future<void> _onCreate(Database db, int version) async {
-    // Tabulka úkolů
+    // Tabulka úkolů (s AI metadata sloupci)
     await db.execute('''
       CREATE TABLE todos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,7 +42,9 @@ class DatabaseHelper {
         createdAt TEXT NOT NULL,
         priority TEXT,
         dueDate TEXT,
-        tags TEXT
+        tags TEXT,
+        ai_recommendations TEXT,
+        ai_deadline_analysis TEXT
       )
     ''');
 
@@ -106,6 +108,14 @@ class DatabaseHelper {
         'CREATE INDEX idx_subtasks_parent_todo_id ON subtasks(parent_todo_id)');
     await db
         .execute('CREATE INDEX idx_subtasks_completed ON subtasks(completed)');
+
+    // Performance indexy pro todos tabulku (rychlejší vyhledávání a sortování)
+    await db.execute('CREATE INDEX idx_todos_task ON todos(task)');
+    await db.execute('CREATE INDEX idx_todos_tags ON todos(tags)');
+    await db.execute('CREATE INDEX idx_todos_dueDate ON todos(dueDate)');
+    await db.execute('CREATE INDEX idx_todos_priority ON todos(priority)');
+    await db.execute('CREATE INDEX idx_todos_isCompleted ON todos(isCompleted)');
+    await db.execute('CREATE INDEX idx_todos_createdAt ON todos(createdAt)');
 
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
