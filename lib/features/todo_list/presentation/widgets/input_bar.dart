@@ -173,6 +173,7 @@ class _InputBarState extends State<InputBar> {
                         fontSize: 16,
                       ),
                       onChanged: _onTextChanged,
+                      onSubmitted: (_) => _onSubmit(),
                       textInputAction: TextInputAction.search,
                     )
                   : HighlightedTextField(
