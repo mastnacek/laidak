@@ -8,6 +8,7 @@ import '../core/theme/theme_colors.dart';
 import '../features/settings/presentation/cubit/settings_cubit.dart';
 import '../features/tag_management/presentation/pages/tag_management_page.dart';
 import '../core/services/database_helper.dart';
+import '../core/services/database_debug_utils.dart';
 
 /// Stránka s nastavením AI motivace
 class SettingsPage extends StatefulWidget {
@@ -469,6 +470,201 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                   ),
                 ),
               ),
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Debug sekce (DATABASE INFO)
+          _buildSectionTitle('🔧 DEBUG - Informace o databázi'),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.appColors.yellow.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.appColors.yellow, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.warning, color: theme.appColors.yellow, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Debug nástroje pro diagnostiku databáze',
+                        style: TextStyle(
+                          color: theme.appColors.yellow,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    try {
+                      final info = await DatabaseDebugUtils.getDatabaseInfo();
+                      final isValid = await DatabaseDebugUtils.validateDatabaseStructure();
+
+                      if (mounted) {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: theme.appColors.bg,
+                            title: Text(
+                              'Databáze Info',
+                              style: TextStyle(color: theme.appColors.cyan),
+                            ),
+                            content: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Verze: ${info['version']}',
+                                    style: TextStyle(
+                                      color: theme.appColors.fg,
+                                      fontFamily: 'monospace',
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tabulky: ${(info['tables'] as List).join(', ')}',
+                                    style: TextStyle(
+                                      color: theme.appColors.fg,
+                                      fontFamily: 'monospace',
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Sloupce v todos: ${(info['todos_columns'] as List).join(', ')}',
+                                    style: TextStyle(
+                                      color: theme.appColors.fg,
+                                      fontFamily: 'monospace',
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: isValid
+                                          ? theme.appColors.green.withValues(alpha: 0.2)
+                                          : theme.appColors.red.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      isValid ? '✅ Databáze je validní' : '❌ Databáze má chybnou strukturu',
+                                      style: TextStyle(
+                                        color: isValid ? theme.appColors.green : theme.appColors.red,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: Text('Zavřít', style: TextStyle(color: theme.appColors.cyan)),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('❌ Chyba: $e'),
+                            backgroundColor: theme.appColors.red,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.info, size: 18),
+                  label: const Text('ZOBRAZIT INFO DATABÁZE'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.appColors.cyan,
+                    foregroundColor: theme.appColors.bg,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    // Potvrzující dialog
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        backgroundColor: theme.appColors.bg,
+                        title: Text(
+                          '⚠️ POZOR',
+                          style: TextStyle(color: theme.appColors.red),
+                        ),
+                        content: Text(
+                          'Opravdu chceš resetovat databázi?\n\n'
+                          'Tato akce SMAŽE všechna data (TODO úkoly, nastavení, prompty) a vytvoří čistou databázi.\n\n'
+                          'Toto nelze vrátit zpět!',
+                          style: TextStyle(color: theme.appColors.fg),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.appColors.red,
+                              foregroundColor: theme.appColors.bg,
+                            ),
+                            child: const Text('SMAZAT VŠE'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      try {
+                        await DatabaseDebugUtils.resetDatabase();
+
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('✅ Databáze byla resetována. Restartuj aplikaci.'),
+                              backgroundColor: theme.appColors.green,
+                              duration: const Duration(seconds: 5),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('❌ Chyba při resetování: $e'),
+                              backgroundColor: theme.appColors.red,
+                            ),
+                          );
+                        }
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.delete_forever, size: 18),
+                  label: const Text('RESETOVAT DATABÁZI'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.appColors.red,
+                    foregroundColor: theme.appColors.bg,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 32),
