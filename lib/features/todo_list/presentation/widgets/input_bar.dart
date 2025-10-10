@@ -167,37 +167,35 @@ class _InputBarState extends State<InputBar> {
             // TextField (EXPANDED = maximální šířka!)
             Expanded(
               child: _isSearchMode
-                  ? GestureDetector(
+                  ? TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      decoration: InputDecoration(
+                        hintText: '🔍 Vyhledat úkol...',
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 0,
+                        ),
+                        isDense: true,
+                        hintStyle: TextStyle(
+                          color: theme.appColors.base5,
+                          fontSize: 16,
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: theme.appColors.fg,
+                        fontSize: 16,
+                      ),
                       onTap: () {
-                        // Při tapu vždy požádat o focus a otevřít klávesnici
+                        // Při tapu explicitně požádat o focus
                         if (!_focusNode.hasFocus) {
                           _focusNode.requestFocus();
                         }
                       },
-                      child: TextField(
-                        controller: _controller,
-                        focusNode: _focusNode,
-                        decoration: InputDecoration(
-                          hintText: '🔍 Vyhledat úkol...',
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                            horizontal: 0,
-                          ),
-                          isDense: true,
-                          hintStyle: TextStyle(
-                            color: theme.appColors.base5,
-                            fontSize: 16,
-                          ),
-                        ),
-                        style: TextStyle(
-                          color: theme.appColors.fg,
-                          fontSize: 16,
-                        ),
-                        onChanged: _onTextChanged,
-                        onSubmitted: (_) => _onSubmit(),
-                        textInputAction: TextInputAction.search,
-                      ),
+                      onChanged: _onTextChanged,
+                      onSubmitted: (_) => _onSubmit(),
+                      textInputAction: TextInputAction.search,
                     )
                   : HighlightedTextField(
                       controller: _controller,
