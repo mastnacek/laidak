@@ -154,6 +154,69 @@ InputBar: [🔍][___ TextField MAX ___][➕]    ← Easy Zone (vždy viditelný)
 
 ---
 
+## 📘 Interaktivní Nápověda (Help System) - Implementační Plán
+
+### 📋 Kompletní guide: [help.md](help.md)
+
+**Funkce**: Interaktivní nápověda s AI demo pro onboarding uživatelů
+
+**Kdy použít**: Nová feature `lib/features/help/` s interaktivními tutoriály
+
+**Postup**:
+1. Přečti si kompletní návrh v [help.md](help.md)
+2. Následuj implementační plán (5 fází, 3-4 hodiny)
+3. Dodržuj SCÉNÁŘ 1 z [mapa-bloc.md](mapa-bloc.md) - Přidání nové feature
+
+**Klíčové komponenty**:
+- 📱 **HelpPage** - Card-based layout s kategoriemi
+- 🏷️ **Tag Demo** - Interaktivní TagParser demo (bez API)
+- 🤖 **AI Split Demo** - Live AI rozdělení úkolu (s OpenRouter)
+- 💬 **Motivation Demo** - AI motivační prompty (s OpenRouter)
+- 🧙 **Wizard** - First-time onboarding (optional)
+
+**Architektura**:
+```
+lib/features/help/
+├── presentation/
+│   ├── pages/help_page.dart, wizard_page.dart
+│   ├── widgets/tag_demo_widget.dart, ai_split_demo_widget.dart
+│   └── cubit/help_cubit.dart
+└── domain/models/help_section.dart
+```
+
+**Implementační fáze**:
+- **Fáze 1** (1-2h): Základní Help Page + static content
+- **Fáze 2** (30min): Tag Demo (live parsing, no API)
+- **Fáze 3** (1h): AI Split Demo (OpenRouter integration)
+- **Fáze 4** (1h): Motivation Demo (prompt templates + API)
+- **Fáze 5** (1-2h): First-time Wizard (optional)
+
+**Bezpečnost & validace**:
+- ✅ API key check před demo
+- ✅ Model selection validation
+- ✅ Rate limiting (max 5 demos/min)
+- ✅ Error handling (network, API failures)
+- ✅ Clear cost communication
+
+**UX Features**:
+- 📖 Příklady s copy-paste
+- 🎮 Interaktivní demo (try-before-use)
+- ⚠️ API requirements warnings
+- 💾 Save demo results to real todos
+- ♿ Accessibility support
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené fáze v [help.md](help.md)
+- 📝 Zaznamenej UX findings a user feedback
+- 🐛 Dokumentuj API edge cases
+- 🔄 Update TODO list v Claude Code UI po každé fázi
+
+**Priorita**: ⭐⭐⭐ Vysoká (kritické pro user adoption)
+
+**Poznámka**: Kombinace card-based layout + wizard pro optimální onboarding experience
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -303,11 +366,13 @@ Companion dokumenty:
 - rodel.md - AI Split Feature implementační plán (OpenRouter API integrace)
 - agenda.md - Agenda Views + Search + Sort implementační plán
 - gui.md - Mobile-First UI Redesign specifikace (Thumb Zone best practices)
+- help.md - Interaktivní nápověda s AI demo (onboarding & tutorials)
+- voice.md - TTS (Text-to-Speech) feature dokumentace
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.3
+Verze: 1.4
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-10-10 (přidána Mobile-First UI Redesign specifikace)
+Aktualizováno: 2025-01-10 (přidána Help System + TTS dokumentace)
 Autor: Claude Code (AI asistent)
 
 ---
