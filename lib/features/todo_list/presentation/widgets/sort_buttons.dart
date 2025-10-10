@@ -83,36 +83,36 @@ class _SortButton extends StatelessWidget {
     final isActive = sortMode == currentSortMode;
     final theme = Theme.of(context);
 
-    return ExcludeSemantics(
-      child: GestureDetector(
-        onTap: () {
-          final bloc = context.read<TodoListBloc>();
+    return InkWell(
+      onTap: () {
+        final bloc = context.read<TodoListBloc>();
 
-          if (!isActive) {
-            // První klik → aktivovat DESC
-            bloc.add(SortTodosEvent(sortMode, SortDirection.desc));
-          } else if (currentDirection == SortDirection.desc) {
-            // Druhý klik → přepnout na ASC
-            bloc.add(SortTodosEvent(sortMode, SortDirection.asc));
-          } else {
-            // Třetí klik → deaktivovat (null sort = default)
-            bloc.add(const ClearSortEvent());
-          }
-        },
-        onLongPress: () {
-          showDialog(
-            context: context,
-            builder: (context) => InfoDialog(
-              title: sortMode.label,
-              icon: sortMode.icon,
-              iconColor: theme.appColors.yellow,
-              description: _getSortModeDescription(sortMode),
-              examples: _getSortModeExamples(sortMode),
-              tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
-            ),
-          );
-        },
-        child: AnimatedContainer(
+        if (!isActive) {
+          // První klik → aktivovat DESC
+          bloc.add(SortTodosEvent(sortMode, SortDirection.desc));
+        } else if (currentDirection == SortDirection.desc) {
+          // Druhý klik → přepnout na ASC
+          bloc.add(SortTodosEvent(sortMode, SortDirection.asc));
+        } else {
+          // Třetí klik → deaktivovat (null sort = default)
+          bloc.add(const ClearSortEvent());
+        }
+      },
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (context) => InfoDialog(
+            title: sortMode.label,
+            icon: sortMode.icon,
+            iconColor: theme.appColors.yellow,
+            description: _getSortModeDescription(sortMode),
+            examples: _getSortModeExamples(sortMode),
+            tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
