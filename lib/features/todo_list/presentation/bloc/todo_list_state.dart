@@ -3,6 +3,7 @@ import '../../domain/entities/todo.dart';
 import '../../domain/enums/view_mode.dart';
 import '../../domain/enums/sort_mode.dart';
 import '../../domain/extensions/todo_filtering.dart';
+import '../../../../features/settings/domain/models/custom_agenda_view.dart';
 
 /// Sealed class pro všechny TodoList states
 ///
@@ -49,6 +50,12 @@ final class TodoListLoaded extends TodoListState {
   /// Sort direction (asc/desc)
   final SortDirection sortDirection;
 
+  /// Custom view (když viewMode == ViewMode.custom)
+  final CustomAgendaView? currentCustomView;
+
+  /// Helper: ID aktuálního custom view
+  String? get currentCustomViewId => currentCustomView?.id;
+
   const TodoListLoaded({
     required this.allTodos,
     this.showCompleted = false,
@@ -57,6 +64,7 @@ final class TodoListLoaded extends TodoListState {
     this.viewMode = ViewMode.all,
     this.sortMode,
     this.sortDirection = SortDirection.desc,
+    this.currentCustomView,
   });
 
   /// Computed property: Filtrované a seřazené todos
@@ -106,6 +114,8 @@ final class TodoListLoaded extends TodoListState {
     SortMode? sortMode,
     bool clearSortMode = false,
     SortDirection? sortDirection,
+    CustomAgendaView? currentCustomView,
+    bool clearCustomView = false,
   }) {
     return TodoListLoaded(
       allTodos: allTodos ?? this.allTodos,
@@ -116,6 +126,7 @@ final class TodoListLoaded extends TodoListState {
       viewMode: viewMode ?? this.viewMode,
       sortMode: clearSortMode ? null : (sortMode ?? this.sortMode),
       sortDirection: sortDirection ?? this.sortDirection,
+      currentCustomView: clearCustomView ? null : (currentCustomView ?? this.currentCustomView),
     );
   }
 
@@ -128,6 +139,7 @@ final class TodoListLoaded extends TodoListState {
         viewMode,
         sortMode,
         sortDirection,
+        currentCustomView,
       ];
 }
 

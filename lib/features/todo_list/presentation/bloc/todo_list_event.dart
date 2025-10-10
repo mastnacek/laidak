@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/enums/view_mode.dart';
 import '../../domain/enums/sort_mode.dart';
+import '../../../../features/settings/domain/models/custom_agenda_view.dart';
 
 /// Sealed class pro všechny TodoList events
 ///
@@ -126,4 +127,14 @@ final class SortTodosEvent extends TodoListEvent {
 /// Vymazat sortování (vrátit na default)
 final class ClearSortEvent extends TodoListEvent {
   const ClearSortEvent();
+}
+
+/// Změnit na custom view (tag-based filtr)
+final class ChangeToCustomViewEvent extends TodoListEvent {
+  final CustomAgendaView customView;
+
+  const ChangeToCustomViewEvent(this.customView);
+
+  @override
+  List<Object?> get props => [customView];
 }

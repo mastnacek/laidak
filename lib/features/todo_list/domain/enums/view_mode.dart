@@ -22,7 +22,11 @@ enum ViewMode {
 
   /// Po termínu - úkoly kde jsi proklastnul
   /// (dueDate < today && !isCompleted)
-  overdue;
+  overdue,
+
+  /// Custom view (tag-based filtr)
+  /// Indikátor že je to custom view vytvořený uživatelem
+  custom;
 
   /// Zobrazovací text pro UI
   String get label {
@@ -32,6 +36,7 @@ enum ViewMode {
       ViewMode.week => '🗓️ Týden',
       ViewMode.upcoming => '⏰ Nadcházející',
       ViewMode.overdue => '⚠️ Overdue',
+      ViewMode.custom => 'Custom', // Dynamický label se nastaví jinde
     };
   }
 
@@ -43,6 +48,7 @@ enum ViewMode {
       ViewMode.week => 'Plán na celý týden',
       ViewMode.upcoming => 'Co tě čeká v příštích 7 dnech',
       ViewMode.overdue => 'Úkoly po termínu',
+      ViewMode.custom => 'Vlastní pohled podle tagu',
     };
   }
 
@@ -54,6 +60,13 @@ enum ViewMode {
       ViewMode.week => Icons.view_week,
       ViewMode.upcoming => Icons.schedule,
       ViewMode.overdue => Icons.warning,
+      ViewMode.custom => Icons.filter_alt, // Dynamická ikona se nastaví jinde
     };
   }
+}
+
+/// Extension pro ViewMode - helper metody
+extension ViewModeExtension on ViewMode {
+  /// Je to custom view?
+  bool get isCustom => this == ViewMode.custom;
 }
