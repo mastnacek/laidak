@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../pages/settings_page.dart';
-import '../../../../services/tag_parser.dart';
-import '../../../../widgets/highlighted_text_field.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
 import '../widgets/todo_card.dart';
+import '../widgets/todo_input_form.dart';
+import '../widgets/view_mode_buttons.dart';
+import '../widgets/sort_buttons.dart';
 
 /// TodoListPage - Hlavní stránka s TODO seznamem
 ///
@@ -60,8 +61,15 @@ class TodoListPage extends StatelessWidget {
       ),
       body: Column(
         children: [
-          // Formulář pro přidání nového úkolu
-          _TodoInputForm(),
+          // Formulář pro přidání nového úkolu / vyhledávání
+          const TodoInputForm(),
+
+          // Views buttons (📋 Všechny, 📅 Dnes, 🗓️ Týden, ...)
+          const ViewModeButtons(),
+
+          // Sort buttons (🔴 Priorita, 📅 Deadline, ...)
+          const SortButtons(),
+
           Divider(height: 1, color: theme.appColors.base3),
 
           // Seznam úkolů s BlocBuilder
@@ -166,74 +174,6 @@ class TodoListPage extends StatelessWidget {
           isExpanded: state.expandedTodoId == todo.id,
         );
       },
-    );
-  }
-}
-
-/// Widget pro formulář přidání nového úkolu
-class _TodoInputForm extends StatefulWidget {
-  @override
-  State<_TodoInputForm> createState() => _TodoInputFormState();
-}
-
-class _TodoInputFormState extends State<_TodoInputForm> {
-  final TextEditingController _textController = TextEditingController();
-
-  @override
-  void dispose() {
-    _textController.dispose();
-    super.dispose();
-  }
-
-  /// Přidat nový úkol s parsováním tagů
-  Future<void> _addTodoItem(BuildContext context, String taskText) async {
-    if (taskText.trim().isEmpty) return;
-
-    // Parsovat tagy (async)
-    final parsed = await TagParser.parse(taskText);
-
-    // Dispatch AddTodoEvent
-    if (context.mounted) {
-      context.read<TodoListBloc>().add(
-            AddTodoEvent(
-              taskText: parsed.cleanText,
-              priority: parsed.priority,
-              dueDate: parsed.dueDate,
-              tags: parsed.tags,
-            ),
-          );
-
-      // Vyčistit textfield
-      _textController.clear();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Container(
-      color: theme.appColors.bgAlt,
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: HighlightedTextField(
-              controller: _textController,
-              hintText: '*a* *dnes* *udelat* nakoupit, *rodina*',
-              onSubmitted: (text) => _addTodoItem(context, text),
-            ),
-          ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () => _addTodoItem(context, _textController.text),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.all(16),
-            ),
-            child: const Icon(Icons.add),
-          ),
-        ],
-      ),
     );
   }
 }
