@@ -2160,6 +2160,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             ),
             const SizedBox(height: 8),
             Container(
+              height: 200, // Fixní výška (4 rows * 48px + spacing)
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: theme.appColors.base2,
@@ -2168,8 +2169,6 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
               ),
               child: GridView.count(
                 crossAxisCount: 6,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 8,
                 crossAxisSpacing: 8,
                 children: [
