@@ -108,6 +108,52 @@
 
 ---
 
+## 📱 Mobile-First UI Redesign - Implementační Plán
+
+### 📋 Kompletní guide: [gui.md](gui.md)
+
+**Funkce**: Redesign GUI podle Thumb Zone best practices pro mobilní zařízení
+
+**Kdy použít**: Refaktoring layoutu TodoListPage (major UI změny)
+
+**Postup**:
+1. Přečti si kompletní specifikaci v [gui.md](gui.md)
+2. Následuj implementační plán (4 fáze, 18 kroků)
+3. Dodržuj SCÉNÁŘ 2 z [mapa-bloc.md](mapa-bloc.md) - Úprava existující feature
+4. **Snapshot commit před každou fází!**
+
+**Klíčové změny**:
+- 📍 **Input box DOLE** (Easy Thumb Zone) - fixed bottom
+- ⌨️ **Keyboard awareness** - SortBar/ViewBar se skryjí při psaní
+- 📏 **Maximální TextField** - edge-to-edge ikony, Expanded widget
+- 📊 **Stats dashboard** - TopBar s počítadly (jeden řádek!)
+- 🎨 **Kompaktní controls** - všechny akce v dosahu palce
+
+**Struktura nového layoutu (zdola nahoru)**:
+```
+TopBar:   [✅5][🔴12][📅3][⏰7]         [⚙️]  ← Stats + Settings
+List:     (scrollable TODO items)             ← Stretch Zone
+SortBar:  [🔴] [📅] [✅] [🆕]                ← Easy Zone (skryté při psaní)
+ViewBar:  [📋] [📅] [🗓️] [⏰] [⚠️] [👁️]     ← Easy Zone (skryté při psaní)
+InputBar: [🔍][___ TextField MAX ___][➕]    ← Easy Zone (vždy viditelný)
+```
+
+**Implementační fáze**:
+- **Fáze 1**: Struktura (InputBar, ViewBar, SortBar, StatsRow widgets)
+- **Fáze 2**: Chování (keyboard awareness, search mode, stats výpočty)
+- **Fáze 3**: Testing (Android emulator, thumb reachability)
+- **Fáze 4**: Polish (animace, tooltips, accessibility)
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené kroky v [gui.md](gui.md) implementačním plánu
+- 📝 Zaznamenej narazené problémy a řešení
+- 🔄 Update TODO list v Claude Code UI po každé fázi
+- 📸 Snapshot commit před každou fází!
+
+**Poznámka**: Návrh založený na UX research 2024 (Thumb Zone, FAB best practices)
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -256,11 +302,12 @@ Companion dokumenty:
 - mapa-bloc.md - Navigační decision tree
 - rodel.md - AI Split Feature implementační plán (OpenRouter API integrace)
 - agenda.md - Agenda Views + Search + Sort implementační plán
+- gui.md - Mobile-First UI Redesign specifikace (Thumb Zone best practices)
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.2
+Verze: 1.3
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-10-10 (přidána Agenda Views + Search + Sort feature)
+Aktualizováno: 2025-10-10 (přidána Mobile-First UI Redesign specifikace)
 Autor: Claude Code (AI asistent)
 
 ---
