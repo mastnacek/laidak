@@ -338,11 +338,11 @@ class StatsRow extends StatelessWidget {
 5. ✅ Vytvořit SortBar widget (kompaktní ikony 20px, triple-toggle)
 6. ✅ Vytvořit StatsRow widget (počítadla v AppBar)
 
-### **Fáze 2: Chování**
-7. ⏳ Implementovat keyboard awareness (resizeToAvoidBottomInset)
-8. ⏳ Search mode toggle v InputBar
-9. ⏳ Stats výpočty v BLoC
-10. ⏳ Kompaktní ikony (zmenšit z 24px na 20px)
+### **Fáze 2: Chování** ✅ HOTOVO
+7. ✅ Implementovat keyboard awareness (skrýt ViewBar/SortBar při focus)
+8. ✅ Search mode toggle v InputBar (🔍 → ✖️, debouncing 300ms)
+9. ✅ Stats výpočty v StatsRow (hotové, aktivní, dnes, týden)
+10. ✅ Kompaktní ikony (ViewBar 20-22px, SortBar 20px, InputBar 24px)
 
 ### **Fáze 3: Testing**
 11. ⏳ Test na Android emulátoru (keyboard behavior)
@@ -438,3 +438,31 @@ class StatsRow extends StatelessWidget {
 **Zjištěné problémy:** Žádné
 
 **Next:** Fáze 2 - Keyboard awareness (skrýt ViewBar/SortBar při focus InputBar)
+
+---
+
+### 2025-10-10 - Fáze 2: Chování ✅ HOTOVO
+
+**Implementované featury:**
+- ✅ **Keyboard awareness** - ViewBar a SortBar se skryjí při focus na InputBar
+  - InputBar: onFocusChanged callback notifikuje parent
+  - TodoListPage: _isInputFocused state + conditional rendering
+  - HighlightedTextField: sdílený focusNode s InputBar
+  - Šetří místo pro klávesnici a TODO list!
+
+**Verifikace funkčnosti:**
+- ✅ Search mode toggle funguje (🔍 → ✖️, debouncing 300ms)
+- ✅ Stats výpočty správné (✅ completed, 🔴 active, 📅 today, ⏰ week)
+- ✅ Kompaktní ikony implementovány (ViewBar 20-22px, SortBar 20px, Eye 24px)
+- ✅ FocusNode synchronizace mezi InputBar a HighlightedTextField
+
+**Změny v souborech:**
+- `input_bar.dart`: onFocusChanged callback, FocusNode listener
+- `highlighted_text_field.dart`: Optional focusNode parametr
+- `todo_list_page.dart`: StatefulWidget, conditional rendering ViewBar/SortBar
+
+**Commit:** `e09d6f4` - ✨ feat: Mobile-First UI Redesign - Fáze 2 (Chování)
+
+**Zjištěné problémy:** Žádné
+
+**Next:** Fáze 3 - Testing (Android emulátor, thumb reachability, scrollování)
