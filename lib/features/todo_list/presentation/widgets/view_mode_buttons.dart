@@ -72,31 +72,32 @@ class _ViewChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return GestureDetector(
-      onTap: () {
-        final bloc = context.read<TodoListBloc>();
+    return ExcludeSemantics(
+      child: GestureDetector(
+        onTap: () {
+          final bloc = context.read<TodoListBloc>();
 
-        // One-click toggle: Klik na aktivní tlačítko → vrátit na ViewMode.all
-        if (isSelected && viewMode != ViewMode.all) {
-          bloc.add(const ChangeViewModeEvent(ViewMode.all));
-        } else {
-          bloc.add(ChangeViewModeEvent(viewMode));
-        }
-      },
-      onLongPress: () {
-        showDialog(
-          context: context,
-          builder: (context) => InfoDialog(
-            title: viewMode.label,
-            icon: viewMode.icon,
-            iconColor: theme.appColors.yellow,
-            description: _getViewModeDescription(viewMode),
-            examples: _getViewModeExamples(viewMode),
-            tip: 'Klikni na ikonku pro aktivaci tohoto pohledu. Klikni znovu pro vrácení na "Všechny".',
-          ),
-        );
-      },
-      child: AnimatedContainer(
+          // One-click toggle: Klik na aktivní tlačítko → vrátit na ViewMode.all
+          if (isSelected && viewMode != ViewMode.all) {
+            bloc.add(const ChangeViewModeEvent(ViewMode.all));
+          } else {
+            bloc.add(ChangeViewModeEvent(viewMode));
+          }
+        },
+        onLongPress: () {
+          showDialog(
+            context: context,
+            builder: (context) => InfoDialog(
+              title: viewMode.label,
+              icon: viewMode.icon,
+              iconColor: theme.appColors.yellow,
+              description: _getViewModeDescription(viewMode),
+              examples: _getViewModeExamples(viewMode),
+              tip: 'Klikni na ikonku pro aktivaci tohoto pohledu. Klikni znovu pro vrácení na "Všechny".',
+            ),
+          );
+        },
+        child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         padding: const EdgeInsets.all(12),
