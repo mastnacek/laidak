@@ -72,7 +72,7 @@ class _ViewChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         final bloc = context.read<TodoListBloc>();
 
@@ -96,7 +96,6 @@ class _ViewChip extends StatelessWidget {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,

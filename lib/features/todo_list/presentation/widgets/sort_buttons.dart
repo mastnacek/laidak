@@ -83,7 +83,7 @@ class _SortButton extends StatelessWidget {
     final isActive = sortMode == currentSortMode;
     final theme = Theme.of(context);
 
-    return InkWell(
+    return GestureDetector(
       onTap: () {
         final bloc = context.read<TodoListBloc>();
 
@@ -111,7 +111,6 @@ class _SortButton extends StatelessWidget {
           ),
         );
       },
-      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
