@@ -142,37 +142,21 @@ class _TodoListPageState extends State<TodoListPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // SortBar (skrytý při psaní s animací!)
-              AnimatedSwitcher(
+              AnimatedSize(
                 duration: const Duration(milliseconds: 200),
-                switchInCurve: Curves.easeInOut,
-                switchOutCurve: Curves.easeInOut,
-                transitionBuilder: (child, animation) {
-                  return SizeTransition(
-                    sizeFactor: animation,
-                    axisAlignment: -1.0,
-                    child: child,
-                  );
-                },
+                curve: Curves.easeInOut,
                 child: _isInputFocused
-                    ? const SizedBox(key: ValueKey('sortbar-hidden'))
-                    : const SortBar(key: ValueKey('sortbar-visible')),
+                    ? const SizedBox.shrink()
+                    : const SortBar(),
               ),
 
               // ViewBar (skrytý při psaní s animací!)
-              AnimatedSwitcher(
+              AnimatedSize(
                 duration: const Duration(milliseconds: 200),
-                switchInCurve: Curves.easeInOut,
-                switchOutCurve: Curves.easeInOut,
-                transitionBuilder: (child, animation) {
-                  return SizeTransition(
-                    sizeFactor: animation,
-                    axisAlignment: -1.0,
-                    child: child,
-                  );
-                },
+                curve: Curves.easeInOut,
                 child: _isInputFocused
-                    ? const SizedBox(key: ValueKey('viewbar-hidden'))
-                    : const ViewBar(key: ValueKey('viewbar-visible')),
+                    ? const SizedBox.shrink()
+                    : const ViewBar(),
               ),
 
               // InputBar (VŽDY viditelný)

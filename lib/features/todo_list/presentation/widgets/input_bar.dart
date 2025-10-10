@@ -58,8 +58,9 @@ class _InputBarState extends State<InputBar> {
   }
 
   void _onFocusChange() {
-    // Notifikovat parent o focus změně
-    widget.onFocusChanged?.call(_focusNode.hasFocus);
+    // Notifikovat parent o focus změně POUZE v search mode
+    // V add mode chceme vidět ViewBar/SortBar!
+    widget.onFocusChanged?.call(_focusNode.hasFocus && _isSearchMode);
   }
 
   void _toggleSearchMode() {
@@ -69,10 +70,14 @@ class _InputBarState extends State<InputBar> {
         // Přepnout do Search Mode
         _controller.clear();
         _focusNode.requestFocus();
+        // Notifikovat parent (skrýt ViewBar/SortBar)
+        widget.onFocusChanged?.call(true);
       } else {
         // Vrátit do Add Mode
         context.read<TodoListBloc>().add(const ClearSearchEvent());
         _controller.clear();
+        // Notifikovat parent (zobrazit ViewBar/SortBar)
+        widget.onFocusChanged?.call(false);
       }
     });
   }
