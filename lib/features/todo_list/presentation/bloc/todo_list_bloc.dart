@@ -30,11 +30,20 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     LoadTodosEvent event,
     Emitter<TodoListState> emit,
   ) async {
+    // Zachovat expandedTodoId z předchozího stavu
+    final previousState = state;
+    final expandedTodoId = previousState is TodoListLoaded
+        ? previousState.expandedTodoId
+        : null;
+
     emit(const TodoListLoading());
 
     try {
       final todos = await _repository.getAllTodos();
-      emit(TodoListLoaded(todos: todos));
+      emit(TodoListLoaded(
+        todos: todos,
+        expandedTodoId: expandedTodoId, // Zachovat expanded state
+      ));
     } catch (e) {
       emit(TodoListError('Chyba při načítání úkolů: $e'));
     }
