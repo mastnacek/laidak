@@ -131,6 +131,15 @@ class AiSplitCubit extends Cubit<AiSplitState> {
     }
   }
 
+  /// Smazat subtask
+  Future<void> deleteSubtask(int subtaskId) async {
+    try {
+      await repository.deleteSubtask(subtaskId);
+    } catch (e) {
+      emit(AiSplitError('Chyba při mazání subtasku: $e'));
+    }
+  }
+
   /// Reset state
   void reset() {
     emit(const AiSplitInitial());

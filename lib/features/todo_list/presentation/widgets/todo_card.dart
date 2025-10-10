@@ -564,38 +564,103 @@ class TodoCard extends StatelessWidget {
                 ...todo.subtasks!.map((subtask) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: subtask.completed,
-                          onChanged: (value) async {
-                            // Toggle subtask completed
-                            await context
-                                .read<AiSplitCubit>()
-                                .toggleSubtask(subtask.id!, value!);
-                            // Reload todo list pro zobrazení změn
-                            if (context.mounted) {
-                              context
-                                  .read<TodoListBloc>()
-                                  .add(const LoadTodosEvent());
-                            }
-                          },
-                          activeColor: theme.appColors.green,
+                    child: Dismissible(
+                      key: Key('subtask_${subtask.id}'),
+                      // Swipe doprava = toggle hotovo/nehotovo
+                      background: Container(
+                        decoration: BoxDecoration(
+                          color: subtask.completed
+                              ? theme.appColors.yellow
+                              : theme.appColors.green,
+                          borderRadius: BorderRadius.circular(4),
                         ),
-                        Expanded(
-                          child: Text(
-                            '${subtask.subtaskNumber}. ${subtask.text}',
-                            style: TextStyle(
-                              color: subtask.completed
-                                  ? theme.appColors.base5
-                                  : theme.appColors.fg,
-                              decoration: subtask.completed
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.only(left: 12),
+                        child: Icon(
+                          subtask.completed ? Icons.refresh : Icons.check,
+                          color: theme.appColors.bg,
+                          size: 20,
+                        ),
+                      ),
+                      // Swipe doleva = smazat
+                      secondaryBackground: Container(
+                        decoration: BoxDecoration(
+                          color: theme.appColors.red,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 12),
+                        child: Icon(
+                          Icons.delete,
+                          color: theme.appColors.bg,
+                          size: 20,
+                        ),
+                      ),
+                      confirmDismiss: (direction) async {
+                        if (direction == DismissDirection.startToEnd) {
+                          // Swipe doprava = toggle
+                          await context
+                              .read<AiSplitCubit>()
+                              .toggleSubtask(subtask.id!, !subtask.completed);
+                          // Reload todo list
+                          if (context.mounted) {
+                            context
+                                .read<TodoListBloc>()
+                                .add(const LoadTodosEvent());
+                          }
+                          return false; // Neodstranit widget
+                        } else {
+                          // Swipe doleva = smazat
+                          return true; // Odstranit widget
+                        }
+                      },
+                      onDismissed: (direction) async {
+                        if (direction == DismissDirection.endToStart) {
+                          // Smazat subtask
+                          await context
+                              .read<AiSplitCubit>()
+                              .deleteSubtask(subtask.id!);
+                          // Reload todo list
+                          if (context.mounted) {
+                            context
+                                .read<TodoListBloc>()
+                                .add(const LoadTodosEvent());
+                          }
+                        }
+                      },
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: subtask.completed,
+                            onChanged: (value) async {
+                              // Toggle subtask completed
+                              await context
+                                  .read<AiSplitCubit>()
+                                  .toggleSubtask(subtask.id!, value!);
+                              // Reload todo list pro zobrazení změn
+                              if (context.mounted) {
+                                context
+                                    .read<TodoListBloc>()
+                                    .add(const LoadTodosEvent());
+                              }
+                            },
+                            activeColor: theme.appColors.green,
+                          ),
+                          Expanded(
+                            child: Text(
+                              '${subtask.subtaskNumber}. ${subtask.text}',
+                              style: TextStyle(
+                                color: subtask.completed
+                                    ? theme.appColors.base5
+                                    : theme.appColors.fg,
+                                decoration: subtask.completed
+                                    ? TextDecoration.lineThrough
+                                    : TextDecoration.none,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 }),
