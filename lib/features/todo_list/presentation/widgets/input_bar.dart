@@ -138,8 +138,7 @@ class _InputBarState extends State<InputBar> {
       label: 'Panel pro přidání úkolu a vyhledávání',
       container: true,
       child: Container(
-        height: 64,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
         decoration: BoxDecoration(
           color: theme.appColors.bgAlt,
           border: Border(
@@ -181,6 +180,11 @@ class _InputBarState extends State<InputBar> {
                         decoration: InputDecoration(
                           hintText: '🔍 Vyhledat úkol...',
                           border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 0,
+                          ),
+                          isDense: true,
                           hintStyle: TextStyle(
                             color: theme.appColors.base5,
                             fontSize: 16,
