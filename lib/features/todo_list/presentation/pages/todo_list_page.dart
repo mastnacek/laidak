@@ -60,7 +60,7 @@ class _TodoListPageState extends State<TodoListPage> {
         ],
       ),
 
-      // TODO List (scrollable)
+      // TODO List + Bottom Controls (keyboard aware!)
       body: BlocConsumer<TodoListBloc, TodoListState>(
         listener: (context, state) {
           // Zobrazit error snackbar
@@ -74,102 +74,115 @@ class _TodoListPageState extends State<TodoListPage> {
           }
         },
         builder: (context, state) {
-          return switch (state) {
-            TodoListInitial() => const Center(
-                child: Text('Inicializace...'),
-              ),
-            TodoListLoading() => const Center(
-                child: CircularProgressIndicator(),
-              ),
-            TodoListLoaded() => _buildTodoList(context, state),
-            TodoListError() => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline,
-                        size: 48, color: theme.appColors.red),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Chyba při načítání úkolů',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: theme.appColors.fg,
-                        fontWeight: FontWeight.bold,
+          return Column(
+            children: [
+              // TODO List (scrollable) - Expanded = zabere zbytek místa
+              Expanded(
+                child: switch (state) {
+                  TodoListInitial() => const Center(
+                      child: Text('Inicializace...'),
+                    ),
+                  TodoListLoading() => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  TodoListLoaded() => _buildTodoList(context, state),
+                  TodoListError() => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.error_outline,
+                              size: 48, color: theme.appColors.red),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Chyba při načítání úkolů',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: theme.appColors.fg,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            state.message,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: theme.appColors.base5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              context
+                                  .read<TodoListBloc>()
+                                  .add(const LoadTodosEvent());
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Zkusit znovu'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.appColors.yellow,
+                              foregroundColor: theme.appColors.bg,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      state.message,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: theme.appColors.base5,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        context.read<TodoListBloc>().add(const LoadTodosEvent());
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Zkusit znovu'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.appColors.yellow,
-                        foregroundColor: theme.appColors.bg,
-                      ),
+                },
+              ),
+
+              // Bottom Controls (KEYBOARD AWARE!)
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.appColors.bgAlt,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2),
                     ),
                   ],
                 ),
-              ),
-          };
-        },
-      ),
+                // DŮLEŽITÉ: Padding podle keyboard inset!
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // SortBar (skrytý při psaní s animací!)
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        child: _isInputFocused
+                            ? const SizedBox.shrink()
+                            : const SortBar(),
+                      ),
 
-      // Bottom Navigation Bar - Fixed controls (Easy Thumb Zone!)
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: theme.appColors.bgAlt,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // SortBar (skrytý při psaní s animací!)
-              AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                child: _isInputFocused
-                    ? const SizedBox.shrink()
-                    : const SortBar(),
-              ),
+                      // ViewBar (skrytý při psaní s animací!)
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        child: _isInputFocused
+                            ? const SizedBox.shrink()
+                            : const ViewBar(),
+                      ),
 
-              // ViewBar (skrytý při psaní s animací!)
-              AnimatedSize(
-                duration: const Duration(milliseconds: 200),
-                curve: Curves.easeInOut,
-                child: _isInputFocused
-                    ? const SizedBox.shrink()
-                    : const ViewBar(),
-              ),
-
-              // InputBar (VŽDY viditelný)
-              InputBar(
-                onFocusChanged: (hasFocus) {
-                  setState(() {
-                    _isInputFocused = hasFocus;
-                  });
-                },
+                      // InputBar (VŽDY viditelný)
+                      InputBar(
+                        onFocusChanged: (hasFocus) {
+                          setState(() {
+                            _isInputFocused = hasFocus;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
-          ),
-        ),
+          );
+        },
       ),
     );
   }
