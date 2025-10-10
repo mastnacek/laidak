@@ -64,8 +64,9 @@ extension TodoFiltering on List<Todo> {
   /// Case-sensitive match (tag musí přesně odpovídat).
   ///
   /// Příklady:
-  /// - tagFilter = "***" → úkoly s tagem "***"
-  /// - tagFilter = "#projekt" → úkoly s tagem "#projekt"
+  /// - tagFilter = "projekt" → úkoly s tagem *projekt*
+  /// - tagFilter = "nakup" → úkoly s tagem *nakup*
+  /// - tagFilter = "sport" → úkoly s tagem *sport*
   List<Todo> filterByCustomView(String tagFilter) {
     if (tagFilter.trim().isEmpty) return this;
 

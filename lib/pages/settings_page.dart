@@ -1757,7 +1757,7 @@ class _AgendaTab extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Vlastní agenda pohledy na základě tagů (např. ***, #projekt)',
+          'Vlastní agenda pohledy na základě tagů (např. *projekt*, *nakup*)',
           style: TextStyle(
             color: theme.appColors.base5,
             fontSize: 12,
@@ -2129,7 +2129,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
                 fontFamily: 'monospace',
               ),
               decoration: InputDecoration(
-                hintText: '*** nebo #projekt',
+                hintText: 'projekt, nakup, sport',
                 hintStyle: TextStyle(color: theme.appColors.base5),
                 filled: true,
                 fillColor: theme.appColors.base2,

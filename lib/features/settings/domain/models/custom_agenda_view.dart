@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 /// Custom Agenda View definice (tag-based filtr)
 ///
 /// Umožňuje uživateli vytvořit vlastní pohled na úkoly filtrované podle tagu.
-/// Například: "***" = Oblíbené úkoly, "#projekt" = Projekty
+/// Například: "projekt" = Projekty, "nakup" = Nákupy (bez oddělovačů *)
 class CustomAgendaView extends Equatable {
   /// Unikátní ID (UUID)
   final String id;
@@ -12,7 +12,7 @@ class CustomAgendaView extends Equatable {
   /// Název view (zobrazený v InfoDialog)
   final String name;
 
-  /// Tag pro filtrování (např. "***", "#projekt")
+  /// Tag pro filtrování (např. "projekt", "nakup", "sport" - bez oddělovačů)
   final String tagFilter;
 
   /// Ikona (Material Icons code point)
