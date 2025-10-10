@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/todo.dart';
+import '../../domain/enums/view_mode.dart';
+import '../../domain/enums/sort_mode.dart';
 
 /// Sealed class pro všechny TodoList events
 ///
@@ -81,4 +83,47 @@ final class ToggleExpandTodoEvent extends TodoListEvent {
 
   @override
   List<Object?> get props => [todoId];
+}
+
+// ==================== SEARCH / FILTER / SORT EVENTS ====================
+
+/// Vyhledat úkoly podle query
+final class SearchTodosEvent extends TodoListEvent {
+  final String query;
+
+  const SearchTodosEvent(this.query);
+
+  @override
+  List<Object?> get props => [query];
+}
+
+/// Vymazat vyhledávání
+final class ClearSearchEvent extends TodoListEvent {
+  const ClearSearchEvent();
+}
+
+/// Změnit view mode (agenda kategorie)
+final class ChangeViewModeEvent extends TodoListEvent {
+  final ViewMode viewMode;
+
+  const ChangeViewModeEvent(this.viewMode);
+
+  @override
+  List<Object?> get props => [viewMode];
+}
+
+/// Seřadit úkoly podle kritéria
+final class SortTodosEvent extends TodoListEvent {
+  final SortMode sortMode;
+  final SortDirection direction;
+
+  const SortTodosEvent(this.sortMode, this.direction);
+
+  @override
+  List<Object?> get props => [sortMode, direction];
+}
+
+/// Vymazat sortování (vrátit na default)
+final class ClearSortEvent extends TodoListEvent {
+  const ClearSortEvent();
 }

@@ -23,6 +23,13 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     on<ToggleTodoEvent>(_onToggleTodo);
     on<ToggleShowCompletedEvent>(_onToggleShowCompleted);
     on<ToggleExpandTodoEvent>(_onToggleExpandTodo);
+
+    // Search / Filter / Sort handlers
+    on<SearchTodosEvent>(_onSearchTodos);
+    on<ClearSearchEvent>(_onClearSearch);
+    on<ChangeViewModeEvent>(_onChangeViewMode);
+    on<SortTodosEvent>(_onSortTodos);
+    on<ClearSortEvent>(_onClearSort);
   }
 
   /// Handler: Načíst všechny todos
@@ -41,7 +48,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     try {
       final todos = await _repository.getAllTodos();
       emit(TodoListLoaded(
-        todos: todos,
+        allTodos: todos,
         expandedTodoId: expandedTodoId, // Zachovat expanded state
       ));
     } catch (e) {
@@ -182,5 +189,61 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
       expandedTodoId: newExpandedId,
       clearExpandedTodoId: newExpandedId == null,
     ));
+  }
+
+  // ==================== SEARCH / FILTER / SORT HANDLERS ====================
+
+  /// Handler: Vyhledat úkoly podle query
+  void _onSearchTodos(SearchTodosEvent event, Emitter<TodoListState> emit) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Update search query v state
+    // displayedTodos getter automaticky aplikuje filtr
+    emit(currentState.copyWith(searchQuery: event.query));
+  }
+
+  /// Handler: Vymazat vyhledávání
+  void _onClearSearch(ClearSearchEvent event, Emitter<TodoListState> emit) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Vymazat search query
+    emit(currentState.copyWith(searchQuery: ''));
+  }
+
+  /// Handler: Změnit view mode
+  void _onChangeViewMode(
+    ChangeViewModeEvent event,
+    Emitter<TodoListState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Update view mode v state
+    // displayedTodos getter automaticky aplikuje filtr
+    emit(currentState.copyWith(viewMode: event.viewMode));
+  }
+
+  /// Handler: Seřadit úkoly
+  void _onSortTodos(SortTodosEvent event, Emitter<TodoListState> emit) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Update sort mode a direction v state
+    // displayedTodos getter automaticky aplikuje sort
+    emit(currentState.copyWith(
+      sortMode: event.sortMode,
+      sortDirection: event.direction,
+    ));
+  }
+
+  /// Handler: Vymazat sortování (vrátit na default)
+  void _onClearSort(ClearSortEvent event, Emitter<TodoListState> emit) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Vymazat sort mode (default = createdAt DESC)
+    emit(currentState.copyWith(clearSortMode: true));
   }
 }

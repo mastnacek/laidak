@@ -1,5 +1,8 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/todo.dart';
+import '../../domain/enums/view_mode.dart';
+import '../../domain/enums/sort_mode.dart';
+import '../../domain/extensions/todo_filtering.dart';
 
 /// Sealed class pro všechny TodoList states
 ///
@@ -23,42 +26,109 @@ final class TodoListLoading extends TodoListState {
 
 /// Loaded state - data načtena, zobrazujeme seznam
 final class TodoListLoaded extends TodoListState {
-  final List<Todo> todos;
+  /// Všechny todos z databáze (nezfiltrované)
+  final List<Todo> allTodos;
+
+  /// Zobrazit hotové úkoly?
   final bool showCompleted;
+
+  /// ID expandovaného úkolu (pro detail view)
   final int? expandedTodoId;
 
+  // ==================== SEARCH / FILTER / SORT FIELDS ====================
+
+  /// Search query (prázdný string = no search)
+  final String searchQuery;
+
+  /// View mode (agenda kategorie)
+  final ViewMode viewMode;
+
+  /// Sort mode (null = default sort by createdAt DESC)
+  final SortMode? sortMode;
+
+  /// Sort direction (asc/desc)
+  final SortDirection sortDirection;
+
   const TodoListLoaded({
-    required this.todos,
+    required this.allTodos,
     this.showCompleted = false,
     this.expandedTodoId,
+    this.searchQuery = '',
+    this.viewMode = ViewMode.all,
+    this.sortMode,
+    this.sortDirection = SortDirection.desc,
   });
 
-  /// Získat filtrované todos (podle showCompleted)
+  /// Computed property: Filtrované a seřazené todos
+  ///
+  /// Pipeline:
+  /// 1. Filter by search query
+  /// 2. Filter by view mode
+  /// 3. Sort (podle sortMode nebo default)
+  /// 4. Filter by showCompleted
+  ///
+  /// Memoizováno díky Equatable.
   List<Todo> get displayedTodos {
-    if (showCompleted) {
-      return todos;
-    } else {
-      return todos.where((todo) => !todo.isCompleted).toList();
+    var todos = allTodos;
+
+    // 1. Filter by search query
+    if (searchQuery.isNotEmpty) {
+      todos = todos.filterBySearch(searchQuery);
     }
+
+    // 2. Filter by view mode
+    todos = todos.filterByViewMode(viewMode);
+
+    // 3. Sort
+    if (sortMode != null) {
+      todos = todos.sortBy(sortMode!, sortDirection);
+    } else {
+      // Default sort: createdAt DESC (nejnovější nahoře)
+      todos = todos.sortBy(SortMode.createdAt, SortDirection.desc);
+    }
+
+    // 4. Filter by showCompleted
+    if (!showCompleted) {
+      todos = todos.where((t) => !t.isCompleted).toList();
+    }
+
+    return todos;
   }
 
   /// copyWith pro immutable updates
   TodoListLoaded copyWith({
-    List<Todo>? todos,
+    List<Todo>? allTodos,
     bool? showCompleted,
     int? expandedTodoId,
     bool clearExpandedTodoId = false,
+    String? searchQuery,
+    ViewMode? viewMode,
+    SortMode? sortMode,
+    bool clearSortMode = false,
+    SortDirection? sortDirection,
   }) {
     return TodoListLoaded(
-      todos: todos ?? this.todos,
+      allTodos: allTodos ?? this.allTodos,
       showCompleted: showCompleted ?? this.showCompleted,
       expandedTodoId:
           clearExpandedTodoId ? null : (expandedTodoId ?? this.expandedTodoId),
+      searchQuery: searchQuery ?? this.searchQuery,
+      viewMode: viewMode ?? this.viewMode,
+      sortMode: clearSortMode ? null : (sortMode ?? this.sortMode),
+      sortDirection: sortDirection ?? this.sortDirection,
     );
   }
 
   @override
-  List<Object?> get props => [todos, showCompleted, expandedTodoId];
+  List<Object?> get props => [
+        allTodos,
+        showCompleted,
+        expandedTodoId,
+        searchQuery,
+        viewMode,
+        sortMode,
+        sortDirection,
+      ];
 }
 
 /// Error state - chyba při operaci s databází
