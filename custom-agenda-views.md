@@ -16,7 +16,7 @@
 
 Umožnit uživateli:
 1. **Zapnout/vypnout** built-in views (All, Today, Week, Upcoming, Overdue)
-2. **Vytvořit custom views** na základě tagů (např. `***` = Oblíbené, `#projekt` = Projekt)
+2. **Vytvořit custom views** na základě tagů (např. `projekt` = Projekty, `nakup` = Nákupy)
 3. **Přizpůsobit ViewBar** - zobrazit pouze enabled views
 4. **Spravovat vše** z nové záložky **Settings > Agenda**
 
@@ -39,12 +39,12 @@ Umožnit uživateli:
 │ 🆕 CUSTOM VIEWS                         │
 │ [➕ Přidat Custom View]                │
 │                                         │
-│ ⭐ Oblíbené                             │
-│   Tag: ***                              │
+│ 📁 Projekty                             │
+│   Tag: projekt                          │
 │   [✏️ Upravit] [🗑️ Smazat]             │
 │                                         │
-│ 🏢 Projekt                              │
-│   Tag: #projekt                         │
+│ 🛒 Nákupy                               │
+│   Tag: nakup                            │
 │   [✏️ Upravit] [🗑️ Smazat]             │
 └─────────────────────────────────────────┘
 ```
@@ -53,9 +53,9 @@ Umožnit uživateli:
 ```
 Původně: [📋][📅][🗓️][⏰][⚠️]
 
-Po customizaci: [📋][📅][⚠️][⭐][🏢]
+Po customizaci: [📋][📅][⚠️][📁][🛒]
                  ↑   ↑   ↑   ↑   ↑
-                All Dnes Over Fav Proj
+                All Dnes Over Proj Shop
 ```
 
 ---
@@ -208,7 +208,7 @@ class CustomAgendaView extends Equatable {
   /// Název view (zobrazený v InfoDialog)
   final String name;
 
-  /// Tag pro filtrování (např. "***", "#projekt")
+  /// Tag pro filtrování (např. "projekt", "nakup", "sport" - bez oddělovačů)
   final String tagFilter;
 
   /// Ikona (Material Icons code point)
@@ -672,7 +672,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             controller: _tagController,
             decoration: const InputDecoration(
               labelText: 'Tag Filter',
-              hintText: '*** nebo #projekt',
+              hintText: 'projekt, nakup, sport',
             ),
           ),
           const SizedBox(height: 16),
@@ -1204,7 +1204,6 @@ List<Todo> get displayedTodos {
 - [ ] Animace při přidání/odebrání view
 - [ ] Confirmation dialog před smazáním custom view
 - [ ] Icon picker - lepší UI (grid místo dropdown)
-- [ ] Default custom view: "⭐ Oblíbené" s tagem "***"
 
 **Commit**: `✅ test: Manual testing + edge cases pro Custom Agenda Views`
 

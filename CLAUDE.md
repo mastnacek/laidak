@@ -234,7 +234,7 @@ lib/features/help/
 **Klíčové komponenty**:
 - ⚙️ **Settings > Agenda** - Nová záložka pro konfiguraci views
 - 📊 **Built-in Views Toggle** - Zapnout/vypnout All, Today, Week, Upcoming, Overdue
-- 🆕 **Custom Views** - Tag-based filtry (např. `***` = Oblíbené, `#projekt` = Projekt)
+- 🆕 **Custom Views** - Tag-based filtry (např. `projekt` = Projekty, `nakup` = Nákupy)
 - 🎨 **ViewBar Dynamic** - Zobrazí pouze enabled views
 - 💾 **Persistence** - SharedPreferences (žádné DB migrace!)
 

@@ -50,34 +50,34 @@ Tento dokument obsahuje kompletní manuální testing checklist pro Custom Agend
   - Klikni "Přidat Custom View"
   - Dialog se otevře
   - Vyplň:
-    - Název: "Oblíbené"
-    - Tag: "***"
-    - Ikona: Star (⭐)
+    - Název: "Projekty"
+    - Tag: "projekt"
+    - Ikona: Folder (📁)
   - Klikni "Uložit"
   - **Expected**: Dialog se zavře, nová karta se objeví v seznamu
-  - **Expected**: ViewBar zobrazuje novou ikonu ⭐
+  - **Expected**: ViewBar zobrazuje novou ikonu 📁
 
 - [ ] **Test 2.2**: Přidat druhý custom view
   - Klikni "Přidat Custom View"
   - Vyplň:
-    - Název: "Projekt"
-    - Tag: "#projekt"
-    - Ikona: Work (🏢)
+    - Název: "Nákupy"
+    - Tag: "nakup"
+    - Ikona: Shopping Cart (🛒)
   - Klikni "Uložit"
-  - **Expected**: ViewBar zobrazuje 2 custom ikony (⭐ + 🏢)
+  - **Expected**: ViewBar zobrazuje 2 custom ikony (📁 + 🛒)
 
 - [ ] **Test 2.3**: Upravit custom view
-  - Klikni ✏️ (edit) na "Oblíbené" kartě
-  - Změň název na "Favorites"
-  - Změň tag na "⭐"
+  - Klikni ✏️ (edit) na "Projekty" kartě
+  - Změň název na "Pracovní projekty"
+  - Změň tag na "prace"
   - Klikni "Uložit"
-  - **Expected**: Karta zobrazuje nový název "Favorites"
-  - **Expected**: Tag zobrazuje "⭐"
+  - **Expected**: Karta zobrazuje nový název "Pracovní projekty"
+  - **Expected**: Tag zobrazuje "prace"
 
 - [ ] **Test 2.4**: Smazat custom view
-  - Klikni 🗑️ (delete) na "Projekt" kartě
+  - Klikni 🗑️ (delete) na "Nákupy" kartě
   - **Expected**: Karta zmizí ze seznamu
-  - **Expected**: ViewBar nezobrazuje 🏢 ikonu
+  - **Expected**: ViewBar nezobrazuje 🛒 ikonu
 
 - [ ] **Test 2.5**: Validace prázdných polí
   - Klikni "Přidat Custom View"
@@ -109,11 +109,11 @@ Tento dokument obsahuje kompletní manuální testing checklist pro Custom Agend
   - **Expected**: Text: "Žádné views aktivní. Zapni je v Settings > Agenda"
 
 - [ ] **Test 3.4**: Klik na custom view aktivuje filtr
-  - Vytvoř custom view "Work" s tagem "#work"
+  - Vytvoř custom view "Work" s tagem "work"
   - Vytvoř 3 úkoly:
     - "Task 1" (bez tagu)
-    - "Task 2 #work"
-    - "Task 3 #work"
+    - "Task 2 *work*"
+    - "Task 3 *work*"
   - Klikni na 🏢 (Work) ikonu ve ViewBar
   - **Expected**: Zobrazí pouze Task 2 a Task 3
 
@@ -133,16 +133,16 @@ Tento dokument obsahuje kompletní manuální testing checklist pro Custom Agend
 ### Filtrování Custom Views
 
 - [ ] **Test 4.1**: Tag matching je case-sensitive
-  - Vytvoř custom view s tagem "***"
-  - Vytvoř úkol s tagem "***"
-  - Vytvoř úkol s tagem "**" (2 hvězdičky)
+  - Vytvoř custom view s tagem "projekt"
+  - Vytvoř úkol s tagem "*projekt*"
+  - Vytvoř úkol s tagem "*Projekt*" (velké P)
   - Aktivuj custom view
-  - **Expected**: Zobrazí pouze úkol s "***"
+  - **Expected**: Zobrazí pouze úkol s "*projekt*" (lowercase)
 
 - [ ] **Test 4.2**: Custom view + search kombinace
-  - Aktivuj custom view "#work"
+  - Aktivuj custom view "work"
   - Zadej search query "task"
-  - **Expected**: Filtruje úkoly: (tag == "#work") AND (text contains "task")
+  - **Expected**: Filtruje úkoly: (tag == "work") AND (text contains "task")
 
 - [ ] **Test 4.3**: Custom view + sort kombinace
   - Aktivuj custom view
@@ -165,7 +165,7 @@ Tento dokument obsahuje kompletní manuální testing checklist pro Custom Agend
   - **Expected**: Žádný crash
 
 - [ ] **Edge Case 2**: Custom view s neexistujícím tagem
-  - Vytvoř custom view s tagem "#nonexistent"
+  - Vytvoř custom view s tagem "nonexistent"
   - Aktivuj tento view
   - **Expected**: Zobrazí prázdný list (0 úkolů)
   - **Expected**: Žádný crash
@@ -195,8 +195,8 @@ Tento dokument obsahuje kompletní manuální testing checklist pro Custom Agend
   - **Expected**: Week ikona zmizela z ViewBar
 
 - [ ] **Edge Case 6**: Duplicitní tag mezi custom views
-  - Vytvoř custom view "A" s tagem "***"
-  - Vytvoř custom view "B" se stejným tagem "***"
+  - Vytvoř custom view "A" s tagem "projekt"
+  - Vytvoř custom view "B" se stejným tagem "projekt"
   - **Expected**: Oba views jsou vytvořeny
   - **Expected**: Oba filtrují stejné úkoly
   - **Note**: Toto je OK - uživatel může mít různé názvy/ikony pro stejný tag
