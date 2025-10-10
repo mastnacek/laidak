@@ -44,23 +44,24 @@ class InfoDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: iconColor, width: 2),
       ),
-      child: Container(
-        padding: const EdgeInsets.all(24),
+      child: ConstrainedBox(
         constraints: const BoxConstraints(
           maxWidth: 400,
           maxHeight: 600,
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               // Header
               Row(
                 children: [
                   Icon(icon, color: iconColor, size: 32),
                   const SizedBox(width: 12),
-                  Expanded(
+                  Flexible(
                     child: Text(
                       title,
                       style: TextStyle(
@@ -129,7 +130,7 @@ class InfoDialog extends StatelessWidget {
                                     fontSize: 13,
                                   ),
                                 ),
-                                Expanded(
+                                Flexible(
                                   child: Text(
                                     example,
                                     style: TextStyle(
@@ -162,7 +163,7 @@ class InfoDialog extends StatelessWidget {
                       Icon(Icons.info_outline,
                           color: theme.appColors.blue, size: 18),
                       const SizedBox(width: 8),
-                      Expanded(
+                      Flexible(
                         child: Text(
                           tip!,
                           style: TextStyle(
@@ -201,7 +202,8 @@ class InfoDialog extends StatelessWidget {
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
