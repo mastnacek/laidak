@@ -25,18 +25,9 @@ class _WizardPageState extends State<WizardPage> {
   final int _totalSteps = 5;
   final DatabaseHelper _db = DatabaseHelper();
 
-  /// Uložit preference "wizard completed" do databáze
+  /// Dokončit wizard (prostě zavřít a přejít na HelpPage)
+  /// TODO pro budoucnost: Ukládat preference do SharedPreferences
   Future<void> _completeWizard() async {
-    final settings = await _db.getSettings();
-    await _db.updateSettings(
-      apiKey: settings['api_key'] as String?,
-      model: settings['model'] as String,
-      temperature: settings['temperature'] as double,
-      maxTokens: settings['max_tokens'] as int,
-      enabled: (settings['enabled'] as int) == 1,
-      wizardCompleted: true, // Custom field (může vyžadovat DB migration)
-    );
-
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const HelpPage()),
