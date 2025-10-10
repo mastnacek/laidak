@@ -57,6 +57,12 @@ dependencies:
   flutter_bloc: ^9.1.1
   equatable: ^2.0.5
 
+  # Persistence
+  shared_preferences: ^2.2.2
+
+  # UUID generování
+  uuid: ^4.3.3
+
   # Color picker s kruhovým wheel designem
   flutter_colorpicker: ^1.1.0
   logger: ^2.6.2
