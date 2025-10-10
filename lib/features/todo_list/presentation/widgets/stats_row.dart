@@ -58,7 +58,7 @@ class StatsRow extends StatelessWidget {
   }
 
   _TodoStats _computeStats(TodoListLoaded state) {
-    final todos = state.todos;
+    final todos = state.allTodos; // Fix: použít allTodos místo todos
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final weekEnd = today.add(const Duration(days: 7));
