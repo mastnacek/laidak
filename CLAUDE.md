@@ -78,6 +78,36 @@
 
 ---
 
+## 📋 Agenda Views + Search + Sort - Implementační Plán
+
+### 📋 Kompletní guide: [agenda.md](agenda.md)
+
+**Funkce**: Views (Today/Week/Upcoming/Overdue), Vyhledávání a Sortování úkolů
+
+**Kdy použít**: Rozšíření existující feature `lib/features/todo_list/`
+
+**Postup**:
+1. Přečti si kompletní plán v [agenda.md](agenda.md)
+2. Následuj 7-kroků implementace (Dart-side filtering + SQLite indexy)
+3. Dodržuj SCÉNÁŘ 2 z [mapa-bloc.md](mapa-bloc.md) - Úprava existující feature
+
+**Klíčové komponenty**:
+- 🔍 **Search**: Textové vyhledávání s debouncing (300ms)
+- 📅 **Views**: 5 režimů (Všechny/Dnes/Týden/Nadcházející/Overdue)
+- 🔄 **Sort**: 4 módy (Priorita/Deadline/Status/Datum) s one-click toggle
+- 🎨 **UI**: Lupa vlevo od input, FilterChips pro views, kompaktní sort buttons
+- ⚡ **Performance**: SQLite indexy + Dart-side filtering
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené kroky v [agenda.md](agenda.md) (✅ symbol)
+- 📝 Zaznamenej progress notes na konec souboru (sekce "## 📝 PROGRESS LOG")
+- 🐛 Dokumentuj narazené problémy a řešení
+- 🔄 Update TODO list v Claude Code UI
+
+**Poznámka**: Feature inspirovaná Tauri TODO app (Org Mode Agenda style)
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -225,11 +255,12 @@ Companion dokumenty:
 - bloc.md - Detailní BLoC best practices guide
 - mapa-bloc.md - Navigační decision tree
 - rodel.md - AI Split Feature implementační plán (OpenRouter API integrace)
+- agenda.md - Agenda Views + Search + Sort implementační plán
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.1
+Verze: 1.2
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-10-09 (přidána AI Split feature)
+Aktualizováno: 2025-10-10 (přidána Agenda Views + Search + Sort feature)
 Autor: Claude Code (AI asistent)
 
 ---
