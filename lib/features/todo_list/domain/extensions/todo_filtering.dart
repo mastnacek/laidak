@@ -42,6 +42,7 @@ extension TodoFiltering on List<Todo> {
   /// - `week`: Úkoly s deadline v příštích 7 dnech
   /// - `upcoming`: Deadlines v příštích 7 dnech (bez dnes a overdue)
   /// - `overdue`: Úkoly po termínu
+  /// - `custom`: Používá `filterByCustomView()` místo tohoto switche
   List<Todo> filterByViewMode(ViewMode mode) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -53,7 +54,22 @@ extension TodoFiltering on List<Todo> {
       ViewMode.week => _filterWeek(today, weekEnd),
       ViewMode.upcoming => _filterUpcoming(today, weekEnd),
       ViewMode.overdue => where((todo) => todo.isOverdue).toList(),
+      ViewMode.custom => this, // Custom filtering se dělá v displayedTodos
     };
+  }
+
+  /// Filtrovat podle custom view (tag-based)
+  ///
+  /// Zobrazí pouze úkoly, které obsahují zadaný tag.
+  /// Case-sensitive match (tag musí přesně odpovídat).
+  ///
+  /// Příklady:
+  /// - tagFilter = "***" → úkoly s tagem "***"
+  /// - tagFilter = "#projekt" → úkoly s tagem "#projekt"
+  List<Todo> filterByCustomView(String tagFilter) {
+    if (tagFilter.trim().isEmpty) return this;
+
+    return where((todo) => todo.tags.contains(tagFilter)).toList();
   }
 
   /// Filtrovat úkoly na dnes

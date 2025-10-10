@@ -71,9 +71,9 @@ final class TodoListLoaded extends TodoListState {
   ///
   /// Pipeline:
   /// 1. Filter by search query
-  /// 2. Filter by view mode
-  /// 3. Sort (podle sortMode nebo default)
-  /// 4. Filter by showCompleted
+  /// 2. Filter by view mode (built-in nebo custom)
+  /// 3. Filter by showCompleted
+  /// 4. Sort (podle sortMode nebo default)
   ///
   /// Memoizováno díky Equatable.
   List<Todo> get displayedTodos {
@@ -85,19 +85,25 @@ final class TodoListLoaded extends TodoListState {
     }
 
     // 2. Filter by view mode
-    todos = todos.filterByViewMode(viewMode);
+    if (viewMode == ViewMode.custom && currentCustomView != null) {
+      // Custom view filtering (tag-based)
+      todos = todos.filterByCustomView(currentCustomView!.tagFilter);
+    } else {
+      // Built-in view filtering
+      todos = todos.filterByViewMode(viewMode);
+    }
 
-    // 3. Sort
+    // 3. Filter by showCompleted
+    if (!showCompleted) {
+      todos = todos.where((t) => !t.isCompleted).toList();
+    }
+
+    // 4. Sort
     if (sortMode != null) {
       todos = todos.sortBy(sortMode!, sortDirection);
     } else {
       // Default sort: createdAt DESC (nejnovější nahoře)
       todos = todos.sortBy(SortMode.createdAt, SortDirection.desc);
-    }
-
-    // 4. Filter by showCompleted
-    if (!showCompleted) {
-      todos = todos.where((t) => !t.isCompleted).toList();
     }
 
     return todos;

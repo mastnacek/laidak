@@ -28,6 +28,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     on<SearchTodosEvent>(_onSearchTodos);
     on<ClearSearchEvent>(_onClearSearch);
     on<ChangeViewModeEvent>(_onChangeViewMode);
+    on<ChangeToCustomViewEvent>(_onChangeToCustomView);
     on<SortTodosEvent>(_onSortTodos);
     on<ClearSortEvent>(_onClearSort);
   }
@@ -222,7 +223,37 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
 
     // Update view mode v state
     // displayedTodos getter automaticky aplikuje filtr
-    emit(currentState.copyWith(viewMode: event.viewMode));
+    // Pro built-in views vymažeme currentCustomView
+    emit(currentState.copyWith(
+      viewMode: event.viewMode,
+      clearCustomView: true,
+    ));
+  }
+
+  /// Handler: Změnit na custom view
+  void _onChangeToCustomView(
+    ChangeToCustomViewEvent event,
+    Emitter<TodoListState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // ✅ Fail Fast: validace custom view
+    if (event.customView.tagFilter.trim().isEmpty) {
+      // Fallback na All view
+      emit(currentState.copyWith(
+        viewMode: ViewMode.all,
+        clearCustomView: true,
+      ));
+      return;
+    }
+
+    // Update view mode + custom view v state
+    // displayedTodos getter automaticky aplikuje custom filtr
+    emit(currentState.copyWith(
+      viewMode: ViewMode.custom,
+      currentCustomView: event.customView,
+    ));
   }
 
   /// Handler: Seřadit úkoly
