@@ -217,6 +217,153 @@ lib/features/help/
 
 ---
 
+## ⚙️ Custom Agenda Views - Implementační Plán
+
+### 📋 Kompletní guide: [custom-agenda-views.md](custom-agenda-views.md)
+
+**Funkce**: Konfigurovatelné Agenda Views - uživatel si sám vybere které views chce vidět
+
+**Kdy použít**: Rozšíření Settings + refaktoring ViewBar (cross-feature úprava)
+
+**Postup**:
+1. Přečti si kompletní plán v [custom-agenda-views.md](custom-agenda-views.md)
+2. Následuj **5 fází** implementace (malé kroky, commit po každé fázi)
+3. **DŮLEŽITÉ**: Toto je cross-feature úprava (Settings + TodoList) - postupuj opatrně!
+4. Dodržuj SCÉNÁŘ 2 z [mapa-bloc.md](mapa-bloc.md) - Úprava existujících features
+
+**Klíčové komponenty**:
+- ⚙️ **Settings > Agenda** - Nová záložka pro konfiguraci views
+- 📊 **Built-in Views Toggle** - Zapnout/vypnout All, Today, Week, Upcoming, Overdue
+- 🆕 **Custom Views** - Tag-based filtry (např. `***` = Oblíbené, `#projekt` = Projekt)
+- 🎨 **ViewBar Dynamic** - Zobrazí pouze enabled views
+- 💾 **Persistence** - SharedPreferences (žádné DB migrace!)
+
+**Architektura**:
+```
+lib/features/settings/
+├── domain/models/
+│   ├── agenda_view_config.dart       🆕 Config model
+│   └── custom_agenda_view.dart       🆕 Custom view model
+└── presentation/
+    ├── cubit/settings_cubit.dart     Rozšířeno
+    └── pages/
+        ├── settings_page.dart        + tab "Agenda"
+        └── agenda_settings_tab.dart  🆕 UI
+
+lib/features/todo_list/
+├── domain/enums/view_mode.dart       + ViewMode.custom
+├── domain/extensions/todo_filtering  + filterByCustomView()
+└── presentation/
+    ├── bloc/
+    │   ├── todo_list_event.dart      + ChangeToCustomViewEvent
+    │   └── todo_list_state.dart      + currentCustomView
+    └── widgets/view_bar.dart         Refaktoring (dynamic)
+```
+
+**Implementační fáze (postupuj PŘESNĚ v tomto pořadí!)**:
+
+### **FÁZE 1: Data Layer** ⏱️ 30 min
+**Cíl**: Vytvořit domain models + SharedPreferences persistence
+
+**Kroky**:
+- [ ] 1.1 Vytvoř `agenda_view_config.dart` (toJson/fromJson/copyWith)
+- [ ] 1.2 Vytvoř `custom_agenda_view.dart` (toJson/fromJson/copyWith)
+- [ ] 1.3 Rozšiř `SettingsState` - přidej `agendaConfig` field
+- [ ] 1.4 Přidej persistence do `settings_repository_impl.dart`
+- [ ] 1.5 Přidej metody do `SettingsCubit` (toggle, add, update, delete)
+- [ ] **Commit**: `🔧 feat: Data layer pro Custom Agenda Views`
+
+**Tracking**: Markuj kroky v [custom-agenda-views.md](custom-agenda-views.md) FÁZE 1
+
+---
+
+### **FÁZE 2: Settings UI** ⏱️ 1.5-2h
+**Cíl**: Přidat záložku "Agenda" s UI pro konfiguraci
+
+**Kroky**:
+- [ ] 2.1 Přidej tab "Agenda" do `SettingsPage` (TabBar length = 3)
+- [ ] 2.2 Vytvoř `agenda_settings_tab.dart`
+- [ ] 2.3 Implementuj built-in views section (SwitchListTile)
+- [ ] 2.4 Implementuj custom views section (Card list + buttons)
+- [ ] 2.5 Vytvoř `_CustomViewDialog` (Add/Edit dialog)
+- [ ] 2.6 Přidej icon picker (dropdown s 5 ikonami)
+- [ ] **Commit**: `🎨 feat: Settings UI pro Custom Agenda Views`
+
+**Tracking**: Markuj kroky v [custom-agenda-views.md](custom-agenda-views.md) FÁZE 2
+
+---
+
+### **FÁZE 3: ViewBar Refaktoring** ⏱️ 1h
+**Cíl**: ViewBar dynamicky zobrazuje pouze enabled views
+
+**Kroky**:
+- [ ] 3.1 Rozšiř `ViewMode` enum - přidej `custom`
+- [ ] 3.2 Refaktoruj `view_bar.dart` - dynamic rendering
+- [ ] 3.3 Přidej `ChangeToCustomViewEvent` do `todo_list_event.dart`
+- [ ] 3.4 Rozšiř `TodoListState` - přidej `currentCustomView`
+- [ ] 3.5 Implementuj empty state hint
+- [ ] 3.6 Přidej horizontal scroll pro > 6 views
+- [ ] **Commit**: `🎨 feat: ViewBar dynamic rendering based on AgendaViewConfig`
+
+**Tracking**: Markuj kroky v [custom-agenda-views.md](custom-agenda-views.md) FÁZE 3
+
+---
+
+### **FÁZE 4: Filtrování** ⏱️ 30 min
+**Cíl**: Custom views filtrují úkoly podle tagů
+
+**Kroky**:
+- [ ] 4.1 Přidej `filterByCustomView()` do `todo_filtering.dart`
+- [ ] 4.2 Přidaj handler `_onChangeToCustomView` do `todo_list_bloc.dart`
+- [ ] 4.3 Registruj event handler v konstruktoru
+- [ ] 4.4 Rozšiř `displayedTodos` getter - custom filtering
+- [ ] **Commit**: `✨ feat: Custom View filtering by tag`
+
+**Tracking**: Markuj kroky v [custom-agenda-views.md](custom-agenda-views.md) FÁZE 4
+
+---
+
+### **FÁZE 5: Testing & Polish** ⏱️ 30 min
+**Cíl**: Manuální testing + edge cases
+
+**Checklist**:
+- [ ] 5.1 Settings > Agenda tab zobrazuje built-in views ✅
+- [ ] 5.2 Zapnutí/vypnutí built-in view funguje ✅
+- [ ] 5.3 Přidání custom view funguje ✅
+- [ ] 5.4 Úprava custom view funguje ✅
+- [ ] 5.5 Smazání custom view funguje ✅
+- [ ] 5.6 ViewBar zobrazuje pouze enabled views ✅
+- [ ] 5.7 Klik na custom view filtruje správně ✅
+- [ ] 5.8 Long-press zobrazí InfoDialog ✅
+- [ ] 5.9 Empty state hint funguje ✅
+- [ ] 5.10 Horizontal scroll funguje (> 6 views) ✅
+- [ ] 5.11 Persistence po restartu ✅
+- [ ] **Commit**: `✅ test: Manual testing Custom Agenda Views`
+
+**Tracking**: Markuj checklist v [custom-agenda-views.md](custom-agenda-views.md) FÁZE 5
+
+---
+
+**Celkový čas**: 3-4 hodiny
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené kroky v [custom-agenda-views.md](custom-agenda-views.md) (checkboxy)
+- 📝 Přidej poznámky do sekce "PROGRESS LOG" na konci souboru
+- 🐛 Dokumentuj problémy a jejich řešení
+- 📸 **POVINNÝ commit po KAŽDÉ fázi!**
+- 🔄 Update TODO list v Claude Code UI
+
+**Edge Cases**:
+- Co když uživatel vypne všechny views? → Show hint "Zapni views v Settings"
+- Co když custom view má neexistující tag? → Zobrazí prázdný list (expected)
+- Persistence funguje? → Test restart app
+
+**Priorita**: ⭐⭐⭐ Vysoká (game-changer pro UX - customizace pro každého usera)
+
+**Poznámka**: Cross-feature úprava - dotýká se Settings + TodoList, postupuj opatrně a commituj po každé fázi!
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -368,11 +515,12 @@ Companion dokumenty:
 - gui.md - Mobile-First UI Redesign specifikace (Thumb Zone best practices)
 - help.md - Interaktivní nápověda s AI demo (onboarding & tutorials)
 - voice.md - TTS (Text-to-Speech) feature dokumentace
+- custom-agenda-views.md - Custom Agenda Views implementační plán (konfigurovatelné views)
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.4
+Verze: 1.5
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-01-10 (přidána Help System + TTS dokumentace)
+Aktualizováno: 2025-01-10 (přidán Custom Agenda Views implementační plán)
 Autor: Claude Code (AI asistent)
 
 ---
