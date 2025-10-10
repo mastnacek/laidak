@@ -239,7 +239,7 @@ class DatabaseHelper {
   Future<void> _insertDefaultSettings(Database db) async {
     await db.insert('settings', {
       'id': 1,
-      'api_key': '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',
+      'api_key': null, // User must provide their own OpenRouter API key
       'model': 'mistralai/mistral-medium-3.1',
       'temperature': 1.0,
       'max_tokens': 1000,
@@ -251,19 +251,22 @@ class DatabaseHelper {
   }
 
   /// Vložit výchozí motivační prompty
+  ///
+  /// NOTE: Tyto prompty jsou jen ukázky! Uživatel si může vytvořit vlastní
+  /// v Nastavení → Motivační Prompty podle svých preferencí.
   Future<void> _insertDefaultPrompts(Database db) async {
-    // Prompt pro práci
+    // Demo prompt: Profesionální styl
     await db.insert('custom_prompts', {
       'category': 'práce',
-      'system_prompt': 'Jsi můj šéf Zdeněk a já jsem Jarda tvůj podřízený. Jseš na mě už pěkně nasranej, protože mě všechno dlouho trvá, ale buď pozitivní a moc nevysírej a popožeň mě nějakou motivací. Odpovídej POUZE v češtině. Nepiju pivo!',
+      'system_prompt': 'Jsi motivační kouč zaměřený na produktivitu v práci. Motivuj uživatele k dokončení pracovních úkolů s důrazem na profesionalitu a efektivitu. Buď pozitivní, ale asertivní. Používej emoji pro zvýraznění.',
       'tags': '["práce","work","job","office","projekt","meeting"]',
-      'style': 'profesionální a asertivní',
+      'style': 'profesionální a motivující',
     });
 
-    // Prompt pro domov
+    // Demo prompt: Rodinný styl
     await db.insert('custom_prompts', {
       'category': 'domov',
-      'system_prompt': 'ROLE: Jsi moje manželka Lenka, která má obrovská prsa a velký macatý zadek - já jsem tvůj manžel Jaroslav a tyhle tvoje proporce miluji. Motivuj mě k dokončení úkolů s důrazem na rodinné hodnoty a pohodlí domova. Buď vlídná a podporující, použij svoje přednosti a vnady k motivaci sexem (vymýšlej různé variace na moje oblíbené polohy a praktiky), protože jsem chorobný prokrastinátor - odkladač. Mám rád titfuck mezi tvá obrovská prsa a rád na ně stříkám semeno!!! Taky tě rád šukám zezadu kdy vidím tvůj obrovský zadek a kozy! Když tě šukám zezadu, líbí se mě, jak jsou kozy rozvalené do stran. Nebo když jseš v pozici nahoře a tvoje kozy mám v obličeji!!! Buď kreativní v motivování. Oslovuj mě přímo a eroticky a lechtivě. Používej emoji pro zvýraznění. Vrať maximálne 20 vět a minimálně 10.',
+      'system_prompt': 'Jsi přátelský asistent zaměřený na domácí úkoly a rodinu. Motivuj uživatele k dokončení domácích činností s důrazem na rodinné hodnoty a pohodlí domova. Buď vlídný a podporující. Používej emoji pro zvýraznění.',
       'tags': '["domov","doma","rodina","family","home"]',
       'style': 'rodinný a vlídný',
     });
@@ -435,7 +438,7 @@ class DatabaseHelper {
     if (result.isEmpty) {
       // Pokud neexistuje, vrátit výchozí hodnoty
       return {
-        'api_key': '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',
+        'api_key': null, // User must provide their own OpenRouter API key
         'model': 'mistralai/mistral-medium-3.1',
         'temperature': 1.0,
         'max_tokens': 1000,
