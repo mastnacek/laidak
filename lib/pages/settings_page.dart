@@ -2149,7 +2149,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Icon picker
+            // Icon picker (grid)
             Text(
               'Ikona',
               style: TextStyle(
@@ -2160,74 +2160,44 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             ),
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: theme.appColors.base2,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: theme.appColors.base4),
               ),
-              child: DropdownButton<int>(
-                value: _selectedIconCodePoint,
-                isExpanded: true,
-                dropdownColor: theme.appColors.base2,
-                underline: const SizedBox(),
-                items: [
-                  DropdownMenuItem(
-                    value: Icons.star.codePoint,
-                    child: Row(
-                      children: [
-                        Icon(Icons.star, color: theme.appColors.yellow),
-                        const SizedBox(width: 12),
-                        Text('Star', style: TextStyle(color: theme.appColors.fg)),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: Icons.work.codePoint,
-                    child: Row(
-                      children: [
-                        Icon(Icons.work, color: theme.appColors.blue),
-                        const SizedBox(width: 12),
-                        Text('Work', style: TextStyle(color: theme.appColors.fg)),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: Icons.home.codePoint,
-                    child: Row(
-                      children: [
-                        Icon(Icons.home, color: theme.appColors.green),
-                        const SizedBox(width: 12),
-                        Text('Home', style: TextStyle(color: theme.appColors.fg)),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: Icons.favorite.codePoint,
-                    child: Row(
-                      children: [
-                        Icon(Icons.favorite, color: theme.appColors.red),
-                        const SizedBox(width: 12),
-                        Text('Favorite', style: TextStyle(color: theme.appColors.fg)),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: Icons.warning.codePoint,
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning, color: theme.appColors.orange),
-                        const SizedBox(width: 12),
-                        Text('Warning', style: TextStyle(color: theme.appColors.fg)),
-                      ],
-                    ),
-                  ),
+              child: GridView.count(
+                crossAxisCount: 6,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                children: [
+                  _buildIconOption(Icons.star, theme),
+                  _buildIconOption(Icons.work, theme),
+                  _buildIconOption(Icons.home, theme),
+                  _buildIconOption(Icons.favorite, theme),
+                  _buildIconOption(Icons.local_fire_department, theme),
+                  _buildIconOption(Icons.fitness_center, theme),
+                  _buildIconOption(Icons.school, theme),
+                  _buildIconOption(Icons.shopping_cart, theme),
+                  _buildIconOption(Icons.restaurant, theme),
+                  _buildIconOption(Icons.medical_services, theme),
+                  _buildIconOption(Icons.music_note, theme),
+                  _buildIconOption(Icons.palette, theme),
+                  _buildIconOption(Icons.sports_soccer, theme),
+                  _buildIconOption(Icons.beach_access, theme),
+                  _buildIconOption(Icons.flight, theme),
+                  _buildIconOption(Icons.celebration, theme),
+                  _buildIconOption(Icons.bolt, theme),
+                  _buildIconOption(Icons.psychology, theme),
+                  _buildIconOption(Icons.emoji_events, theme),
+                  _buildIconOption(Icons.rocket_launch, theme),
+                  _buildIconOption(Icons.lightbulb, theme),
+                  _buildIconOption(Icons.auto_awesome, theme),
+                  _buildIconOption(Icons.pets, theme),
+                  _buildIconOption(Icons.park, theme),
                 ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedIconCodePoint = value);
-                  }
-                },
               ),
             ),
           ],
@@ -2265,6 +2235,35 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
           child: Text(isEdit ? 'Uložit' : 'Přidat'),
         ),
       ],
+    );
+  }
+
+  /// Build icon option button pro grid
+  Widget _buildIconOption(IconData icon, ThemeData theme) {
+    final isSelected = _selectedIconCodePoint == icon.codePoint;
+
+    return InkWell(
+      onTap: () {
+        setState(() => _selectedIconCodePoint = icon.codePoint);
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.appColors.cyan.withValues(alpha: 0.2)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Icon(
+          icon,
+          color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
+          size: 24,
+        ),
+      ),
     );
   }
 }
