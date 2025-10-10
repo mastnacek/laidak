@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/sound_manager.dart';
@@ -830,17 +831,43 @@ class TodoCard extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Close button
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.appColors.magenta,
-                  foregroundColor: theme.appColors.bg,
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Copy to clipboard button
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: motivation));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('✅ Text zkopírován do schránky'),
+                          backgroundColor: theme.appColors.green,
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  icon: Icon(Icons.copy, color: theme.appColors.cyan),
+                  label: Text(
+                    'Kopírovat',
+                    style: TextStyle(color: theme.appColors.cyan),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: theme.appColors.cyan),
+                  ),
                 ),
-                child: const Text('Zavřít'),
-              ),
+                // Close button
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.appColors.magenta,
+                    foregroundColor: theme.appColors.bg,
+                  ),
+                  child: const Text('Zavřít'),
+                ),
+              ],
             ),
           ],
         ),
