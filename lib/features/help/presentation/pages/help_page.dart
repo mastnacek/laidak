@@ -6,6 +6,7 @@ import '../widgets/help_card.dart';
 import '../widgets/tag_demo_widget.dart';
 import '../widgets/ai_split_demo_widget.dart';
 import '../widgets/motivation_demo_widget.dart';
+import 'wizard_page.dart';
 
 /// HelpPage - Interaktivní nápověda (Card-based layout podle help.md Varianta B)
 ///
@@ -52,6 +53,18 @@ class HelpPage extends StatelessWidget {
           tooltip: 'Zavřít',
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          // Wizard button (pro opakované spuštění onboardingu)
+          IconButton(
+            icon: Icon(Icons.school, color: theme.appColors.magenta),
+            tooltip: 'Průvodce pro začátečníky',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const WizardPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
