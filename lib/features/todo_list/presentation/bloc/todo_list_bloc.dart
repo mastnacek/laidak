@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
+import '../../domain/enums/view_mode.dart';
 import 'todo_list_event.dart';
 import 'todo_list_state.dart';
 
