@@ -26,6 +26,7 @@ class OpenRouterDataSource {
       headers: {
         'Authorization': 'Bearer $apiKey',
         'Content-Type': 'application/json',
+        'HTTP-Referer': 'https://github.com/your-repo',
       },
       body: jsonEncode({
         'model': model,
@@ -40,9 +41,13 @@ class OpenRouterDataSource {
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
-      return json['choices'][0]['message']['content'] as String;
+      final content = json['choices'][0]['message']['content'] as String;
+      print('✅ AI Split - API response received: ${content.substring(0, content.length > 100 ? 100 : content.length)}...');
+      return content;
     } else {
-      throw Exception('OpenRouter API error: ${response.statusCode}');
+      print('❌ AI Split - OpenRouter API error: ${response.statusCode}');
+      print('Response body: ${response.body}');
+      throw Exception('OpenRouter API error: ${response.statusCode} - ${response.body}');
     }
   }
 

@@ -40,7 +40,10 @@ class AiSplitRepositoryImpl implements AiSplitRepository {
     );
 
     // Parsovat odpověď
-    return _parseResponse(rawResponse);
+    print('🔍 AI Split - Parsing response...');
+    final parsed = _parseResponse(rawResponse);
+    print('✅ AI Split - Parsed ${parsed.subtasks.length} subtasks');
+    return parsed;
   }
 
   @override
@@ -99,6 +102,9 @@ class AiSplitRepositoryImpl implements AiSplitRepository {
   /// Parse AI response do struktury
   /// Extrahuje PODÚKOLY:, DOPORUČENÍ: a TERMÍN: sekce
   AiSplitResponse _parseResponse(String response) {
+    print('📄 AI Split - Raw response:\n$response');
+    print('─' * 50);
+
     final lines = response.split('\n');
     final subtasks = <String>[];
     final recommendations = <String>[];
