@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../pages/settings_page.dart';
 import '../../../help/presentation/pages/help_page.dart';
+import '../../../settings/presentation/cubit/settings_cubit.dart';
+import '../../../settings/presentation/cubit/settings_state.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
@@ -36,6 +38,59 @@ class TodoListPage extends StatefulWidget {
 
 class _TodoListPageState extends State<TodoListPage> {
   bool _isInputFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Zobrazit gesture hint pro nové uživatele (po 2 sekundách)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showGestureHintIfNeeded();
+    });
+  }
+
+  /// Zobrazit gesture hint pokud uživatel ho ještě neviděl
+  void _showGestureHintIfNeeded() {
+    final settingsCubit = context.read<SettingsCubit>();
+    final settingsState = settingsCubit.state;
+    
+    if (settingsState is SettingsLoaded && !settingsState.hasSeenGestureHint) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        
+        final theme = Theme.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              '💡 Long press = edit, Swipe = actions',
+              style: TextStyle(fontSize: 14),
+            ),
+            duration: const Duration(seconds: 5),
+            backgroundColor: theme.appColors.bgAlt,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 120, // Nad InputBar (aby nepřekrýval controls)
+              left: 16,
+              right: 16,
+            ),
+            action: SnackBarAction(
+              label: 'OK',
+              textColor: theme.appColors.cyan,
+              onPressed: () {
+                settingsCubit.markGestureHintSeen();
+              },
+            ),
+          ),
+        ).closed.then((_) {
+          // Označit jako viděný i když byl automaticky dismissed (po 5 sekundách)
+          final currentState = settingsCubit.state;
+          if (currentState is SettingsLoaded && !currentState.hasSeenGestureHint) {
+            settingsCubit.markGestureHintSeen();
+          }
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

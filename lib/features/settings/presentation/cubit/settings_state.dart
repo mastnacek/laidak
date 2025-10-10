@@ -25,25 +25,31 @@ final class SettingsLoading extends SettingsState {
 final class SettingsLoaded extends SettingsState {
   final String selectedThemeId;
   final ThemeData currentTheme;
+  
+  /// Zda uživatel už viděl gesture hint tooltip (pro onboarding)
+  final bool hasSeenGestureHint;
 
   const SettingsLoaded({
     required this.selectedThemeId,
     required this.currentTheme,
+    this.hasSeenGestureHint = false,
   });
 
   /// copyWith pro immutable updates
   SettingsLoaded copyWith({
     String? selectedThemeId,
     ThemeData? currentTheme,
+    bool? hasSeenGestureHint,
   }) {
     return SettingsLoaded(
       selectedThemeId: selectedThemeId ?? this.selectedThemeId,
       currentTheme: currentTheme ?? this.currentTheme,
+      hasSeenGestureHint: hasSeenGestureHint ?? this.hasSeenGestureHint,
     );
   }
 
   @override
-  List<Object?> get props => [selectedThemeId, currentTheme];
+  List<Object?> get props => [selectedThemeId, currentTheme, hasSeenGestureHint];
 }
 
 /// Error state - chyba při načítání/ukládání nastavení

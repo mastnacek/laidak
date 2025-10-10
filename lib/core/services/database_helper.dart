@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 9,
+      version: 10,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -48,7 +48,7 @@ class DatabaseHelper {
       )
     ''');
 
-    // Tabulka AI nastavení + nastavení tagů + téma
+    // Tabulka AI nastavení + nastavení tagů + téma + UX hints
     await db.execute('''
       CREATE TABLE settings (
         id INTEGER PRIMARY KEY CHECK (id = 1),
@@ -59,7 +59,8 @@ class DatabaseHelper {
         enabled INTEGER NOT NULL DEFAULT 1,
         tag_delimiter_start TEXT NOT NULL DEFAULT '*',
         tag_delimiter_end TEXT NOT NULL DEFAULT '*',
-        selected_theme TEXT NOT NULL DEFAULT 'doom_one'
+        selected_theme TEXT NOT NULL DEFAULT 'doom_one',
+        has_seen_gesture_hint INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -260,6 +261,13 @@ class DatabaseHelper {
         await db.execute('ALTER TABLE todos ADD COLUMN ai_deadline_analysis TEXT');
       }
     }
+
+    if (oldVersion < 10) {
+      // Přidat sloupec pro gesture hint tracking
+      await db.execute('''
+        ALTER TABLE settings ADD COLUMN has_seen_gesture_hint INTEGER NOT NULL DEFAULT 0
+      ''');
+    }
   }
 
   /// Vložit výchozí AI nastavení
@@ -274,6 +282,7 @@ class DatabaseHelper {
       'tag_delimiter_start': '*',
       'tag_delimiter_end': '*',
       'selected_theme': 'doom_one',
+      'has_seen_gesture_hint': 0,
     });
   }
 
@@ -473,6 +482,7 @@ class DatabaseHelper {
         'tag_delimiter_start': '*',
         'tag_delimiter_end': '*',
         'selected_theme': 'doom_one',
+        'has_seen_gesture_hint': 0,
       };
     }
 
@@ -489,6 +499,7 @@ class DatabaseHelper {
     String? tagDelimiterStart,
     String? tagDelimiterEnd,
     String? selectedTheme,
+    bool? hasSeenGestureHint,
   }) async {
     final db = await database;
 
@@ -505,6 +516,7 @@ class DatabaseHelper {
     if (tagDelimiterStart != null) updateData['tag_delimiter_start'] = tagDelimiterStart;
     if (tagDelimiterEnd != null) updateData['tag_delimiter_end'] = tagDelimiterEnd;
     if (selectedTheme != null) updateData['selected_theme'] = selectedTheme;
+    if (hasSeenGestureHint != null) updateData['has_seen_gesture_hint'] = hasSeenGestureHint ? 1 : 0;
 
     if (updateData.isEmpty) return;
 
@@ -521,6 +533,7 @@ class DatabaseHelper {
         'tag_delimiter_start': tagDelimiterStart ?? current['tag_delimiter_start'],
         'tag_delimiter_end': tagDelimiterEnd ?? current['tag_delimiter_end'],
         'selected_theme': selectedTheme ?? current['selected_theme'],
+        'has_seen_gesture_hint': (hasSeenGestureHint ?? (current['has_seen_gesture_hint'] == 1)) ? 1 : 0,
       });
     } else {
       await db.update(

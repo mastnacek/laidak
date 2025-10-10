@@ -83,6 +83,13 @@ class _SortButton extends StatelessWidget {
     final isActive = sortMode == currentSortMode;
     final theme = Theme.of(context);
 
+    // Určit barvu podle směru sortování (color coding)
+    final sortColor = isActive
+        ? (currentDirection == SortDirection.desc
+            ? theme.appColors.red // 🔴 DESC = červená
+            : theme.appColors.green) // 🟢 ASC = zelená
+        : theme.appColors.base5; // ⚫ OFF = šedá
+
     return InkWell(
       onTap: () {
         final bloc = context.read<TodoListBloc>();
@@ -107,7 +114,7 @@ class _SortButton extends StatelessWidget {
             iconColor: theme.appColors.yellow,
             description: _getSortModeDescription(sortMode),
             examples: _getSortModeExamples(sortMode),
-            tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
+            tip: '1. klik = 🔴 Sestupně ↓  |  2. klik = 🟢 Vzestupně ↑  |  3. klik = Vypnout',
           ),
         );
       },
@@ -116,10 +123,10 @@ class _SortButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isActive ? theme.appColors.yellow.withValues(alpha: 0.2) : null,
+          color: isActive ? sortColor.withValues(alpha: 0.2) : null,
           borderRadius: BorderRadius.circular(12),
           border: isActive
-              ? Border.all(color: theme.appColors.yellow, width: 2)
+              ? Border.all(color: sortColor, width: 2)
               : Border.all(color: theme.appColors.base3, width: 1),
         ),
         child: Row(
@@ -128,7 +135,7 @@ class _SortButton extends StatelessWidget {
             Icon(
               sortMode.icon,
               size: 18,
-              color: isActive ? theme.appColors.yellow : theme.appColors.base5,
+              color: isActive ? sortColor : theme.appColors.base5,
             ),
             if (isActive) ...[
               const SizedBox(width: 2),
@@ -138,7 +145,7 @@ class _SortButton extends StatelessWidget {
                 child: Icon(
                   Icons.arrow_downward,
                   size: 12,
-                  color: theme.appColors.yellow,
+                  color: sortColor, // Šipka také barevná
                 ),
               ),
             ],

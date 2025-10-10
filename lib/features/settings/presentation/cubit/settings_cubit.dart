@@ -30,6 +30,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     try {
       final settings = await _db.getSettings();
       final themeId = settings['selected_theme'] as String? ?? 'doom_one';
+      final hasSeenGestureHint = (settings['has_seen_gesture_hint'] as int? ?? 0) == 1;
 
       // ✅ Fail Fast: validace themeId
       if (!_isValidThemeId(themeId)) {
@@ -42,6 +43,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(SettingsLoaded(
         selectedThemeId: themeId,
         currentTheme: theme,
+        hasSeenGestureHint: hasSeenGestureHint,
       ));
     } catch (e) {
       emit(SettingsError('Chyba při načítání nastavení: $e'));
@@ -76,6 +78,24 @@ class SettingsCubit extends Cubit<SettingsState> {
       AppLogger.info('✅ Téma změněno na: $themeId');
     } catch (e) {
       emit(SettingsError('Chyba při změně tématu: $e'));
+    }
+  }
+
+  /// Označit gesture hint jako viděný (pro onboarding)
+  Future<void> markGestureHintSeen() async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    try {
+      // Uložit do databáze
+      await _db.updateSettings(hasSeenGestureHint: true);
+
+      // Aktualizovat state
+      emit(currentState.copyWith(hasSeenGestureHint: true));
+
+      AppLogger.info('✅ Gesture hint označen jako viděný');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání gesture hint: $e');
     }
   }
 
