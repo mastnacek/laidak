@@ -78,7 +78,6 @@ class _AiSplitDialogState extends State<AiSplitDialog> {
           },
           builder: (context, state) {
             return Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(theme),

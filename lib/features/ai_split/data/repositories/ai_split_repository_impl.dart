@@ -51,6 +51,9 @@ class AiSplitRepositoryImpl implements AiSplitRepository {
     required int parentTodoId,
     required List<String> subtasksTexts,
   }) async {
+    // Nejdřív smazat staré subtasks (pokud existují)
+    await db.deleteSubtasksByTodoId(parentTodoId);
+
     final savedSubtasks = <Subtask>[];
     final now = DateTime.now();
 

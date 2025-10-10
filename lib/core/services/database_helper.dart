@@ -667,6 +667,16 @@ class DatabaseHelper {
     return await db.delete('subtasks', where: 'id = ?', whereArgs: [id]);
   }
 
+  /// Smazat všechny subtasks pro TODO (použít před vytvořením nových)
+  Future<int> deleteSubtasksByTodoId(int todoId) async {
+    final db = await database;
+    return await db.delete(
+      'subtasks',
+      where: 'parent_todo_id = ?',
+      whereArgs: [todoId],
+    );
+  }
+
   /// Toggle subtask completed
   Future<int> toggleSubtaskCompleted(int id, bool completed) async {
     final db = await database;
