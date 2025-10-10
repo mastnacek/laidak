@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../../core/services/database_helper.dart';
+import '../../../../core/utils/app_logger.dart';
 import 'motivation_repository.dart';
 
 /// Implementace MotivationRepository
@@ -43,7 +44,7 @@ class MotivationRepositoryImpl implements MotivationRepository {
       final customPrompt = await _db.findPromptByTags(tags);
       if (customPrompt != null) {
         systemPrompt = customPrompt['system_prompt'] as String;
-        print('✅ Použit custom prompt: ${customPrompt['category']}');
+        AppLogger.debug('✅ Použit custom prompt: ${customPrompt['category']}');
       }
     }
 
@@ -80,13 +81,13 @@ class MotivationRepositoryImpl implements MotivationRepository {
         final message = data['choices'][0]['message']['content'] as String;
         return message.trim();
       } else {
-        print('❌ OpenRouter API error: ${response.statusCode}');
-        print('Response: ${response.body}');
+        AppLogger.error('❌ OpenRouter API error: ${response.statusCode}');
+        AppLogger.error('Response: ${response.body}');
         throw Exception(
             'API error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('❌ Exception při volání AI: $e');
+      AppLogger.error('❌ Exception při volání AI', error: e);
       rethrow; // Propagovat chybu nahoru
     }
   }

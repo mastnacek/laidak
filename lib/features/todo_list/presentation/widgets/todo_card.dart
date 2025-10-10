@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/sound_manager.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import '../../../../features/ai_split/presentation/widgets/ai_split_button.dart';
 import '../../../../features/ai_split/presentation/cubit/ai_split_cubit.dart';
@@ -455,7 +456,7 @@ class TodoCard extends StatelessWidget {
   Future<void> _motivateTask(BuildContext context) async {
     final theme = Theme.of(context);
 
-    print('🚀 _motivateTask START pro úkol: ${todo.task}');
+    AppLogger.debug('🚀 _motivateTask START pro úkol: ${todo.task}');
 
     // Zavřít klávesnici (pokud je otevřená)
     FocusScope.of(context).unfocus();
@@ -463,11 +464,11 @@ class TodoCard extends StatelessWidget {
     final soundManager = SoundManager();
 
     // Spustit typing_long zvuk
-    print('🔊 Spouštím typing_long zvuk');
+    AppLogger.debug('🔊 Spouštím typing_long zvuk');
     await soundManager.playTypingLong();
 
     // Zobrazit loading dialog
-    print('⏳ Zobrazuji loading dialog');
+    AppLogger.debug('⏳ Zobrazuji loading dialog');
     if (!context.mounted) return;
 
     showDialog(
@@ -481,26 +482,26 @@ class TodoCard extends StatelessWidget {
     );
 
     try {
-      print('🤖 Volám MotivationCubit.fetchMotivation...');
+      AppLogger.debug('🤖 Volám MotivationCubit.fetchMotivation...');
       // Zavolat AI Cubit
       final motivation = await context.read<MotivationCubit>().fetchMotivation(
         taskText: todo.task,
         priority: todo.priority,
         tags: todo.tags,
       );
-      print(
+      AppLogger.debug(
           '✅ AI odpověď obdržena: ${motivation.substring(0, motivation.length > 50 ? 50 : motivation.length)}...');
 
       // Přepnout na subtle typing zvuk
-      print('🔊 Přepínám na subtle typing zvuk');
+      AppLogger.debug('🔊 Přepínám na subtle typing zvuk');
       await soundManager.playSubtleTyping();
 
       // Zavřít loading dialog
-      print('❌ Zavírám loading dialog');
+      AppLogger.debug('❌ Zavírám loading dialog');
       if (context.mounted) Navigator.of(context).pop();
 
       // Zobrazit motivaci v dialogu s typewriter efektem
-      print('📝 Zobrazuji motivační dialog');
+      AppLogger.debug('📝 Zobrazuji motivační dialog');
       if (context.mounted) {
         await showDialog(
           context: context,
@@ -508,13 +509,12 @@ class TodoCard extends StatelessWidget {
         );
 
         // Po zavření dialogu zastavit zvuk
-        print('⏹️ Zastavuji zvuk po zavření dialogu');
+        AppLogger.debug('⏹️ Zastavuji zvuk po zavření dialogu');
         await soundManager.stop();
       }
-      print('✅ _motivateTask KONEC (úspěch)');
+      AppLogger.debug('✅ _motivateTask KONEC (úspěch)');
     } catch (e, stackTrace) {
-      print('❌ EXCEPTION v _motivateTask: $e');
-      print('Stack trace: $stackTrace');
+      AppLogger.error('❌ EXCEPTION v _motivateTask', error: e, stackTrace: stackTrace);
 
       // Zastavit zvuk při chybě
       await soundManager.stop();
@@ -531,7 +531,7 @@ class TodoCard extends StatelessWidget {
           ),
         );
       }
-      print('✅ _motivateTask KONEC (chyba)');
+      AppLogger.debug('✅ _motivateTask KONEC (chyba)');
     }
   }
 
@@ -822,7 +822,7 @@ class TodoCard extends StatelessWidget {
                   scrollController: scrollController,
                   onComplete: () {
                     // Zastavit zvuk po dokončení typewriter efektu
-                    print('🎬 Typewriter dokončen - zastavuji zvuk');
+                    AppLogger.debug('🎬 Typewriter dokončen - zastavuji zvuk');
                     soundManager.stop();
                   },
                 ),

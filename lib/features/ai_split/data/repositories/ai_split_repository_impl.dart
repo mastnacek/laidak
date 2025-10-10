@@ -1,4 +1,5 @@
 import '../../../../core/services/database_helper.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/ai_split_request.dart';
 import '../../domain/entities/ai_split_response.dart';
 import '../../domain/entities/subtask.dart';
@@ -40,9 +41,9 @@ class AiSplitRepositoryImpl implements AiSplitRepository {
     );
 
     // Parsovat odpověď
-    print('🔍 AI Split - Parsing response...');
+    AppLogger.debug('🔍 AI Split - Parsing response...');
     final parsed = _parseResponse(rawResponse);
-    print('✅ AI Split - Parsed ${parsed.subtasks.length} subtasks');
+    AppLogger.debug('✅ AI Split - Parsed ${parsed.subtasks.length} subtasks');
     return parsed;
   }
 
@@ -105,8 +106,8 @@ class AiSplitRepositoryImpl implements AiSplitRepository {
   /// Parse AI response do struktury
   /// Extrahuje PODÚKOLY:, DOPORUČENÍ: a TERMÍN: sekce
   AiSplitResponse _parseResponse(String response) {
-    print('📄 AI Split - Raw response:\n$response');
-    print('─' * 50);
+    AppLogger.debug('📄 AI Split - Raw response:\n$response');
+    AppLogger.debug('─' * 50);
 
     final lines = response.split('\n');
     final subtasks = <String>[];

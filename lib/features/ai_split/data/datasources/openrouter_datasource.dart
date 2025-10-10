@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../../core/utils/app_logger.dart';
 import '../../domain/entities/ai_split_request.dart';
 
 /// DataSource pro OpenRouter API
@@ -42,11 +43,11 @@ class OpenRouterDataSource {
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
       final content = json['choices'][0]['message']['content'] as String;
-      print('✅ AI Split - API response received: ${content.substring(0, content.length > 100 ? 100 : content.length)}...');
+      AppLogger.debug('✅ AI Split - API response received: ${content.substring(0, content.length > 100 ? 100 : content.length)}...');
       return content;
     } else {
-      print('❌ AI Split - OpenRouter API error: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      AppLogger.error('❌ AI Split - OpenRouter API error: ${response.statusCode}');
+      AppLogger.error('Response body: ${response.body}');
       throw Exception('OpenRouter API error: ${response.statusCode} - ${response.body}');
     }
   }
