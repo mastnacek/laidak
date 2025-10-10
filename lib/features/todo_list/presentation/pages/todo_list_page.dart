@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../pages/settings_page.dart';
+import '../../../help/presentation/pages/help_page.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
@@ -44,9 +45,24 @@ class _TodoListPageState extends State<TodoListPage> {
       // Automatický posun při otevření klávesnice
       resizeToAvoidBottomInset: true,
 
-      // AppBar s Stats dashboard a Settings
+      // AppBar s Stats dashboard, Help a Settings
       appBar: AppBar(
-        title: const StatsRow(), // Stats vlevo
+        // Help button VLEVO (vedle hamburger menu pozice)
+        leading: IconButton(
+          icon: Icon(Icons.help_outline, color: theme.appColors.cyan),
+          tooltip: 'Nápověda',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) =>
+                    const HelpPage(), // Import přidáme na začátek souboru
+              ),
+            );
+          },
+        ),
+        // Stats uprostřed
+        title: const StatsRow(),
+        // Settings VPRAVO
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
