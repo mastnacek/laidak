@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'core/theme/doom_one_theme.dart';
+import 'core/observers/simple_bloc_observer.dart';
+import 'core/utils/app_logger.dart';
 import 'features/settings/presentation/cubit/settings_cubit.dart';
 import 'features/settings/presentation/cubit/settings_state.dart';
 import 'features/todo_list/presentation/bloc/todo_list_bloc.dart';
@@ -21,6 +23,11 @@ import 'services/tag_service.dart';
 void main() async {
   // Ensure Flutter bindings
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔧 Registrovat BlocObserver pro debugging
+  Bloc.observer = SimpleBlocObserver();
+
+  AppLogger.info('🚀 TODO App started');
 
   // Inicializovat FFI pro desktop platformy (Windows, Linux, macOS)
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {

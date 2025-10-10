@@ -59,6 +59,7 @@ dependencies:
 
   # Color picker s kruhovým wheel designem
   flutter_colorpicker: ^1.1.0
+  logger: ^2.6.2
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,9 @@ dev_dependencies:
 
   # Generování app ikon
   flutter_launcher_icons: ^0.14.1
+  bloc_test: ^10.0.0
+  mockito: ^5.5.0
+  build_runner: ^2.7.1
 
 # Konfigurace app ikony
 flutter_launcher_icons:
