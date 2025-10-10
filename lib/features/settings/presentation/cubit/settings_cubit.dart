@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/services/database_helper.dart';
+import '../../../../core/utils/app_logger.dart';
 import '../../../../core/theme/doom_one_theme.dart';
 import '../../../../core/theme/blade_runner_theme.dart';
 import '../../../../core/theme/osaka_jade_theme.dart';
@@ -72,7 +73,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         currentTheme: theme,
       ));
 
-      print('✅ Téma změněno na: $themeId');
+      AppLogger.info('✅ Téma změněno na: $themeId');
     } catch (e) {
       emit(SettingsError('Chyba při změně tématu: $e'));
     }

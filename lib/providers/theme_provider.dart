@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/utils/app_logger.dart';
 import '../theme/doom_one_theme.dart';
 import '../theme/blade_runner_theme.dart';
 import '../theme/osaka_jade_theme.dart';
@@ -31,7 +32,7 @@ class ThemeProvider with ChangeNotifier {
       _currentTheme = _getThemeDataById(themeId);
       notifyListeners();
     } catch (e) {
-      print('❌ Chyba při načítání tématu z databáze: $e');
+      AppLogger.error('❌ Chyba při načítání tématu z databáze', error: e);
       // Použít výchozí téma
       _currentThemeId = 'doom_one';
       _currentTheme = DoomOneTheme.darkTheme;
@@ -51,9 +52,9 @@ class ThemeProvider with ChangeNotifier {
       // Notifikovat listenery -> MaterialApp se znovu vykreslí s novým tématem
       notifyListeners();
 
-      print('✅ Téma změněno na: $themeId');
+      AppLogger.info('✅ Téma změněno na: $themeId');
     } catch (e) {
-      print('❌ Chyba při změně tématu: $e');
+      AppLogger.error('❌ Chyba při změně tématu', error: e);
       rethrow;
     }
   }
