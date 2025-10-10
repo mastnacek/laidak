@@ -64,22 +64,33 @@ class _InputBarState extends State<InputBar> {
   }
 
   void _toggleSearchMode() {
-    setState(() {
-      _isSearchMode = !_isSearchMode;
-      if (_isSearchMode) {
-        // Přepnout do Search Mode
-        _controller.clear();
-        _focusNode.requestFocus();
-        // Notifikovat parent (skrýt ViewBar/SortBar)
-        widget.onFocusChanged?.call(true);
-      } else {
-        // Vrátit do Add Mode
+    if (_isSearchMode) {
+      // Křížek → zrušit filtr
+      setState(() {
+        _isSearchMode = false;
         context.read<TodoListBloc>().add(const ClearSearchEvent());
         _controller.clear();
-        // Notifikovat parent (zobrazit ViewBar/SortBar)
         widget.onFocusChanged?.call(false);
+      });
+    } else {
+      // Lupa → spustit vyhledávání
+      final text = _controller.text.trim();
+      if (text.isEmpty) {
+        // Pokud je prázdné pole, jen přepnout do search mode
+        setState(() {
+          _isSearchMode = true;
+          _focusNode.requestFocus();
+          widget.onFocusChanged?.call(true);
+        });
+      } else {
+        // Máme text → vyhledat a přepnout do search mode
+        setState(() {
+          _isSearchMode = true;
+          widget.onFocusChanged?.call(true);
+        });
+        context.read<TodoListBloc>().add(SearchTodosEvent(text));
       }
-    });
+    }
   }
 
   Future<void> _onSubmit() async {
