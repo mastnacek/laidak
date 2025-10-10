@@ -2,6 +2,7 @@ import '../../../../core/services/database_helper.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../../../../models/todo_item.dart';
+import '../../../ai_split/data/models/subtask_model.dart';
 
 /// Implementace TodoRepository
 ///
@@ -17,8 +18,16 @@ class TodoRepositoryImpl implements TodoRepository {
     // DatabaseHelper vrací List<TodoItem> (starý model)
     final todoItems = await _db.getAllTodos();
 
-    // Převést TodoItem → Todo entity
-    return todoItems.map((item) => _todoItemToEntity(item)).toList();
+    // Převést TodoItem → Todo entity s načtenými subtasks
+    final todos = <Todo>[];
+    for (final item in todoItems) {
+      final subtasksMaps = await _db.getSubtasksByTodoId(item.id!);
+      final subtasks = subtasksMaps.map((map) => SubtaskModel.fromMap(map)).toList();
+
+      todos.add(_todoItemToEntity(item, subtasks));
+    }
+
+    return todos;
   }
 
   @override
@@ -65,7 +74,7 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   /// Helper: Převést TodoItem (starý model) → Todo entity
-  Todo _todoItemToEntity(TodoItem item) {
+  Todo _todoItemToEntity(TodoItem item, [List<SubtaskModel>? subtasks]) {
     return Todo(
       id: item.id,
       task: item.task,
@@ -74,6 +83,9 @@ class TodoRepositoryImpl implements TodoRepository {
       priority: item.priority,
       dueDate: item.dueDate,
       tags: item.tags,
+      subtasks: subtasks,
+      aiRecommendations: item.aiRecommendations,
+      aiDeadlineAnalysis: item.aiDeadlineAnalysis,
     );
   }
 

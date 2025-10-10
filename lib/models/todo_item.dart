@@ -10,6 +10,10 @@ class TodoItem {
   DateTime? dueDate; // Datum z *dnes*, *zitra*, nebo konkrétní datum
   List<String> tags; // Obecné tagy jako *rodina*, *prace*, atd.
 
+  // AI Split metadata
+  String? aiRecommendations;
+  String? aiDeadlineAnalysis;
+
   TodoItem({
     this.id,
     required this.task,
@@ -18,6 +22,8 @@ class TodoItem {
     this.priority,
     this.dueDate,
     List<String>? tags,
+    this.aiRecommendations,
+    this.aiDeadlineAnalysis,
   })  : createdAt = createdAt ?? DateTime.now(),
         tags = tags ?? [];
 
@@ -31,6 +37,8 @@ class TodoItem {
       'priority': priority,
       'dueDate': dueDate?.toIso8601String(),
       'tags': tags.join(','), // Ukládat jako CSV
+      'ai_recommendations': aiRecommendations,
+      'ai_deadline_analysis': aiDeadlineAnalysis,
     };
   }
 
@@ -48,6 +56,8 @@ class TodoItem {
       tags: map['tags'] != null && (map['tags'] as String).isNotEmpty
           ? (map['tags'] as String).split(',')
           : [],
+      aiRecommendations: map['ai_recommendations'] as String?,
+      aiDeadlineAnalysis: map['ai_deadline_analysis'] as String?,
     );
   }
 
@@ -60,6 +70,8 @@ class TodoItem {
     String? priority,
     DateTime? dueDate,
     List<String>? tags,
+    String? aiRecommendations,
+    String? aiDeadlineAnalysis,
   }) {
     return TodoItem(
       id: id ?? this.id,
@@ -69,6 +81,8 @@ class TodoItem {
       priority: priority ?? this.priority,
       dueDate: dueDate ?? this.dueDate,
       tags: tags ?? this.tags,
+      aiRecommendations: aiRecommendations ?? this.aiRecommendations,
+      aiDeadlineAnalysis: aiDeadlineAnalysis ?? this.aiDeadlineAnalysis,
     );
   }
 }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../todo_list/domain/entities/todo.dart';
+import '../../../todo_list/presentation/bloc/todo_list_bloc.dart';
+import '../../../todo_list/presentation/bloc/todo_list_event.dart';
 import '../cubit/ai_split_cubit.dart';
 import '../cubit/ai_split_state.dart';
 
@@ -56,8 +58,11 @@ class _AiSplitDialogState extends State<AiSplitDialog> {
         ),
         child: BlocConsumer<AiSplitCubit, AiSplitState>(
           listener: (context, state) {
-            // Po akceptaci zavřít dialog
+            // Po akceptaci zavřít dialog a refreshnout todo list
             if (state is AiSplitAccepted) {
+              // Reload todo list pro zobrazení nových subtasků
+              context.read<TodoListBloc>().add(const LoadTodosEvent());
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.message),

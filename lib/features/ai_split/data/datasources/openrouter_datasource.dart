@@ -61,20 +61,29 @@ TVŮJ ÚKOL:
 2. Seřadit je chronologicky (první = první krok)
 3. Navrhnout konkrétní řešení/tipy/odkazy
 
-FORMÁT ODPOVĚDI:
+FORMÁT ODPOVĚDI - PŘESNĚ DODRŽUJ (BEZ MARKDOWN):
 PODÚKOLY:
-1. [krátký, actionable text - max 50 znaků]
-2. [další podúkol...]
+1. Text prvního podúkolu
+2. Text druhého podúkolu
+3. Text třetího podúkolu
 
 DOPORUČENÍ:
-• [konkrétní tip, link, rada]
-• [další rada...]
+• První rada
+• Druhá rada
 
 TERMÍN:
-[posouzení reálnosti termínu vzhledem k podúkolům]
+Posouzení reálnosti termínu
 
-PRAVIDLA:
+KRITICKÁ PRAVIDLA FORMÁTOVÁNÍ:
+- ZAKÁZÁNO používat markdown (**, __, ~~, atd.)
+- ZAKÁZÁNO používat HTML
+- Pouze čistý text bez formátování
+- Sekce musí začínat přesně: "PODÚKOLY:", "DOPORUČENÍ:", "TERMÍN:"
+- Podúkoly začínají "1. ", "2. ", "3. " atd.
+- Doporučení začínají "• "
 - Každý podúkol MAX 50 znaků
+
+OBSAHOVÁ PRAVIDLA:
 - 3-8 podúkolů (ne víc, ne míň)
 - Konkrétní akce, ne abstrakce
 - Pokud je úkol jednoduchý: "Tento úkol je již dostatečně konkrétní"

@@ -4,6 +4,7 @@ import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/sound_manager.dart';
 import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import '../../../../features/ai_split/presentation/widgets/ai_split_button.dart';
+import '../../../../features/ai_split/presentation/cubit/ai_split_cubit.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/typewriter_text.dart';
 import '../../../../widgets/highlighted_text_field.dart';
@@ -167,27 +168,38 @@ class TodoCard extends StatelessWidget {
                         const SizedBox(width: 8),
                         // Text úkolu (oříznutý nebo plný)
                         Expanded(
-                          child: Text(
-                            todo.task,
-                            maxLines: isExpanded ? null : 1,
-                            overflow:
-                                isExpanded ? null : TextOverflow.ellipsis,
-                            style: TextStyle(
-                              decoration: todo.isCompleted
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                              color: todo.isCompleted
-                                  ? theme.appColors.base5
-                                  : theme.appColors.fg,
-                              fontSize: 16,
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                todo.task,
+                                maxLines: isExpanded ? null : 1,
+                                overflow:
+                                    isExpanded ? null : TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  decoration: todo.isCompleted
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                  color: todo.isCompleted
+                                      ? theme.appColors.base5
+                                      : theme.appColors.fg,
+                                  fontSize: 16,
+                                ),
+                              ),
+
+                              // Rozšířené info: Subtasks + AI metadata (pouze pokud expanded)
+                              if (isExpanded) ...[
+                                const SizedBox(height: 12),
+                                _buildExpandedDetails(context, theme),
+                              ],
+                            ],
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
 
-                    // Druhý řádek: Metadata (priorita, datum, akce, tagy)
+                    // Druhý řádek: Metadata (priorita, datum, akce, tagy, subtasks)
                     Wrap(
                       spacing: 6,
                       runSpacing: 4,
@@ -205,6 +217,13 @@ class TodoCard extends StatelessWidget {
                           TodoTagChip(
                             text: '📅 ${TagParser.formatDate(todo.dueDate!)}',
                             color: theme.appColors.blue,
+                          ),
+
+                        // Subtasks počítadlo
+                        if (todo.subtasks != null && todo.subtasks!.isNotEmpty)
+                          TodoTagChip(
+                            text: '🤖 ${todo.subtasks!.where((s) => s.completed).length}/${todo.subtasks!.length}',
+                            color: theme.appColors.cyan,
                           ),
 
                         // Obecné tagy
@@ -514,6 +533,148 @@ class TodoCard extends StatelessWidget {
       }
       print('✅ _motivateTask KONEC (chyba)');
     }
+  }
+
+  /// Rozšířené detaily: Subtasks + AI metadata
+  Widget _buildExpandedDetails(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Subtasks
+        if (todo.subtasks != null && todo.subtasks!.isNotEmpty) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.appColors.base1,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.appColors.cyan, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '📋 PODÚKOLY:',
+                  style: TextStyle(
+                    color: theme.appColors.cyan,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...todo.subtasks!.map((subtask) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: subtask.completed,
+                          onChanged: (value) async {
+                            // Toggle subtask completed
+                            await context
+                                .read<AiSplitCubit>()
+                                .toggleSubtask(subtask.id!, value!);
+                            // Reload todo list pro zobrazení změn
+                            if (context.mounted) {
+                              context
+                                  .read<TodoListBloc>()
+                                  .add(const LoadTodosEvent());
+                            }
+                          },
+                          activeColor: theme.appColors.green,
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${subtask.subtaskNumber}. ${subtask.text}',
+                            style: TextStyle(
+                              color: subtask.completed
+                                  ? theme.appColors.base5
+                                  : theme.appColors.fg,
+                              decoration: subtask.completed
+                                  ? TextDecoration.lineThrough
+                                  : TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // AI Doporučení
+        if (todo.aiRecommendations != null &&
+            todo.aiRecommendations!.isNotEmpty) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.appColors.base1,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.appColors.yellow, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '💡 DOPORUČENÍ:',
+                  style: TextStyle(
+                    color: theme.appColors.yellow,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  todo.aiRecommendations!,
+                  style: TextStyle(
+                    color: theme.appColors.fg,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // AI Analýza termínu
+        if (todo.aiDeadlineAnalysis != null &&
+            todo.aiDeadlineAnalysis!.isNotEmpty) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.appColors.base1,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.appColors.magenta, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '⏰ TERMÍN:',
+                  style: TextStyle(
+                    color: theme.appColors.magenta,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  todo.aiDeadlineAnalysis!,
+                  style: TextStyle(
+                    color: theme.appColors.fg,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
   /// Vytvořit dialog s AI motivací

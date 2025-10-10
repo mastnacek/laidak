@@ -122,6 +122,15 @@ class AiSplitCubit extends Cubit<AiSplitState> {
     );
   }
 
+  /// Toggle subtask completed
+  Future<void> toggleSubtask(int subtaskId, bool completed) async {
+    try {
+      await repository.toggleSubtask(subtaskId, completed);
+    } catch (e) {
+      emit(AiSplitError('Chyba při toggleování subtasku: $e'));
+    }
+  }
+
   /// Reset state
   void reset() {
     emit(const AiSplitInitial());
