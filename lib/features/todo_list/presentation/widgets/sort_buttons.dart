@@ -84,6 +84,7 @@ class _SortButton extends StatelessWidget {
 
     return Tooltip(
       message: sortMode.label,
+      preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
       child: InkWell(
         onTap: () {
           final bloc = context.read<TodoListBloc>();

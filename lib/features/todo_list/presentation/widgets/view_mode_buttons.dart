@@ -73,6 +73,7 @@ class _ViewChip extends StatelessWidget {
 
     return Tooltip(
       message: viewMode.label,
+      preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,

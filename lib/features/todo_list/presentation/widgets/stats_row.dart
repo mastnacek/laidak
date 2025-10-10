@@ -111,6 +111,7 @@ class _StatChip extends StatelessWidget {
 
     return Tooltip(
       message: tooltip,
+      preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
