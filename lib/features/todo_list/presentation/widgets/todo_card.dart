@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/sound_manager.dart';
 import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
+import '../../../../features/ai_split/presentation/widgets/ai_split_button.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/typewriter_text.dart';
 import '../../../../widgets/highlighted_text_field.dart';
@@ -304,6 +305,8 @@ class TodoCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  // AI Split button
+                  AiSplitButton(todo: todo),
                   IconButton(
                     icon: Icon(Icons.close, color: theme.appColors.base5),
                     onPressed: () => Navigator.of(dialogContext).pop(),
