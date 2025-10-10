@@ -133,6 +133,8 @@ class _ViewChip extends StatelessWidget {
         'Zobrazí nadcházející úkoly (příštích 7 dní, kromě dnešních). Pomůže ti připravit se na to, co tě čeká.',
       ViewMode.overdue =>
         'Zobrazí úkoly po termínu - ty, které jsi nestihl včas. Čas je dotáhnout!',
+      ViewMode.custom =>
+        'Vlastní pohled filtrující úkoly podle tagu.',
     };
   }
 
@@ -163,6 +165,10 @@ class _ViewChip extends StatelessWidget {
           'Včerejší nedokončené úkoly',
           'Překročené termíny',
           'Co jsi nestihl',
+        ],
+      ViewMode.custom => [
+          'Filtrování podle vlastních tagů',
+          'Nastavení v Settings > Agenda',
         ],
     };
   }
