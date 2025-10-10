@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../pages/settings_page.dart';
+import '../../domain/enums/view_mode.dart';
+import '../../domain/enums/sort_mode.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
 import '../widgets/todo_card.dart';
 import '../widgets/todo_input_form.dart';
-import '../widgets/view_mode_buttons.dart';
-import '../widgets/sort_buttons.dart';
 
 /// TodoListPage - Hlavní stránka s TODO seznamem
 ///
@@ -24,6 +24,85 @@ class TodoListPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          // Views buttons (📋 Všechny, 📅 Dnes, 🗓️ Týden, ...) - kompaktní ikony
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: BlocBuilder<TodoListBloc, TodoListState>(
+              builder: (context, state) {
+                final currentViewMode =
+                    state is TodoListLoaded ? state.viewMode : ViewMode.all;
+
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: ViewMode.values.map((mode) {
+                    final isSelected = currentViewMode == mode;
+                    return IconButton(
+                      icon: Icon(mode.icon),
+                      tooltip: mode.label,
+                      color: isSelected
+                          ? theme.appColors.yellow
+                          : theme.appColors.base5,
+                      onPressed: () {
+                        final bloc = context.read<TodoListBloc>();
+                        if (isSelected && mode != ViewMode.all) {
+                          bloc.add(const ChangeViewModeEvent(ViewMode.all));
+                        } else {
+                          bloc.add(ChangeViewModeEvent(mode));
+                        }
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+
+          // Sort buttons (🔴 Priorita, 📅 Deadline, ...) - kompaktní ikony
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: BlocBuilder<TodoListBloc, TodoListState>(
+              builder: (context, state) {
+                final currentSortMode =
+                    state is TodoListLoaded ? state.sortMode : null;
+                final currentDirection = state is TodoListLoaded
+                    ? state.sortDirection
+                    : SortDirection.desc;
+
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: SortMode.values.map((mode) {
+                    final isActive = mode == currentSortMode;
+                    return IconButton(
+                      icon: Icon(mode.icon),
+                      tooltip: mode.label,
+                      color: isActive
+                          ? theme.appColors.yellow
+                          : theme.appColors.base5,
+                      onPressed: () {
+                        final bloc = context.read<TodoListBloc>();
+                        if (!isActive) {
+                          bloc.add(SortTodosEvent(mode, SortDirection.desc));
+                        } else if (currentDirection == SortDirection.desc) {
+                          bloc.add(SortTodosEvent(mode, SortDirection.asc));
+                        } else {
+                          bloc.add(const ClearSortEvent());
+                        }
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+
+          // Divider mezi sort a visibility/settings
+          Container(
+            width: 1,
+            height: 24,
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            color: theme.appColors.base3,
+          ),
+
           // BlocBuilder pro toggle zobrazení hotových úkolů
           BlocBuilder<TodoListBloc, TodoListState>(
             builder: (context, state) {
@@ -58,19 +137,6 @@ class TodoListPage extends StatelessWidget {
             },
           ),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Views buttons (📋 Všechny, 📅 Dnes, 🗓️ Týden, ...)
-              const ViewModeButtons(),
-
-              // Sort buttons (🔴 Priorita, 📅 Deadline, ...)
-              const SortButtons(),
-            ],
-          ),
-        ),
       ),
       body: Column(
         children: [
