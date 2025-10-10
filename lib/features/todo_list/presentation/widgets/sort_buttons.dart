@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/info_dialog.dart';
 import '../../domain/enums/sort_mode.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
@@ -82,68 +83,108 @@ class _SortButton extends StatelessWidget {
     final isActive = sortMode == currentSortMode;
     final theme = Theme.of(context);
 
-    return Tooltip(
-      richMessage: WidgetSpan(
+    return InkWell(
+      onTap: () {
+        final bloc = context.read<TodoListBloc>();
+
+        if (!isActive) {
+          // První klik → aktivovat DESC
+          bloc.add(SortTodosEvent(sortMode, SortDirection.desc));
+        } else if (currentDirection == SortDirection.desc) {
+          // Druhý klik → přepnout na ASC
+          bloc.add(SortTodosEvent(sortMode, SortDirection.asc));
+        } else {
+          // Třetí klik → deaktivovat (null sort = default)
+          bloc.add(const ClearSortEvent());
+        }
+      },
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (context) => InfoDialog(
+            title: sortMode.label,
+            icon: sortMode.icon,
+            iconColor: theme.appColors.yellow,
+            description: _getSortModeDescription(sortMode),
+            examples: _getSortModeExamples(sortMode),
+            tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isActive ? theme.appColors.yellow.withOpacity(0.2) : null,
+          borderRadius: BorderRadius.circular(12),
+          border: isActive
+              ? Border.all(color: theme.appColors.yellow, width: 2)
+              : Border.all(color: theme.appColors.base3, width: 1),
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(sortMode.icon, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(sortMode.label, style: const TextStyle(color: Colors.white)),
+            Icon(
+              sortMode.icon,
+              size: 18,
+              color: isActive ? theme.appColors.yellow : theme.appColors.base5,
+            ),
+            if (isActive) ...[
+              const SizedBox(width: 2),
+              AnimatedRotation(
+                turns: currentDirection == SortDirection.desc ? 0 : 0.5,
+                duration: const Duration(milliseconds: 200),
+                child: Icon(
+                  Icons.arrow_downward,
+                  size: 12,
+                  color: theme.appColors.yellow,
+                ),
+              ),
+            ],
           ],
         ),
       ),
-      preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
-      child: InkWell(
-        onTap: () {
-          final bloc = context.read<TodoListBloc>();
-
-          if (!isActive) {
-            // První klik → aktivovat DESC
-            bloc.add(SortTodosEvent(sortMode, SortDirection.desc));
-          } else if (currentDirection == SortDirection.desc) {
-            // Druhý klik → přepnout na ASC
-            bloc.add(SortTodosEvent(sortMode, SortDirection.asc));
-          } else {
-            // Třetí klik → deaktivovat (null sort = default)
-            bloc.add(const ClearSortEvent());
-          }
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isActive ? theme.appColors.yellow.withOpacity(0.2) : null,
-            borderRadius: BorderRadius.circular(12),
-            border: isActive
-                ? Border.all(color: theme.appColors.yellow, width: 2)
-                : Border.all(color: theme.appColors.base3, width: 1),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                sortMode.icon,
-                size: 18,
-                color: isActive ? theme.appColors.yellow : theme.appColors.base5,
-              ),
-              if (isActive) ...[
-                const SizedBox(width: 2),
-                AnimatedRotation(
-                  turns: currentDirection == SortDirection.desc ? 0 : 0.5,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(
-                    Icons.arrow_downward,
-                    size: 12,
-                    color: theme.appColors.yellow,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
     );
+  }
+
+  /// Získat popis pro SortMode
+  String _getSortModeDescription(SortMode mode) {
+    return switch (mode) {
+      SortMode.priority =>
+        'Seřadí úkoly podle priority. Vysoká priorita (🔴 A) nahoře, nízká (🟢 C) dole. Ideální pro focus na nejdůležitější úkoly.',
+      SortMode.dueDate =>
+        'Seřadí úkoly podle termínu dokončení (deadline). Nejbližší termíny nahoře, pomůže ti nestihnout deadline.',
+      SortMode.status =>
+        'Seřadí úkoly podle stavu - aktivní úkoly nahoře, dokončené dole. Perfektní pro oddělení hotových od rozpracovaných.',
+      SortMode.createdAt =>
+        'Seřadí úkoly podle data vytvoření. Nejnovější úkoly nahoře (nebo dole při vzestupném řazení).',
+    };
+  }
+
+  /// Získat příklady použití pro SortMode
+  List<String> _getSortModeExamples(SortMode mode) {
+    return switch (mode) {
+      SortMode.priority => [
+          '🔴 A - Urgentní meeting (nahoře)',
+          '🟡 B - Napsat email',
+          '🟢 C - Uklidit stůl (dole)',
+        ],
+      SortMode.dueDate => [
+          '📅 Dnes 14:00 - Odevzdat projekt',
+          '📅 Zítra - Schůzka s klientem',
+          '📅 Příští týden - Plánování',
+        ],
+      SortMode.status => [
+          '⭕ Aktivní úkol 1',
+          '⭕ Aktivní úkol 2',
+          '✅ Hotový úkol (dole)',
+        ],
+      SortMode.createdAt => [
+          '🆕 Dnes vytvořený (nahoře)',
+          '🆕 Včera vytvořený',
+          '🆕 Minulý týden (dole)',
+        ],
+    };
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/info_dialog.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_state.dart';
 
@@ -109,18 +110,21 @@ class _StatChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Tooltip(
-      richMessage: WidgetSpan(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(tooltip, style: const TextStyle(color: Colors.white)),
-          ],
-        ),
-      ),
-      preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
+    return InkWell(
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (context) => InfoDialog(
+            title: tooltip,
+            icon: icon,
+            iconColor: _getStatColor(icon, theme),
+            description: _getStatDescription(tooltip),
+            examples: _getStatExamples(tooltip),
+            tip: 'Tato statistika se aktualizuje v reálném čase při změnách úkolů.',
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
         decoration: BoxDecoration(
@@ -148,6 +152,59 @@ class _StatChip extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Získat barvu pro stat podle ikony
+  Color _getStatColor(IconData icon, ThemeData theme) {
+    if (icon == Icons.check_circle) return theme.appColors.green;
+    if (icon == Icons.flag) return theme.appColors.red;
+    if (icon == Icons.today) return theme.appColors.yellow;
+    if (icon == Icons.date_range) return theme.appColors.cyan;
+    return theme.appColors.blue;
+  }
+
+  /// Získat popis pro statistiku
+  String _getStatDescription(String statName) {
+    if (statName.contains('Hotové')) {
+      return 'Počet dokončených úkolů. Tyto úkoly máš za sebou - gratulujeme! Můžeš je najít filtrováním nebo je smazat.';
+    } else if (statName.contains('Aktivní')) {
+      return 'Počet aktivních (nedokončených) úkolů. To jsou úkoly, na kterých stále pracuješ nebo je čeká dokončení.';
+    } else if (statName.contains('dnes')) {
+      return 'Počet úkolů s termínem dnes. Tyto úkoly bys měl dokončit ještě dnes, aby jsi nestihl deadline.';
+    } else if (statName.contains('týden')) {
+      return 'Počet úkolů s termínem v příštích 7 dnech. Plánuj si čas, aby jsi všechno stihl včas!';
+    }
+    return 'Statistika úkolů v reálném čase.';
+  }
+
+  /// Získat příklady pro statistiku
+  List<String> _getStatExamples(String statName) {
+    if (statName.contains('Hotové')) {
+      return [
+        '✅ Úkol označený jako hotový',
+        '✅ Splněný cíl',
+        '✅ Dokončený projekt',
+      ];
+    } else if (statName.contains('Aktivní')) {
+      return [
+        '⭕ Rozepsaný úkol',
+        '⭕ Čekající na dokončení',
+        '⭕ V procesu',
+      ];
+    } else if (statName.contains('dnes')) {
+      return [
+        '📅 Meeting ve 14:00',
+        '📅 Odevzdat projekt do 18:00',
+        '📅 Zavolat klientovi dnes',
+      ];
+    } else if (statName.contains('týden')) {
+      return [
+        '📆 Pondělí - Prezentace',
+        '📆 Středa - Code review',
+        '📆 Pátek - Team meeting',
+      ];
+    }
+    return [];
   }
 }
 

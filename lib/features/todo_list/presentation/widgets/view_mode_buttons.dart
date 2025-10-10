@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/info_dialog.dart';
 import '../../domain/enums/view_mode.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
@@ -71,53 +72,98 @@ class _ViewChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Tooltip(
-      richMessage: WidgetSpan(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(viewMode.icon, size: 16, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(viewMode.label, style: const TextStyle(color: Colors.white)),
-          ],
-        ),
-      ),
-      preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
+    return InkWell(
+      onTap: () {
+        final bloc = context.read<TodoListBloc>();
+
+        // One-click toggle: Klik na aktivní tlačítko → vrátit na ViewMode.all
+        if (isSelected && viewMode != ViewMode.all) {
+          bloc.add(const ChangeViewModeEvent(ViewMode.all));
+        } else {
+          bloc.add(ChangeViewModeEvent(viewMode));
+        }
+      },
+      onLongPress: () {
+        showDialog(
+          context: context,
+          builder: (context) => InfoDialog(
+            title: viewMode.label,
+            icon: viewMode.icon,
+            iconColor: theme.appColors.yellow,
+            description: _getViewModeDescription(viewMode),
+            examples: _getViewModeExamples(viewMode),
+            tip: 'Klikni na ikonku pro aktivaci tohoto pohledu. Klikni znovu pro vrácení na "Všechny".',
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        child: InkWell(
-          onTap: () {
-            final bloc = context.read<TodoListBloc>();
-
-            // One-click toggle: Klik na aktivní tlačítko → vrátit na ViewMode.all
-            if (isSelected && viewMode != ViewMode.all) {
-              bloc.add(const ChangeViewModeEvent(ViewMode.all));
-            } else {
-              bloc.add(ChangeViewModeEvent(viewMode));
-            }
-          },
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.appColors.yellow.withOpacity(0.2)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? theme.appColors.yellow.withOpacity(0.2)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected ? theme.appColors.yellow : theme.appColors.base3,
-                width: isSelected ? 2 : 1,
-              ),
-            ),
-            child: Icon(
-              viewMode.icon,
-              size: 20,
-              color: isSelected ? theme.appColors.yellow : theme.appColors.base5,
-            ),
+          border: Border.all(
+            color: isSelected ? theme.appColors.yellow : theme.appColors.base3,
+            width: isSelected ? 2 : 1,
           ),
+        ),
+        child: Icon(
+          viewMode.icon,
+          size: 20,
+          color: isSelected ? theme.appColors.yellow : theme.appColors.base5,
         ),
       ),
     );
+  }
+
+  /// Získat popis pro ViewMode
+  String _getViewModeDescription(ViewMode mode) {
+    return switch (mode) {
+      ViewMode.all =>
+        'Zobrazí všechny úkoly bez filtru. Toto je výchozí pohled, kde vidíš kompletní seznam všech aktivních i dokončených úkolů.',
+      ViewMode.today =>
+        'Zobrazí pouze úkoly s termínem dnes. Ideální pro denní plánování - vidíš co musíš stihnout ještě dnes.',
+      ViewMode.week =>
+        'Zobrazí úkoly s termínem v příštích 7 dnech. Perfektní pro týdenní přehled a plánování.',
+      ViewMode.upcoming =>
+        'Zobrazí nadcházející úkoly (příštích 7 dní, kromě dnešních). Pomůže ti připravit se na to, co tě čeká.',
+      ViewMode.overdue =>
+        'Zobrazí úkoly po termínu - ty, které jsi nestihl včas. Čas je dotáhnout!',
+    };
+  }
+
+  /// Získat příklady použití pro ViewMode
+  List<String> _getViewModeExamples(ViewMode mode) {
+    return switch (mode) {
+      ViewMode.all => [
+          'Všechny aktivní úkoly',
+          'Dokončené úkoly',
+          'Úkoly bez termínu',
+        ],
+      ViewMode.today => [
+          'Úkoly s deadlinem dnes',
+          'Overdue úkoly z včerejška',
+          'Naplánované na dnešek',
+        ],
+      ViewMode.week => [
+          'Pondělí: Schůzka s klientem',
+          'Středa: Odevzdat projekt',
+          'Pátek: Týmový meeting',
+        ],
+      ViewMode.upcoming => [
+          'Úkoly příští týden',
+          'Budoucí deadliny',
+          'Naplánované aktivity',
+        ],
+      ViewMode.overdue => [
+          'Včerejší nedokončené úkoly',
+          'Překročené termíny',
+          'Co jsi nestihl',
+        ],
+    };
   }
 }
