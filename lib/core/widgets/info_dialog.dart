@@ -179,14 +179,18 @@ class InfoDialog extends StatelessWidget {
 
               // Close button
               const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
+              Align(
+                alignment: Alignment.center,
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: iconColor,
                     foregroundColor: theme.appColors.bg,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 48,
+                    ),
+                    minimumSize: const Size(200, 44),
                   ),
                   child: const Text(
                     'ROZUMÍM',
