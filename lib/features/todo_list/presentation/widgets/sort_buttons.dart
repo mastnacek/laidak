@@ -6,13 +6,13 @@ import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
 
-/// Widget pro Sort tlačítka (kompaktní ikony + text)
+/// Widget pro Sort tlačítka (kompaktní ikony)
 ///
-/// Umístění: Pod views tlačítky, menší řada
+/// Umístění: Pod views tlačítky, kompaktní řada ikon
 ///
 /// ```
 /// ┌─────────────────────────────────────────────────┐
-/// │  Sort:  🔴 Priorita ↓  │  📅 Deadline ↓  │  ✅ Status  │  🆕 Datum  │
+/// │  Sort:  🔴↓  │  📅↓  │  ✅  │  🆕  │
 /// └─────────────────────────────────────────────────┘
 /// ```
 ///
@@ -36,8 +36,6 @@ class SortButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return BlocBuilder<TodoListBloc, TodoListState>(
       builder: (context, state) {
         final currentSortMode =
@@ -49,29 +47,16 @@ class SortButtons extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                // Label "Sort:"
-                Text(
-                  'Sort:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.appColors.base5,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 12),
-
-                // Sort buttons
-                ...SortMode.values.map((mode) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _SortButton(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: SortMode.values
+                  .map((mode) => _SortButton(
                         sortMode: mode,
                         currentSortMode: currentSortMode,
                         currentDirection: currentDirection,
-                      ),
-                    )),
-              ],
+                      ))
+                  .toList(),
             ),
           ),
         );
@@ -80,7 +65,7 @@ class SortButtons extends StatelessWidget {
   }
 }
 
-/// Individual Sort Button
+/// Individual Sort Button (kompaktní ikona s tooltipem)
 class _SortButton extends StatelessWidget {
   final SortMode sortMode;
   final SortMode? currentSortMode;
@@ -97,62 +82,56 @@ class _SortButton extends StatelessWidget {
     final isActive = sortMode == currentSortMode;
     final theme = Theme.of(context);
 
-    return InkWell(
-      onTap: () {
-        final bloc = context.read<TodoListBloc>();
+    return Tooltip(
+      message: sortMode.label,
+      child: InkWell(
+        onTap: () {
+          final bloc = context.read<TodoListBloc>();
 
-        if (!isActive) {
-          // První klik → aktivovat DESC
-          bloc.add(SortTodosEvent(sortMode, SortDirection.desc));
-        } else if (currentDirection == SortDirection.desc) {
-          // Druhý klik → přepnout na ASC
-          bloc.add(SortTodosEvent(sortMode, SortDirection.asc));
-        } else {
-          // Třetí klik → deaktivovat (null sort = default)
-          bloc.add(const ClearSortEvent());
-        }
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? theme.appColors.yellow.withOpacity(0.2) : null,
-          borderRadius: BorderRadius.circular(8),
-          border: isActive
-              ? Border.all(color: theme.appColors.yellow, width: 1)
-              : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              sortMode.icon,
-              size: 16,
-              color: isActive ? theme.appColors.yellow : theme.appColors.base5,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              sortMode.label,
-              style: TextStyle(
-                fontSize: 12,
-                color: isActive ? theme.appColors.fg : theme.appColors.base5,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          if (!isActive) {
+            // První klik → aktivovat DESC
+            bloc.add(SortTodosEvent(sortMode, SortDirection.desc));
+          } else if (currentDirection == SortDirection.desc) {
+            // Druhý klik → přepnout na ASC
+            bloc.add(SortTodosEvent(sortMode, SortDirection.asc));
+          } else {
+            // Třetí klik → deaktivovat (null sort = default)
+            bloc.add(const ClearSortEvent());
+          }
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isActive ? theme.appColors.yellow.withOpacity(0.2) : null,
+            borderRadius: BorderRadius.circular(12),
+            border: isActive
+                ? Border.all(color: theme.appColors.yellow, width: 2)
+                : Border.all(color: theme.appColors.base3, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                sortMode.icon,
+                size: 18,
+                color: isActive ? theme.appColors.yellow : theme.appColors.base5,
               ),
-            ),
-            if (isActive) ...[
-              const SizedBox(width: 4),
-              AnimatedRotation(
-                turns: currentDirection == SortDirection.desc ? 0 : 0.5,
-                duration: const Duration(milliseconds: 200),
-                child: Icon(
-                  Icons.arrow_downward,
-                  size: 14,
-                  color: theme.appColors.yellow,
+              if (isActive) ...[
+                const SizedBox(width: 2),
+                AnimatedRotation(
+                  turns: currentDirection == SortDirection.desc ? 0 : 0.5,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(
+                    Icons.arrow_downward,
+                    size: 12,
+                    color: theme.appColors.yellow,
+                  ),
                 ),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

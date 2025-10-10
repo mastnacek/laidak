@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// View modes pro kategorizaci úkolů podle času
 ///
 /// Inspirováno Org Mode Agenda z Tauri TODO app.
@@ -41,6 +43,17 @@ enum ViewMode {
       ViewMode.week => 'Plán na celý týden',
       ViewMode.upcoming => 'Co tě čeká v příštích 7 dnech',
       ViewMode.overdue => 'Úkoly po termínu',
+    };
+  }
+
+  /// Ikona pro view mode (kompaktní UI)
+  IconData get icon {
+    return switch (this) {
+      ViewMode.all => Icons.list,
+      ViewMode.today => Icons.today,
+      ViewMode.week => Icons.view_week,
+      ViewMode.upcoming => Icons.schedule,
+      ViewMode.overdue => Icons.warning,
     };
   }
 }

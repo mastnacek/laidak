@@ -6,21 +6,22 @@ import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
 
-/// Widget pro Views tlačítka (FilterChip style)
+/// Widget pro Views tlačítka (kompaktní ikony)
 ///
-/// Umístění: Pod input boxem, horizontální řada tlačítek
+/// Umístění: Pod input boxem, horizontální řada ikon
 ///
 /// ```
 /// ┌─────────────────────────────────────────────────┐
-/// │  📋 Všechny  │  📅 Dnes  │  🗓️ Týden  │  ⏰ Nadcházející  │  ⚠️ Overdue  │
+/// │  📋  │  📅  │  🗓️  │  ⏰  │  ⚠️  │
 /// └─────────────────────────────────────────────────┘
 /// ```
 ///
 /// **Chování:**
-/// - **Selected state:** Barevné pozadí (theme accent), bold text
-/// - **Unselected state:** Transparentní, normální text
+/// - **Selected state:** Barevné pozadí (theme accent)
+/// - **Unselected state:** Transparentní
 /// - **One-click toggle:** Klik na tlačítko → aktivovat view
 /// - **Deselect:** Klik na aktivní tlačítko → deaktivovat (vrátit na "Všechny")
+/// - **Tooltips:** Zobrazení názvu při hover (accessibility)
 ///
 /// **Animace:**
 /// - Smooth transition (200ms) při přepínání
@@ -56,7 +57,7 @@ class ViewModeButtons extends StatelessWidget {
   }
 }
 
-/// Individual View Chip (FilterChip style)
+/// Individual View Button (kompaktní ikona s tooltipem)
 class _ViewChip extends StatelessWidget {
   final ViewMode viewMode;
   final bool isSelected;
@@ -70,39 +71,39 @@ class _ViewChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-      child: InkWell(
-        onTap: () {
-          final bloc = context.read<TodoListBloc>();
+    return Tooltip(
+      message: viewMode.label,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        child: InkWell(
+          onTap: () {
+            final bloc = context.read<TodoListBloc>();
 
-          // One-click toggle: Klik na aktivní tlačítko → vrátit na ViewMode.all
-          if (isSelected && viewMode != ViewMode.all) {
-            bloc.add(const ChangeViewModeEvent(ViewMode.all));
-          } else {
-            bloc.add(ChangeViewModeEvent(viewMode));
-          }
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? theme.appColors.yellow.withOpacity(0.2)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected ? theme.appColors.yellow : theme.appColors.base3,
-              width: isSelected ? 2 : 1,
+            // One-click toggle: Klik na aktivní tlačítko → vrátit na ViewMode.all
+            if (isSelected && viewMode != ViewMode.all) {
+              bloc.add(const ChangeViewModeEvent(ViewMode.all));
+            } else {
+              bloc.add(ChangeViewModeEvent(viewMode));
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? theme.appColors.yellow.withOpacity(0.2)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? theme.appColors.yellow : theme.appColors.base3,
+                width: isSelected ? 2 : 1,
+              ),
             ),
-          ),
-          child: Text(
-            viewMode.label,
-            style: TextStyle(
-              fontSize: 14,
+            child: Icon(
+              viewMode.icon,
+              size: 20,
               color: isSelected ? theme.appColors.yellow : theme.appColors.base5,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
         ),
