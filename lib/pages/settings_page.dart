@@ -931,7 +931,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                       icon: Icon(Icons.close, color: theme.appColors.base5),
                       onPressed: () => Navigator.of(context).pop(false),
                     ),
-                  ),
+                  ],
                 ),
                 Divider(color: theme.appColors.base3, height: 24),
 
@@ -2073,7 +2073,8 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
           ),
         ],
       ),
-      content: SingleChildScrollView(
+      content: SizedBox(
+        width: 400,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -2160,17 +2161,15 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             ),
             const SizedBox(height: 8),
             Container(
-              height: 200, // Fixní výška (4 rows * 48px + spacing)
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: theme.appColors.base2,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: theme.appColors.base4),
               ),
-              child: GridView.count(
-                crossAxisCount: 6,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
                 children: [
                   _buildIconOption(Icons.star, theme),
                   _buildIconOption(Icons.work, theme),
@@ -2241,26 +2240,30 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
   Widget _buildIconOption(IconData icon, ThemeData theme) {
     final isSelected = _selectedIconCodePoint == icon.codePoint;
 
-    return InkWell(
-      onTap: () {
-        setState(() => _selectedIconCodePoint = icon.codePoint);
-      },
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isSelected
-              ? theme.appColors.cyan.withValues(alpha: 0.2)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
-            width: isSelected ? 2 : 1,
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: InkWell(
+        onTap: () {
+          setState(() => _selectedIconCodePoint = icon.codePoint);
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isSelected
+                ? theme.appColors.cyan.withValues(alpha: 0.2)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
+              width: isSelected ? 2 : 1,
+            ),
           ),
-        ),
-        child: Icon(
-          icon,
-          color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
-          size: 24,
+          child: Icon(
+            icon,
+            color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
+            size: 24,
+          ),
         ),
       ),
     );
