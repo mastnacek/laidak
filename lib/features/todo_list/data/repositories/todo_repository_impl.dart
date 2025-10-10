@@ -99,6 +99,8 @@ class TodoRepositoryImpl implements TodoRepository {
       priority: todo.priority,
       dueDate: todo.dueDate,
       tags: todo.tags,
+      aiRecommendations: todo.aiRecommendations,
+      aiDeadlineAnalysis: todo.aiDeadlineAnalysis,
     );
   }
 }
