@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/info_dialog.dart';
 import '../../domain/enums/sort_mode.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
@@ -53,23 +54,8 @@ class SortBar extends StatelessWidget {
 
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: IconButton(
-                    icon: _buildSortIcon(
-                      mode,
-                      isActive,
-                      currentDirection,
-                      theme,
-                    ),
-                    tooltip: _buildTooltip(mode, isActive, currentDirection),
-                    color: isActive
-                        ? theme.appColors.yellow
-                        : theme.appColors.base5,
-                    constraints: const BoxConstraints(
-                      minWidth: 44,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
-                    onPressed: () {
+                  child: InkWell(
+                    onTap: () {
                       final bloc = context.read<TodoListBloc>();
 
                       // Triple toggle logic:
@@ -87,6 +73,33 @@ class SortBar extends StatelessWidget {
                         bloc.add(const ClearSortEvent());
                       }
                     },
+                    onLongPress: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => InfoDialog(
+                          title: mode.label,
+                          icon: mode.icon,
+                          iconColor: theme.appColors.yellow,
+                          description: _getSortModeDescription(mode),
+                          examples: _getSortModeExamples(mode),
+                          tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(22),
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minWidth: 44,
+                        minHeight: 44,
+                      ),
+                      alignment: Alignment.center,
+                      child: _buildSortIcon(
+                        mode,
+                        isActive,
+                        currentDirection,
+                        theme,
+                      ),
+                    ),
                   ),
                 );
               }).toList(),
@@ -140,19 +153,43 @@ class SortBar extends StatelessWidget {
     );
   }
 
-  String _buildTooltip(
-    SortMode mode,
-    bool isActive,
-    SortDirection direction,
-  ) {
-    final directionText = direction == SortDirection.desc
-        ? 'sestupně'
-        : 'vzestupně';
+  /// Získat popis pro SortMode
+  String _getSortModeDescription(SortMode mode) {
+    return switch (mode) {
+      SortMode.priority =>
+        'Seřadí úkoly podle priority. Vysoká priorita (🔴 A) nahoře, nízká (🟢 C) dole. Ideální pro focus na nejdůležitější úkoly.',
+      SortMode.dueDate =>
+        'Seřadí úkoly podle termínu dokončení (deadline). Nejbližší termíny nahoře, pomůže ti nestihnout deadline.',
+      SortMode.status =>
+        'Seřadí úkoly podle stavu - aktivní úkoly nahoře, dokončené dole. Perfektní pro oddělení hotových od rozpracovaných.',
+      SortMode.createdAt =>
+        'Seřadí úkoly podle data vytvoření. Nejnovější úkoly nahoře (nebo dole při vzestupném řazení).',
+    };
+  }
 
-    if (!isActive) {
-      return mode.label;
-    }
-
-    return '${mode.label} ($directionText)';
+  /// Získat příklady použití pro SortMode
+  List<String> _getSortModeExamples(SortMode mode) {
+    return switch (mode) {
+      SortMode.priority => [
+          '🔴 A - Urgentní meeting (nahoře)',
+          '🟡 B - Napsat email',
+          '🟢 C - Uklidit stůl (dole)',
+        ],
+      SortMode.dueDate => [
+          '📅 Dnes 14:00 - Odevzdat projekt',
+          '📅 Zítra - Schůzka s klientem',
+          '📅 Příští týden - Plánování',
+        ],
+      SortMode.status => [
+          '⭕ Aktivní úkol 1',
+          '⭕ Aktivní úkol 2',
+          '✅ Hotový úkol (dole)',
+        ],
+      SortMode.createdAt => [
+          '🆕 Dnes vytvořený (nahoře)',
+          '🆕 Včera vytvořený',
+          '🆕 Minulý týden (dole)',
+        ],
+    };
   }
 }
