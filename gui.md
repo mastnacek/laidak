@@ -330,13 +330,13 @@ class StatsRow extends StatelessWidget {
 
 ## 🚀 Implementační plán
 
-### **Fáze 1: Struktura**
+### **Fáze 1: Struktura** ✅ HOTOVO
 1. ✅ Vytvořit `gui.md` dokumentaci
-2. ⏳ Refaktorovat TodoListPage layout (Scaffold structure)
-3. ⏳ Vytvořit InputBar widget (bottom fixed)
-4. ⏳ Vytvořit ViewBar widget (kompaktní ikony)
-5. ⏳ Vytvořit SortBar widget (kompaktní ikony)
-6. ⏳ Vytvořit StatsRow widget (počítadla)
+2. ✅ Refaktorovat TodoListPage layout (Scaffold structure + bottomNavigationBar)
+3. ✅ Vytvořit InputBar widget (bottom fixed, TagParser, HighlightedTextField)
+4. ✅ Vytvořit ViewBar widget (kompaktní ikony 20-22px)
+5. ✅ Vytvořit SortBar widget (kompaktní ikony 20px, triple-toggle)
+6. ✅ Vytvořit StatsRow widget (počítadla v AppBar)
 
 ### **Fáze 2: Chování**
 7. ⏳ Implementovat keyboard awareness (resizeToAvoidBottomInset)
@@ -399,5 +399,42 @@ class StatsRow extends StatelessWidget {
 
 ---
 
-**Status:** 📋 Dokumentace kompletní, připraveno k implementaci
-**Next step:** Začít s Fází 1 - Struktura layoutu
+**Status:** 🚧 Fáze 1 hotovo, Fáze 2 v přípravě
+**Next step:** Fáze 2 - Implementovat keyboard awareness (skrýt ViewBar/SortBar při psaní)
+
+---
+
+## 📝 PROGRESS LOG
+
+### 2025-10-10 - Fáze 1: Struktura ✅ HOTOVO
+
+**Vytvořené widgety:**
+- ✅ `input_bar.dart` - Bottom fixed input, edge-to-edge ikony, Expanded TextField
+  - Default mode: HighlightedTextField s TagParser (*a* *dnes* ...)
+  - Search mode: TextField s debouncing (300ms)
+  - Height: 64dp, icon size: 24dp
+- ✅ `view_bar.dart` - View modes + visibility toggle
+  - Kompaktní ikony: 20-22dp (eye icon 24dp)
+  - One-click toggle (selected → All mode)
+  - Height: 56dp
+- ✅ `sort_bar.dart` - Sort controls s triple-toggle
+  - Kompaktní ikony: 20dp
+  - Triple toggle: DESC → ASC → OFF
+  - Animovaná šipka (↓/↑) při active
+  - Height: 48dp
+- ✅ `stats_row.dart` - Stats dashboard pro AppBar
+  - Počítadla: ✅ Hotové, 🔴 Aktivní, 📅 Dnes, ⏰ Týden
+  - Real-time update přes BlocBuilder
+  - Kompaktní chips (icon 16dp, font 14dp)
+
+**Refaktoring TodoListPage:**
+- ✅ Přesun controls z AppBar do bottomNavigationBar (Easy Thumb Zone)
+- ✅ AppBar jen StatsRow (vlevo) + Settings (vpravo)
+- ✅ resizeToAvoidBottomInset: true - auto posun při klávesnici
+- ✅ bottomNavigationBar struktura: SortBar → ViewBar → InputBar
+
+**Commit:** `bcf5572` - ✨ feat: Mobile-First UI Redesign - Fáze 1 (Struktura)
+
+**Zjištěné problémy:** Žádné
+
+**Next:** Fáze 2 - Keyboard awareness (skrýt ViewBar/SortBar při focus InputBar)
