@@ -111,7 +111,7 @@ class _TagDemoWidgetState extends State<TagDemoWidget> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.appColors.blue.withOpacity(0.1),
+                color: theme.appColors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: theme.appColors.blue),
               ),
@@ -232,7 +232,7 @@ class _TagDemoWidgetState extends State<TagDemoWidget> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: theme.appColors.magenta.withOpacity(0.1),
+          color: theme.appColors.magenta.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: theme.appColors.magenta),
         ),

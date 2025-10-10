@@ -116,7 +116,7 @@ class _SortButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isActive ? theme.appColors.yellow.withOpacity(0.2) : null,
+          color: isActive ? theme.appColors.yellow.withValues(alpha: 0.2) : null,
           borderRadius: BorderRadius.circular(12),
           border: isActive
               ? Border.all(color: theme.appColors.yellow, width: 2)

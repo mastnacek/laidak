@@ -137,7 +137,7 @@ class HelpPage extends StatelessWidget {
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.appColors.blue.withOpacity(0.1),
+        color: theme.appColors.blue.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.appColors.blue, width: 1),
       ),

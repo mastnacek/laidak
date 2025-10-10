@@ -792,7 +792,7 @@ class _DelimiterSelector extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.appColors.cyan.withOpacity(0.2)
+              ? theme.appColors.cyan.withValues(alpha: 0.2)
               : theme.appColors.base2,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(

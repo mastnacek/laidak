@@ -193,7 +193,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.appColors.blue.withOpacity(0.1),
+              color: theme.appColors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.appColors.blue, width: 1),
             ),
@@ -358,7 +358,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: _modelController.text == model
-                        ? theme.appColors.cyan.withOpacity(0.2)
+                        ? theme.appColors.cyan.withValues(alpha: 0.2)
                         : theme.appColors.base2,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
@@ -418,7 +418,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: theme.appColors.yellow.withOpacity(0.1),
+                  color: theme.appColors.yellow.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                   border: Border.all(color: theme.appColors.yellow),
                 ),
@@ -989,7 +989,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: theme.appColors.magenta.withOpacity(0.2),
+                    color: theme.appColors.magenta.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: theme.appColors.magenta, width: 1),
                   ),
@@ -1269,7 +1269,7 @@ class _ThemesTabState extends State<_ThemesTab> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: theme.appColors.cyan.withOpacity(0.2),
+                                  color: theme.appColors.cyan.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
                                     color: theme.appColors.cyan,

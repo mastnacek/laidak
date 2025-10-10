@@ -247,8 +247,8 @@ class _AiSplitDemoWidgetState extends State<AiSplitDemoWidget> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: _hasApiKey
-            ? theme.appColors.green.withOpacity(0.1)
-            : theme.appColors.yellow.withOpacity(0.1),
+            ? theme.appColors.green.withValues(alpha: 0.1)
+            : theme.appColors.yellow.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: _hasApiKey ? theme.appColors.green : theme.appColors.yellow,
@@ -310,7 +310,7 @@ class _AiSplitDemoWidgetState extends State<AiSplitDemoWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.appColors.red.withOpacity(0.1),
+        color: theme.appColors.red.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.appColors.red),
       ),
@@ -350,7 +350,7 @@ class _AiSplitDemoWidgetState extends State<AiSplitDemoWidget> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.appColors.green.withOpacity(0.1),
+        color: theme.appColors.green.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: theme.appColors.green),
       ),
@@ -417,7 +417,7 @@ class _AiSplitDemoWidgetState extends State<AiSplitDemoWidget> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: theme.appColors.blue.withOpacity(0.1),
+            color: theme.appColors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: theme.appColors.blue),
           ),

@@ -165,7 +165,7 @@ class HelpCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: theme.appColors.yellow.withOpacity(0.1),
+                  color: theme.appColors.yellow.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: theme.appColors.yellow,

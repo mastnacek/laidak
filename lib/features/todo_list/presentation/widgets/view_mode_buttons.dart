@@ -103,7 +103,7 @@ class _ViewChip extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isSelected
-              ? theme.appColors.yellow.withOpacity(0.2)
+              ? theme.appColors.yellow.withValues(alpha: 0.2)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(

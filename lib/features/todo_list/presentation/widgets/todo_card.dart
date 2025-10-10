@@ -424,7 +424,7 @@ class TodoCard extends StatelessWidget {
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: theme.appColors.magenta.withOpacity(0.3 * pulseValue),
+                color: theme.appColors.magenta.withValues(alpha: 0.3 * pulseValue),
                 blurRadius: 6 * pulseValue,
                 spreadRadius: 1 * pulseValue,
               ),

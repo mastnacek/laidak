@@ -57,7 +57,7 @@ class _WizardPageState extends State<WizardPage> {
                 color: theme.appColors.bgAlt,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -112,7 +112,7 @@ class _WizardPageState extends State<WizardPage> {
                 color: theme.appColors.bgAlt,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 4,
                     offset: const Offset(0, -2),
                   ),
@@ -233,7 +233,7 @@ class _WizardPageState extends State<WizardPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.appColors.blue.withOpacity(0.1),
+              color: theme.appColors.blue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: theme.appColors.blue),
             ),
@@ -406,7 +406,7 @@ class _WizardPageState extends State<WizardPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.appColors.yellow.withOpacity(0.1),
+              color: theme.appColors.yellow.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.appColors.yellow),
             ),
@@ -441,7 +441,7 @@ class _WizardPageState extends State<WizardPage> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: theme.appColors.cyan.withOpacity(0.1),
+              color: theme.appColors.cyan.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: theme.appColors.cyan),
             ),
@@ -517,7 +517,7 @@ class _WizardPageState extends State<WizardPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.appColors.yellow.withOpacity(0.1),
+              color: theme.appColors.yellow.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: theme.appColors.yellow),
             ),
@@ -563,7 +563,7 @@ class _WizardPageState extends State<WizardPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),
@@ -628,7 +628,7 @@ class _WizardPageState extends State<WizardPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: theme.appColors.cyan.withOpacity(0.1),
+              color: theme.appColors.cyan.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: theme.appColors.cyan),
             ),

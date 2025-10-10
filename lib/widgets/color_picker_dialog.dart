@@ -214,7 +214,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
                                   boxShadow: _glowEnabled
                                       ? [
                                           BoxShadow(
-                                            color: _selectedColor.withOpacity(_glowStrength),
+                                            color: _selectedColor.withValues(alpha: _glowStrength),
                                             blurRadius: 20 * _glowStrength,
                                             spreadRadius: 5 * _glowStrength,
                                           ),
