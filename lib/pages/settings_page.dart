@@ -802,7 +802,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                   children: [
                     Icon(Icons.edit, color: theme.appColors.cyan, size: 28),
                     const SizedBox(width: 12),
-                    Expanded(
+                    Flexible(
                       child: Text(
                         'EDITOVAT PROMPT',
                         style: TextStyle(
@@ -917,7 +917,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                   children: [
                     Icon(Icons.add_circle, color: theme.appColors.green, size: 28),
                     const SizedBox(width: 12),
-                    Expanded(
+                    Flexible(
                       child: Text(
                         'NOVÝ PROMPT',
                         style: TextStyle(
@@ -931,7 +931,7 @@ class _PromptsTabState extends State<_PromptsTab> {
                       icon: Icon(Icons.close, color: theme.appColors.base5),
                       onPressed: () => Navigator.of(context).pop(false),
                     ),
-                  ],
+                  ),
                 ),
                 Divider(color: theme.appColors.base3, height: 24),
 
