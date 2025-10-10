@@ -110,7 +110,16 @@ class _StatChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Tooltip(
-      message: tooltip,
+      richMessage: WidgetSpan(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(tooltip, style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
       preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),

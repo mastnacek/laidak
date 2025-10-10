@@ -83,7 +83,16 @@ class _SortButton extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Tooltip(
-      message: sortMode.label,
+      richMessage: WidgetSpan(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(sortMode.icon, size: 16, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(sortMode.label, style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
       preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
       child: InkWell(
         onTap: () {

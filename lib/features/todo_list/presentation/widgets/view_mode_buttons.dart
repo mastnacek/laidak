@@ -72,7 +72,16 @@ class _ViewChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Tooltip(
-      message: viewMode.label,
+      richMessage: WidgetSpan(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(viewMode.icon, size: 16, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(viewMode.label, style: const TextStyle(color: Colors.white)),
+          ],
+        ),
+      ),
       preferBelow: false, // Zobrazit tooltip NAD ikonkou (ne pod prstem)
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
