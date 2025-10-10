@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -242,6 +242,23 @@ class DatabaseHelper {
       await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_priority ON todos(priority)');
       await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_isCompleted ON todos(isCompleted)');
       await db.execute('CREATE INDEX IF NOT EXISTS idx_todos_createdAt ON todos(createdAt)');
+    }
+
+    if (oldVersion < 9) {
+      // Bezpečná migrace: Přidat AI sloupce pokud neexistují
+      // Tato migrace opravuje problém pro uživatele, kteří měli verzi < 7
+      // ale upgrade na verzi 7 neproběhl správně
+
+      final columns = await db.rawQuery('PRAGMA table_info(todos)');
+      final columnNames = columns.map((col) => col['name'] as String).toList();
+
+      if (!columnNames.contains('ai_recommendations')) {
+        await db.execute('ALTER TABLE todos ADD COLUMN ai_recommendations TEXT');
+      }
+
+      if (!columnNames.contains('ai_deadline_analysis')) {
+        await db.execute('ALTER TABLE todos ADD COLUMN ai_deadline_analysis TEXT');
+      }
     }
   }
 
