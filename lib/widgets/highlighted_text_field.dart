@@ -10,12 +10,14 @@ class HighlightedTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final ValueChanged<String>? onSubmitted;
+  final FocusNode? focusNode;
 
   const HighlightedTextField({
     super.key,
     required this.controller,
     required this.hintText,
     this.onSubmitted,
+    this.focusNode,
   });
 
   @override
@@ -23,12 +25,20 @@ class HighlightedTextField extends StatefulWidget {
 }
 
 class _HighlightedTextFieldState extends State<HighlightedTextField> {
-  final FocusNode _focusNode = FocusNode();
+  FocusNode? _internalFocusNode;
   late HighlightedTextEditingController _highlightController;
+
+  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
 
   @override
   void initState() {
     super.initState();
+
+    // Vytvořit interní FocusNode pouze pokud není předán
+    if (widget.focusNode == null) {
+      _internalFocusNode = FocusNode();
+    }
+
     // Wrap původní controller do highlighting controlleru
     _highlightController = HighlightedTextEditingController(
       text: widget.controller.text,
@@ -44,7 +54,7 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
     widget.controller.removeListener(_syncFromOriginal);
     _highlightController.removeListener(_syncToOriginal);
     _highlightController.dispose();
-    _focusNode.dispose();
+    _internalFocusNode?.dispose();
     super.dispose();
   }
 

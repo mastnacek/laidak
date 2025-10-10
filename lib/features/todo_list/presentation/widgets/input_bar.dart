@@ -21,8 +21,15 @@ import '../bloc/todo_list_state.dart';
 /// Funkce:
 /// - Default mode: HighlightedTextField s TagParser (*a* *dnes* ...)
 /// - Search mode: Normální TextField s debouncing
+/// - Focus callback: Notifikuje parent o focus změnách (pro keyboard awareness)
 class InputBar extends StatefulWidget {
-  const InputBar({super.key});
+  /// Callback volaný při změně focus stavu
+  final ValueChanged<bool>? onFocusChanged;
+
+  const InputBar({
+    super.key,
+    this.onFocusChanged,
+  });
 
   @override
   State<InputBar> createState() => _InputBarState();
@@ -35,11 +42,24 @@ class _InputBarState extends State<InputBar> {
   bool _isSearchMode = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Naslouchat změnám focusu
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChange);
     _debounceTimer?.cancel();
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    // Notifikovat parent o focus změně
+    widget.onFocusChanged?.call(_focusNode.hasFocus);
   }
 
   void _toggleSearchMode() {
@@ -149,6 +169,7 @@ class _InputBarState extends State<InputBar> {
                     )
                   : HighlightedTextField(
                       controller: _controller,
+                      focusNode: _focusNode, // Předat focusNode!
                       hintText: '*a* *dnes* nakoupit...',
                       onSubmitted: (_) => _onSubmit(),
                     ),

@@ -15,15 +15,26 @@ import '../widgets/stats_row.dart';
 ///
 /// Layout (zdola nahoru):
 /// - InputBar (bottom fixed) - Easy Thumb Zone
-/// - ViewBar (kompaktní ikony) - Easy Thumb Zone
-/// - SortBar (kompaktní ikony) - Easy Thumb Zone
+/// - ViewBar (kompaktní ikony) - Easy Thumb Zone (skrytý při psaní!)
+/// - SortBar (kompaktní ikony) - Easy Thumb Zone (skrytý při psaní!)
 /// - TODO List (scrollable) - Stretch Zone
 /// - StatsRow (AppBar) - Hard Zone (ale jen info)
 ///
+/// Keyboard awareness:
+/// - ViewBar a SortBar se skryjí při focus na InputBar
+/// - Šetří místo pro klávesnici a TODO list
+///
 /// Používá BLoC pattern pro state management.
 /// UI je immutable a reaguje na změny state.
-class TodoListPage extends StatelessWidget {
+class TodoListPage extends StatefulWidget {
   const TodoListPage({super.key});
+
+  @override
+  State<TodoListPage> createState() => _TodoListPageState();
+}
+
+class _TodoListPageState extends State<TodoListPage> {
+  bool _isInputFocused = false;
 
   @override
   Widget build(BuildContext context) {
@@ -129,10 +140,21 @@ class TodoListPage extends StatelessWidget {
         child: SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: const [
-              SortBar(),   // Řádek 1: Sort controls
-              ViewBar(),   // Řádek 2: View modes + visibility
-              InputBar(),  // Řádek 3: Search/Add input (vždy viditelný)
+            children: [
+              // SortBar (skrytý při psaní!)
+              if (!_isInputFocused) const SortBar(),
+
+              // ViewBar (skrytý při psaní!)
+              if (!_isInputFocused) const ViewBar(),
+
+              // InputBar (VŽDY viditelný)
+              InputBar(
+                onFocusChanged: (hasFocus) {
+                  setState(() {
+                    _isInputFocused = hasFocus;
+                  });
+                },
+              ),
             ],
           ),
         ),
