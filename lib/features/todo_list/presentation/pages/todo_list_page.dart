@@ -58,17 +58,24 @@ class TodoListPage extends StatelessWidget {
             },
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(120),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Views buttons (📋 Všechny, 📅 Dnes, 🗓️ Týden, ...)
+              const ViewModeButtons(),
+
+              // Sort buttons (🔴 Priorita, 📅 Deadline, ...)
+              const SortButtons(),
+            ],
+          ),
+        ),
       ),
       body: Column(
         children: [
           // Formulář pro přidání nového úkolu / vyhledávání
           const TodoInputForm(),
-
-          // Views buttons (📋 Všechny, 📅 Dnes, 🗓️ Týden, ...)
-          const ViewModeButtons(),
-
-          // Sort buttons (🔴 Priorita, 📅 Deadline, ...)
-          const SortButtons(),
 
           Divider(height: 1, color: theme.appColors.base3),
 
