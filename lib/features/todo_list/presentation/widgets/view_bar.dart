@@ -21,21 +21,24 @@ class ViewBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.appColors.bgAlt,
-        border: Border(
-          top: BorderSide(
-            color: theme.appColors.base3,
-            width: 1,
+    return Semantics(
+      label: 'Panel pro výběr zobrazení úkolů',
+      container: true,
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: theme.appColors.bgAlt,
+          border: Border(
+            top: BorderSide(
+              color: theme.appColors.base3,
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Row(
+        child: SafeArea(
+          top: false,
+          child: Row(
           children: [
             // View mode buttons (kompaktní ikony)
             Expanded(

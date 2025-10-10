@@ -118,20 +118,23 @@ class _InputBarState extends State<InputBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(
-        color: theme.appColors.bgAlt,
-        border: Border(
-          top: BorderSide(
-            color: theme.appColors.base3,
-            width: 1,
+    return Semantics(
+      label: 'Panel pro přidání úkolu a vyhledávání',
+      container: true,
+      child: Container(
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        decoration: BoxDecoration(
+          color: theme.appColors.bgAlt,
+          border: Border(
+            top: BorderSide(
+              color: theme.appColors.base3,
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: SafeArea(
-        child: Row(
+        child: SafeArea(
+          child: Row(
           children: [
             // Search icon (edge-aligned)
             IconButton(

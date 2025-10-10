@@ -25,33 +25,38 @@ class StatsRow extends StatelessWidget {
 
         final stats = _computeStats(state);
 
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _StatChip(
-              icon: Icons.check_circle,
-              count: stats.completed,
-              tooltip: 'Hotové úkoly',
-            ),
-            const SizedBox(width: 8),
-            _StatChip(
-              icon: Icons.flag,
-              count: stats.active,
-              tooltip: 'Aktivní úkoly',
-            ),
-            const SizedBox(width: 8),
-            _StatChip(
-              icon: Icons.today,
-              count: stats.today,
-              tooltip: 'Úkoly dnes',
-            ),
-            const SizedBox(width: 8),
-            _StatChip(
-              icon: Icons.date_range,
-              count: stats.week,
-              tooltip: 'Úkoly tento týden',
-            ),
-          ],
+        return Semantics(
+          label:
+              'Statistiky úkolů: ${stats.completed} hotových, ${stats.active} aktivních, ${stats.today} dnes, ${stats.week} tento týden',
+          container: true,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _StatChip(
+                icon: Icons.check_circle,
+                count: stats.completed,
+                tooltip: 'Hotové úkoly',
+              ),
+              const SizedBox(width: 8),
+              _StatChip(
+                icon: Icons.flag,
+                count: stats.active,
+                tooltip: 'Aktivní úkoly',
+              ),
+              const SizedBox(width: 8),
+              _StatChip(
+                icon: Icons.today,
+                count: stats.today,
+                tooltip: 'Úkoly dnes',
+              ),
+              const SizedBox(width: 8),
+              _StatChip(
+                icon: Icons.date_range,
+                count: stats.week,
+                tooltip: 'Úkoly tento týden',
+              ),
+            ],
+          ),
         );
       },
     );

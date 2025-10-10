@@ -21,21 +21,24 @@ class SortBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      decoration: BoxDecoration(
-        color: theme.appColors.bgAlt,
-        border: Border(
-          top: BorderSide(
-            color: theme.appColors.base3,
-            width: 1,
+    return Semantics(
+      label: 'Panel pro řazení úkolů',
+      container: true,
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        decoration: BoxDecoration(
+          color: theme.appColors.bgAlt,
+          border: Border(
+            top: BorderSide(
+              color: theme.appColors.base3,
+              width: 1,
+            ),
           ),
         ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: BlocBuilder<TodoListBloc, TodoListState>(
+        child: SafeArea(
+          top: false,
+          child: BlocBuilder<TodoListBloc, TodoListState>(
           builder: (context, state) {
             final currentSortMode =
                 state is TodoListLoaded ? state.sortMode : null;
@@ -105,7 +108,7 @@ class SortBar extends StatelessWidget {
       return Icon(mode.icon, size: 20);
     }
 
-    // Active: icon with arrow overlay
+    // Active: icon with animated arrow overlay
     return Stack(
       alignment: Alignment.center,
       children: [
@@ -113,12 +116,23 @@ class SortBar extends StatelessWidget {
         Positioned(
           right: 0,
           bottom: 0,
-          child: Icon(
-            direction == SortDirection.desc
-                ? Icons.arrow_downward
-                : Icons.arrow_upward,
-            size: 10,
-            color: theme.appColors.yellow,
+          child: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            tween: Tween<double>(
+              begin: 0,
+              end: direction == SortDirection.desc ? 0 : 3.14159, // 180° rotation
+            ),
+            builder: (context, angle, child) {
+              return Transform.rotate(
+                angle: angle,
+                child: Icon(
+                  Icons.arrow_downward,
+                  size: 10,
+                  color: theme.appColors.yellow,
+                ),
+              );
+            },
           ),
         ),
       ],

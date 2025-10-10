@@ -141,11 +141,39 @@ class _TodoListPageState extends State<TodoListPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // SortBar (skrytý při psaní!)
-              if (!_isInputFocused) const SortBar(),
+              // SortBar (skrytý při psaní s animací!)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                transitionBuilder: (child, animation) {
+                  return SizeTransition(
+                    sizeFactor: animation,
+                    axisAlignment: -1.0,
+                    child: child,
+                  );
+                },
+                child: _isInputFocused
+                    ? const SizedBox(key: ValueKey('sortbar-hidden'))
+                    : const SortBar(key: ValueKey('sortbar-visible')),
+              ),
 
-              // ViewBar (skrytý při psaní!)
-              if (!_isInputFocused) const ViewBar(),
+              // ViewBar (skrytý při psaní s animací!)
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: Curves.easeInOut,
+                switchOutCurve: Curves.easeInOut,
+                transitionBuilder: (child, animation) {
+                  return SizeTransition(
+                    sizeFactor: animation,
+                    axisAlignment: -1.0,
+                    child: child,
+                  );
+                },
+                child: _isInputFocused
+                    ? const SizedBox(key: ValueKey('viewbar-hidden'))
+                    : const ViewBar(key: ValueKey('viewbar-visible')),
+              ),
 
               // InputBar (VŽDY viditelný)
               InputBar(
