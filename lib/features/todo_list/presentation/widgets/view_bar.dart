@@ -39,7 +39,7 @@ class ViewBar extends StatelessWidget {
         child: SafeArea(
           top: false,
           child: Row(
-          children: [
+            children: [
             // View mode buttons (kompaktní ikony)
             Expanded(
               child: BlocBuilder<TodoListBloc, TodoListState>(
@@ -120,6 +120,7 @@ class ViewBar extends StatelessWidget {
               },
             ),
           ],
+          ),
         ),
       ),
     );

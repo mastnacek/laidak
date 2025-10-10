@@ -39,7 +39,7 @@ class SortBar extends StatelessWidget {
         child: SafeArea(
           top: false,
           child: BlocBuilder<TodoListBloc, TodoListState>(
-          builder: (context, state) {
+            builder: (context, state) {
             final currentSortMode =
                 state is TodoListLoaded ? state.sortMode : null;
             final currentDirection = state is TodoListLoaded
@@ -92,6 +92,7 @@ class SortBar extends StatelessWidget {
               }).toList(),
             );
           },
+          ),
         ),
       ),
     );

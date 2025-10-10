@@ -135,7 +135,7 @@ class _InputBarState extends State<InputBar> {
         ),
         child: SafeArea(
           child: Row(
-          children: [
+            children: [
             // Search icon (edge-aligned)
             IconButton(
               icon: Icon(
@@ -194,6 +194,7 @@ class _InputBarState extends State<InputBar> {
               },
             ),
           ],
+          ),
         ),
       ),
     );
