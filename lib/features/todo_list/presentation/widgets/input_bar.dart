@@ -168,24 +168,32 @@ class _InputBarState extends State<InputBar> {
             // TextField (EXPANDED = maximální šířka!)
             Expanded(
               child: _isSearchMode
-                  ? TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      decoration: InputDecoration(
-                        hintText: '🔍 Vyhledat úkol...',
-                        border: InputBorder.none,
-                        hintStyle: TextStyle(
-                          color: theme.appColors.base5,
+                  ? GestureDetector(
+                      onTap: () {
+                        // Při tapu vždy požádat o focus a otevřít klávesnici
+                        if (!_focusNode.hasFocus) {
+                          _focusNode.requestFocus();
+                        }
+                      },
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        decoration: InputDecoration(
+                          hintText: '🔍 Vyhledat úkol...',
+                          border: InputBorder.none,
+                          hintStyle: TextStyle(
+                            color: theme.appColors.base5,
+                            fontSize: 16,
+                          ),
+                        ),
+                        style: TextStyle(
+                          color: theme.appColors.fg,
                           fontSize: 16,
                         ),
+                        onChanged: _onTextChanged,
+                        onSubmitted: (_) => _onSubmit(),
+                        textInputAction: TextInputAction.search,
                       ),
-                      style: TextStyle(
-                        color: theme.appColors.fg,
-                        fontSize: 16,
-                      ),
-                      onChanged: _onTextChanged,
-                      onSubmitted: (_) => _onSubmit(),
-                      textInputAction: TextInputAction.search,
                     )
                   : HighlightedTextField(
                       controller: _controller,
