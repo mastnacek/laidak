@@ -329,9 +329,16 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
   void _removeOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;
-    setState(() {
+
+    // setState pouze pokud je widget stále mounted (ne během dispose)
+    if (mounted) {
+      setState(() {
+        _suggestions = [];
+      });
+    } else {
+      // Widget je během dispose → jen clear data bez setState
       _suggestions = [];
-    });
+    }
   }
 
   @override
