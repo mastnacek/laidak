@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import '../core/theme/doom_one_theme.dart';
 import '../core/theme/blade_runner_theme.dart';
 import '../core/theme/osaka_jade_theme.dart';
