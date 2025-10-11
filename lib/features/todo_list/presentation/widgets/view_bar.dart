@@ -216,8 +216,7 @@ class ViewBar extends StatelessWidget {
         context: context,
         builder: (context) => InfoDialog(
           title: '${viewItem.emoji} ${viewItem.label}',
-          icon: Icons.view_agenda, // Fallback ikona pro dialog
-          iconColor: theme.appColors.yellow,
+          emoji: viewItem.emoji, // Použij emoji místo Material Icon
           description: _getViewModeDescription(viewItem.builtInMode!),
           examples: _getViewModeExamples(viewItem.builtInMode!),
           tip: 'Klikni na emoji pro aktivaci tohoto pohledu. Klikni znovu pro vrácení na "Všechny".',
@@ -229,8 +228,7 @@ class ViewBar extends StatelessWidget {
         context: context,
         builder: (context) => InfoDialog(
           title: '${viewItem.emoji} ${viewItem.label}',
-          icon: Icons.tag, // Fallback ikona pro dialog
-          iconColor: viewItem.customView?.color ?? theme.appColors.magenta,
+          emoji: viewItem.emoji, // Použij emoji místo Material Icon
           description: 'Vlastní pohled filtrující úkoly podle tagu: ${viewItem.customView?.tagFilter}',
           examples: [
             'Zobrazí pouze úkoly s tagem ${viewItem.customView?.tagFilter}',
