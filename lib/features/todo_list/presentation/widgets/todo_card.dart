@@ -143,17 +143,8 @@ class TodoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: _getTodoBorderColor(context),
-              width: 2, // Zvýšená width pro lepší viditelnost
+              width: 1, // Subtilní border (clean minimal)
             ),
-            boxShadow: [
-              // Jemný glow efekt pro dokončené úkoly (zelená aura)
-              if (todo.isCompleted)
-                BoxShadow(
-                  color: theme.appColors.green.withValues(alpha: 0.3),
-                  blurRadius: 4,
-                  spreadRadius: 0,
-                ),
-            ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,24 +248,15 @@ class TodoCard extends StatelessWidget {
     );
   }
 
-  /// Získat barvu rámečku úkolu podle stavu (2025 trendy: accent colors)
+  /// Získat barvu rámečku úkolu podle stavu (Doom One styl: clean + elegant)
   Color _getTodoBorderColor(BuildContext context) {
     final theme = Theme.of(context);
     if (todo.isCompleted) {
-      // Splněné úkoly = zelená (celebrate the win!)
+      // Splněné úkoly = krásná moderní zelená (celebrate the win!)
       return theme.appColors.green;
     } else {
-      // Aktivní úkoly - subtilní accent podle priority
-      switch (todo.priority) {
-        case 'a':
-          return theme.appColors.red.withValues(alpha: 0.5); // Urgentní = červená
-        case 'b':
-          return theme.appColors.yellow.withValues(alpha: 0.5); // Důležité = žlutá
-        case 'c':
-          return theme.appColors.green.withValues(alpha: 0.5); // Nízká = zelená
-        default:
-          return theme.appColors.base4; // Bez priority = šedá
-      }
+      // Aktivní úkoly = pěkná decentní cyan/modrá (Doom One styl)
+      return theme.appColors.cyan.withValues(alpha: 0.4);
     }
   }
 
@@ -421,47 +403,19 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  /// Vytvořit pulzující motivate tlačítko s moderním emoji (decentní)
+  /// Vytvořit motivate tlačítko s moderním emoji (clean, bez glow)
   Widget _buildMotivateButton(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.0, end: 1.0),
-      duration: const Duration(milliseconds: 2000),
-      curve: Curves.easeInOut,
-      builder: (context, value, child) {
-        // Subtilnější puls efekt: 0.95 -> 1.0 -> 0.95
-        final pulseValue = 0.95 + (0.05 * (0.5 - (value - 0.5).abs()) * 2);
-
-        return Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: theme.appColors.magenta.withValues(alpha: 0.15 * pulseValue),
-                blurRadius: 3 * pulseValue,
-                spreadRadius: 0,
-              ),
-            ],
-          ),
-          child: IconButton(
-            icon: const Text(
-              '✨',
-              style: TextStyle(
-                fontSize: 16, // Zmenšeno z 20 na 16
-              ),
-            ),
-            onPressed: () => _motivateTask(context),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            tooltip: 'AI Motivace',
-          ),
-        );
-      },
-      onEnd: () {
-        // Nekonečná smyčka - restart animace (ale pouze pokud je widget stále mounted)
-        // Poznámka: StatelessWidget nemá mounted property, takže se spoléháme na framework
-      },
+    return IconButton(
+      icon: const Text(
+        '✨',
+        style: TextStyle(
+          fontSize: 16,
+        ),
+      ),
+      onPressed: () => _motivateTask(context),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      tooltip: 'AI Motivace',
     );
   }
 
