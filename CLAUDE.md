@@ -489,6 +489,32 @@ version: 11,  // ← ZMĚNIT z 10 na 11
 
 ---
 
+## 🏗️ Build Requirements - Flutter Release Build
+
+### ⚠️ POVINNÝ BUILD FLAG
+
+**Kvůli Custom Agenda Views s dynamic IconData (runtime icon code points z DB) je nutné používat:**
+
+```bash
+flutter build apk --no-tree-shake-icons
+```
+
+**Důvod**:
+- Custom Agenda Views používají `iconCodePoint` načtený z databáze v runtime
+- Flutter release build vyžaduje konstantní IconData pro tree-shaking optimalizaci
+- Dynamic `IconData(view.iconCodePoint)` není považováno za const → build fail
+- Flag `--no-tree-shake-icons` vypne tree-shaking pro ikony (mírně větší APK)
+
+**Dopad na velikost APK**: +2-3 MB (Material Icons font není optimalizován)
+
+**Alternativní řešení** (nepraktické):
+- Používat pouze předem definované ikony (const IconData)
+- Omezit custom views na fixed set ikon → ❌ UX degradace
+
+**Poznámka**: Tento trade-off je přijatelný - flexibilita custom views > velikost APK
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
