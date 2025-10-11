@@ -213,13 +213,19 @@ class HighlightedTextEditingController extends TextEditingController {
   Color _getTagColor(String tagContent) {
     final lower = tagContent.toLowerCase();
 
-    // Pokusit se získat definici z TagService
-    final definition = _tagService.getDefinition(lower);
+    // Pokusit se získat definici z TagService (s error handling)
+    try {
+      final definition = _tagService.getDefinition(lower);
 
-    // Pokud existuje definice s barvou, použít ji
-    if (definition != null && definition.color != null) {
-      final color = _parseHexColor(definition.color!);
-      if (color != null) return color;
+      // Pokud existuje definice s barvou, použít ji
+      if (definition != null && definition.color != null) {
+        final color = _parseHexColor(definition.color!);
+        if (color != null) return color;
+      }
+    } catch (e) {
+      // TagService není inicializovaný → použít fallback barvy
+      // Toto je OK, protože highlighting controller může být vytvořen
+      // před dokončením inicializace TagService v main()
     }
 
     // Fallback barvy podle typu tagu (pokud definice neexistuje nebo nemá color)
