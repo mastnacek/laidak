@@ -1,7 +1,5 @@
-import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/services/database_helper.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -228,6 +226,34 @@ class SettingsCubit extends Cubit<SettingsState> {
     AppLogger.info('✅ Custom view aktualizován: ${view.name}');
   }
 
+  /// Zapnout/vypnout custom view
+  Future<void> toggleCustomView(String id, bool enabled) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (id.trim().isEmpty) {
+      AppLogger.error('❌ ID custom view nesmí být prázdné');
+      return;
+    }
+
+    // ✅ Update v DB
+    await _db.updateCustomAgendaView(id, {
+      'enabled': enabled ? 1 : 0,
+    });
+
+    // Update state
+    final updated = currentState.agendaConfig.copyWith(
+      customViews: currentState.agendaConfig.customViews
+          .map((v) => v.id == id ? v.copyWith(isEnabled: enabled) : v)
+          .toList(),
+    );
+
+    emit(currentState.copyWith(agendaConfig: updated));
+
+    AppLogger.info('✅ Custom view "$id" nastaven na: $enabled');
+  }
+
   /// Smazat custom view
   Future<void> deleteCustomView(String id) async {
     final currentState = state;
@@ -268,8 +294,8 @@ class SettingsCubit extends Cubit<SettingsState> {
       final showUpcoming = (settings['show_upcoming'] as int? ?? 0) == 1;
       final showOverdue = (settings['show_overdue'] as int? ?? 1) == 1;
 
-      // Načíst custom views z custom_agenda_views table
-      final customViewsMaps = await _db.getEnabledCustomAgendaViews();
+      // Načíst VŠECHNY custom views z custom_agenda_views table (včetně disabled)
+      final customViewsMaps = await _db.getAllCustomAgendaViews();
 
       final customViews = customViewsMaps.map((map) {
         return CustomAgendaView(
@@ -278,6 +304,7 @@ class SettingsCubit extends Cubit<SettingsState> {
           tagFilter: map['tag_filter'] as String,
           emoji: map['emoji'] as String? ?? '⭐',
           colorHex: map['color_hex'] as String?,
+          isEnabled: (map['enabled'] as int? ?? 1) == 1,
         );
       }).toList();
 

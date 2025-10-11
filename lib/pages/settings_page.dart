@@ -1816,57 +1816,43 @@ class _AgendaTab extends StatelessWidget {
     ThemeData theme,
     CustomAgendaView view,
   ) {
-    return Card(
-      color: theme.appColors.bgAlt,
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: theme.appColors.bgAlt,
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: theme.appColors.base3),
+        border: Border.all(color: theme.appColors.base3),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
           children: [
             // Emoji
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: (view.color ?? theme.appColors.magenta).withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: view.color ?? theme.appColors.magenta,
-                  width: 2,
-                ),
-              ),
-              child: Center(
-                child: Text(
-                  view.emoji,
-                  style: const TextStyle(fontSize: 24),
-                ),
-              ),
+            Text(
+              view.emoji,
+              style: const TextStyle(fontSize: 24),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
 
             // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     view.name,
                     style: TextStyle(
                       color: theme.appColors.fg,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 4),
                   Text(
                     'Tag: ${view.tagFilter}',
                     style: TextStyle(
                       color: theme.appColors.base5,
-                      fontSize: 12,
+                      fontSize: 11,
                       fontFamily: 'monospace',
                     ),
                   ),
@@ -1874,21 +1860,31 @@ class _AgendaTab extends StatelessWidget {
               ),
             ),
 
-            // Actions
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Icon(Icons.edit, color: theme.appColors.cyan, size: 20),
-                  onPressed: () => _showEditCustomViewDialog(context, theme, view),
-                  tooltip: 'Upravit',
-                ),
-                IconButton(
-                  icon: Icon(Icons.delete, color: theme.appColors.red, size: 20),
-                  onPressed: () => _deleteCustomView(context, theme, view),
-                  tooltip: 'Smazat',
-                ),
-              ],
+            // Edit/Delete actions (doprostřed)
+            IconButton(
+              icon: Icon(Icons.edit, color: theme.appColors.cyan, size: 18),
+              onPressed: () => _showEditCustomViewDialog(context, theme, view),
+              tooltip: 'Upravit',
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(8),
+            ),
+            const SizedBox(width: 4),
+            IconButton(
+              icon: Icon(Icons.delete, color: theme.appColors.red, size: 18),
+              onPressed: () => _deleteCustomView(context, theme, view),
+              tooltip: 'Smazat',
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(8),
+            ),
+            const SizedBox(width: 8),
+
+            // Switch (na stejném místě jako built-in views)
+            Switch(
+              value: view.isEnabled,
+              activeColor: theme.appColors.green,
+              onChanged: (enabled) {
+                context.read<SettingsCubit>().toggleCustomView(view.id, enabled);
+              },
             ),
           ],
         ),

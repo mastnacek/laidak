@@ -5,6 +5,7 @@ import '../../../../pages/settings_page.dart';
 import '../../../help/presentation/pages/help_page.dart';
 import '../../../settings/presentation/cubit/settings_cubit.dart';
 import '../../../settings/presentation/cubit/settings_state.dart';
+import '../../domain/enums/view_mode.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
@@ -132,19 +133,39 @@ class _TodoListPageState extends State<TodoListPage> {
       ),
 
       // TODO List + Bottom Controls (keyboard aware!)
-      body: BlocConsumer<TodoListBloc, TodoListState>(
-        listener: (context, state) {
-          // Zobrazit error snackbar
-          if (state is TodoListError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: theme.appColors.red,
-              ),
-            );
+      body: BlocListener<SettingsCubit, SettingsState>(
+        listener: (context, settingsState) {
+          // Auto-switch na "All" když vypnu aktivní custom view
+          if (settingsState is SettingsLoaded) {
+            final todoState = context.read<TodoListBloc>().state;
+            if (todoState is TodoListLoaded &&
+                todoState.viewMode == ViewMode.custom &&
+                todoState.currentCustomViewId != null) {
+              // Zkontroluj jestli aktivní custom view je stále enabled
+              final activeCustomView = settingsState.agendaConfig.customViews
+                  .where((v) => v.id == todoState.currentCustomViewId)
+                  .firstOrNull;
+
+              if (activeCustomView == null || !activeCustomView.isEnabled) {
+                // Custom view byl vypnut nebo smazán → přepni na "All"
+                context.read<TodoListBloc>().add(const ChangeViewModeEvent(ViewMode.all));
+              }
+            }
           }
         },
-        builder: (context, state) {
+        child: BlocConsumer<TodoListBloc, TodoListState>(
+          listener: (context, state) {
+            // Zobrazit error snackbar
+            if (state is TodoListError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: theme.appColors.red,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
           return Column(
             children: [
               // TODO List (scrollable) - Expanded = zabere zbytek místa
@@ -254,6 +275,7 @@ class _TodoListPageState extends State<TodoListPage> {
             ],
           );
         },
+        ),
       ),
     );
   }

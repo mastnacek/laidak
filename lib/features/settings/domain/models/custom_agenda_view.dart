@@ -21,12 +21,16 @@ class CustomAgendaView extends Equatable {
   /// Barva (optional, hex string)
   final String? colorHex;
 
+  /// Zapnuto/vypnuto (zobrazit v ViewBar)
+  final bool isEnabled;
+
   const CustomAgendaView({
     required this.id,
     required this.name,
     required this.tagFilter,
     required this.emoji,
     this.colorHex,
+    this.isEnabled = true, // Default zapnuto
   });
 
   /// Helper: Color z hex stringu
@@ -42,6 +46,7 @@ class CustomAgendaView extends Equatable {
       'tagFilter': tagFilter,
       'emoji': emoji,
       'colorHex': colorHex,
+      'isEnabled': isEnabled,
     };
   }
 
@@ -53,6 +58,7 @@ class CustomAgendaView extends Equatable {
       tagFilter: json['tagFilter'] as String,
       emoji: json['emoji'] as String? ?? '📁', // Default emoji pokud chybí
       colorHex: json['colorHex'] as String?,
+      isEnabled: json['isEnabled'] as bool? ?? true, // Default zapnuto
     );
   }
 
@@ -63,6 +69,7 @@ class CustomAgendaView extends Equatable {
     String? tagFilter,
     String? emoji,
     String? colorHex,
+    bool? isEnabled,
   }) {
     return CustomAgendaView(
       id: id ?? this.id,
@@ -70,9 +77,10 @@ class CustomAgendaView extends Equatable {
       tagFilter: tagFilter ?? this.tagFilter,
       emoji: emoji ?? this.emoji,
       colorHex: colorHex ?? this.colorHex,
+      isEnabled: isEnabled ?? this.isEnabled,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, tagFilter, emoji, colorHex];
+  List<Object?> get props => [id, name, tagFilter, emoji, colorHex, isEnabled];
 }

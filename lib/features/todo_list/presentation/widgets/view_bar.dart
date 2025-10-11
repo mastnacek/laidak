@@ -60,9 +60,11 @@ class ViewBar extends StatelessWidget {
             visibleViews.add(_ViewItem.builtIn(ViewMode.overdue));
           }
 
-          // Custom views (všechny jsou enabled)
+          // Custom views (pouze enabled)
           for (final customView in agendaConfig.customViews) {
-            visibleViews.add(_ViewItem.custom(customView));
+            if (customView.isEnabled) {
+              visibleViews.add(_ViewItem.custom(customView));
+            }
           }
 
           // Empty state - žádné views aktivní
