@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:http/http.dart' as http;
+import '../core/models/openrouter_model.dart';
 import '../core/theme/doom_one_theme.dart';
 import '../core/theme/blade_runner_theme.dart';
 import '../core/theme/osaka_jade_theme.dart';
@@ -114,7 +115,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
 
   // Model dropdown state
   String? _selectedModel;
-  List<String> _availableModels = [];
+  List<OpenRouterModel> _availableModels = [];
   bool _isLoadingModels = false;
 
   // Getter pro theme - dostupný ve všech metodách
@@ -174,8 +175,24 @@ class _AISettingsTabState extends State<_AISettingsTab> {
       // Fetch models z API
       final models = await openRouterDataSource.fetchAvailableModels();
 
+      // Seřadit modely: podle providera (A-Z), pak FREE → nejlevnější → nejdražší
+      models.sort((a, b) {
+        // 1. Seřadit podle providera (alphabetically)
+        final providerCompare = a.provider.compareTo(b.provider);
+        if (providerCompare != 0) return providerCompare;
+
+        // 2. FREE modely na začátek (v rámci providera)
+        if (a.isFree && !b.isFree) return -1;
+        if (!a.isFree && b.isFree) return 1;
+
+        // 3. Seřadit podle ceny (od nejlevnějšího)
+        final priceA = a.averagePrice ?? double.infinity;
+        final priceB = b.averagePrice ?? double.infinity;
+        return priceA.compareTo(priceB);
+      });
+
       setState(() {
-        _availableModels = models.map((m) => m.id).toList();
+        _availableModels = models;
         _isLoadingModels = false;
       });
 
@@ -183,9 +200,14 @@ class _AISettingsTabState extends State<_AISettingsTab> {
     } catch (e) {
       setState(() => _isLoadingModels = false);
 
-      // Fallback na populární modely pokud API selže
+      // Fallback na populární modely jako OpenRouterModel objekty (bez pricing)
       setState(() {
-        _availableModels = List.from(_popularModels);
+        _availableModels = _popularModels
+            .map((id) => OpenRouterModel(
+                  id: id,
+                  name: id.split('/').last,
+                ))
+            .toList();
       });
 
       if (mounted) {
@@ -197,6 +219,87 @@ class _AISettingsTabState extends State<_AISettingsTab> {
         );
       }
     }
+  }
+
+  /// Vytvořit strukturované dropdown items (seskupené podle providera, seřazené podle ceny)
+  List<DropdownMenuItem<String>> _buildModelDropdownItems() {
+    final items = <DropdownMenuItem<String>>[];
+
+    // Custom input option
+    items.add(DropdownMenuItem<String>(
+      value: null,
+      child: Text(
+        '✏️ Zadat vlastní model...',
+        style: TextStyle(
+          color: theme.appColors.base5,
+          fontStyle: FontStyle.italic,
+        ),
+      ),
+    ));
+
+    if (_availableModels.isEmpty) return items;
+
+    // Separator
+    items.add(const DropdownMenuItem<String>(
+      enabled: false,
+      value: '__separator__',
+      child: Divider(height: 1),
+    ));
+
+    // Seskupit modely podle providera
+    String? currentProvider;
+
+    for (final model in _availableModels) {
+      // Pokud je nový provider, přidat header row
+      if (model.provider != currentProvider) {
+        currentProvider = model.provider;
+
+        // Provider header (disabled, styled)
+        items.add(DropdownMenuItem<String>(
+          enabled: false,
+          value: '__header_$currentProvider',
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Text(
+              '━━━ ${currentProvider.toUpperCase()} ━━━',
+              style: TextStyle(
+                color: theme.appColors.cyan,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+          ),
+        ));
+      }
+
+      // Model row s ID a cenou
+      items.add(DropdownMenuItem<String>(
+        value: model.id,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                model.shortLabel,
+                style: const TextStyle(fontSize: 13),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              model.priceLabel,
+              style: TextStyle(
+                fontSize: 10,
+                color: model.isFree ? theme.appColors.green : theme.appColors.yellow,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ));
+    }
+
+    return items;
   }
 
   /// Zobrazit dialog pro zadání vlastního model ID
@@ -479,7 +582,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                 Expanded(
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: _availableModels.contains(_selectedModel) ? _selectedModel : null,
+                      value: _availableModels.any((m) => m.id == _selectedModel) ? _selectedModel : null,
                       isExpanded: true,
                       dropdownColor: theme.appColors.base2,
                       style: TextStyle(
@@ -495,41 +598,13 @@ class _AISettingsTabState extends State<_AISettingsTab> {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      items: [
-                        // Vlastní model (šedě)
-                        DropdownMenuItem<String>(
-                          value: null,
-                          child: Text(
-                            '✏️ Zadat vlastní model...',
-                            style: TextStyle(
-                              color: theme.appColors.base5,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        ),
-                        // Separator
-                        if (_availableModels.isNotEmpty) ...[
-                          const DropdownMenuItem<String>(
-                            enabled: false,
-                            value: '__separator__',
-                            child: Divider(height: 1),
-                          ),
-                          // Modely z API
-                          ..._availableModels.map((model) => DropdownMenuItem<String>(
-                                value: model,
-                                child: Text(
-                                  model,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              )),
-                        ],
-                      ],
+                      items: _buildModelDropdownItems(),
                       onChanged: (value) {
                         if (value == null) {
                           // Zobrazit dialog pro vlastní model
                           _showCustomModelDialog();
-                        } else if (value != '__separator__') {
+                        } else if (!value.startsWith('__')) {
+                          // Ignorovat header rows (začínají '__')
                           setState(() {
                             _selectedModel = value;
                           });
