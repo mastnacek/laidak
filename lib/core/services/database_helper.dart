@@ -28,15 +28,16 @@ class DatabaseHelper {
       version: 11,  // ← ZMĚNIT z 10 na 11 (Tags normalization)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      onConfigure: _onConfigure,
     );
 
-    // ✅ Enable WAL mode (concurrent reads & writes)
-    await db.rawQuery('PRAGMA journal_mode = WAL');
-
-    // ✅ Enable foreign keys (důležité pro CASCADE delete)
-    await db.rawQuery('PRAGMA foreign_keys = ON');
-
     return db;
+  }
+
+  /// Konfigurace databáze (volá se PŘED onCreate/onUpgrade)
+  Future<void> _onConfigure(Database db) async {
+    // ✅ Enable foreign keys (důležité pro CASCADE delete)
+    await db.execute('PRAGMA foreign_keys = ON');
   }
 
   /// Vytvořit tabulky při první inicializaci
