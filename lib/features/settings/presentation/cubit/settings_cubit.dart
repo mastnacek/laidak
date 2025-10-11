@@ -175,11 +175,23 @@ class SettingsCubit extends Cubit<SettingsState> {
       return;
     }
 
+    // ✅ Uložit do DB
+    await _db.insertCustomAgendaView({
+      'id': view.id,
+      'name': view.name,
+      'tag_filter': view.tagFilter.toLowerCase(),
+      'icon_code_point': view.iconCodePoint,
+      'color_hex': view.colorHex,
+      'sort_order': currentState.agendaConfig.customViews.length,
+      'enabled': 1,
+      'created_at': DateTime.now().millisecondsSinceEpoch,
+    });
+
+    // Update state
     final updated = currentState.agendaConfig.copyWith(
       customViews: [...currentState.agendaConfig.customViews, view],
     );
 
-    await _saveAgendaConfig(updated);
     emit(currentState.copyWith(agendaConfig: updated));
 
     AppLogger.info('✅ Custom view přidán: ${view.name}');
@@ -196,13 +208,21 @@ class SettingsCubit extends Cubit<SettingsState> {
       return;
     }
 
+    // ✅ Uložit do DB
+    await _db.updateCustomAgendaView(view.id, {
+      'name': view.name,
+      'tag_filter': view.tagFilter.toLowerCase(),
+      'icon_code_point': view.iconCodePoint,
+      'color_hex': view.colorHex,
+    });
+
+    // Update state
     final updated = currentState.agendaConfig.copyWith(
       customViews: currentState.agendaConfig.customViews
           .map((v) => v.id == view.id ? view : v)
           .toList(),
     );
 
-    await _saveAgendaConfig(updated);
     emit(currentState.copyWith(agendaConfig: updated));
 
     AppLogger.info('✅ Custom view aktualizován: ${view.name}');
@@ -219,13 +239,16 @@ class SettingsCubit extends Cubit<SettingsState> {
       return;
     }
 
+    // ✅ Smazat z DB
+    await _db.deleteCustomAgendaView(id);
+
+    // Update state
     final updated = currentState.agendaConfig.copyWith(
       customViews: currentState.agendaConfig.customViews
           .where((v) => v.id != id)
           .toList(),
     );
 
-    await _saveAgendaConfig(updated);
     emit(currentState.copyWith(agendaConfig: updated));
 
     AppLogger.info('✅ Custom view smazán: $id');
@@ -233,33 +256,68 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   // ========== PRIVATE HELPERS ==========
 
-  /// Načíst AgendaViewConfig ze SharedPreferences
+  /// Načíst AgendaViewConfig z DATABASE (ne SharedPrefs!)
   Future<AgendaViewConfig> _loadAgendaConfig() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = prefs.getString('agenda_config');
+      // Načíst built-in view settings ze settings table
+      final settings = await _db.getSettings();
 
-      if (jsonString == null) {
-        return AgendaViewConfig.defaultConfig();
-      }
+      final showAll = (settings['show_all'] as int? ?? 1) == 1;
+      final showToday = (settings['show_today'] as int? ?? 1) == 1;
+      final showWeek = (settings['show_week'] as int? ?? 1) == 1;
+      final showUpcoming = (settings['show_upcoming'] as int? ?? 0) == 1;
+      final showOverdue = (settings['show_overdue'] as int? ?? 1) == 1;
 
-      final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      return AgendaViewConfig.fromJson(json);
+      // Načíst custom views z custom_agenda_views table
+      final customViewsMaps = await _db.getEnabledCustomAgendaViews();
+
+      final customViews = customViewsMaps.map((map) {
+        return CustomAgendaView(
+          id: map['id'] as String,
+          name: map['name'] as String,
+          tagFilter: map['tag_filter'] as String,
+          iconCodePoint: map['icon_code_point'] as int,
+          colorHex: map['color_hex'] as String?,
+        );
+      }).toList();
+
+      return AgendaViewConfig(
+        showAll: showAll,
+        showToday: showToday,
+        showWeek: showWeek,
+        showUpcoming: showUpcoming,
+        showOverdue: showOverdue,
+        customViews: customViews,
+      );
     } catch (e) {
       AppLogger.error('Chyba při načítání agenda config: $e');
       return AgendaViewConfig.defaultConfig();
     }
   }
 
-  /// Uložit AgendaViewConfig do SharedPreferences
-  Future<void> _saveAgendaConfig(AgendaViewConfig config) async {
+  /// Uložit built-in views do DATABASE (ne SharedPrefs!)
+  Future<void> _saveBuiltInViews(AgendaViewConfig config) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonString = jsonEncode(config.toJson());
-      await prefs.setString('agenda_config', jsonString);
+      // Update built-in views v settings table
+      await _db.updateBuiltInViewSettings(
+        showAll: config.showAll,
+        showToday: config.showToday,
+        showWeek: config.showWeek,
+        showUpcoming: config.showUpcoming,
+        showOverdue: config.showOverdue,
+      );
     } catch (e) {
-      AppLogger.error('Chyba při ukládání agenda config: $e');
+      AppLogger.error('Chyba při ukládání built-in views: $e');
       rethrow;
     }
+  }
+
+  /// DEPRECATED: _saveAgendaConfig už není potřeba (používáme DB CRUD metody)
+  /// Built-in views: _saveBuiltInViews()
+  /// Custom views: insertCustomAgendaView(), updateCustomAgendaView(), deleteCustomAgendaView()
+  @Deprecated('Use _saveBuiltInViews() + DB CRUD metody místo toho')
+  Future<void> _saveAgendaConfig(AgendaViewConfig config) async {
+    await _saveBuiltInViews(config);
+    // Custom views se ukládají přes CRUD metody
   }
 }
