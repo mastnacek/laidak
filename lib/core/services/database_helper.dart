@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 11,  // ← ZMĚNIT z 10 na 11 (Tags normalization)
+      version: 12,  // ← ZMĚNIT z 11 na 12 (Emoji místo iconCodePoint)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -147,7 +147,7 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         tag_filter TEXT NOT NULL,
-        icon_code_point INTEGER NOT NULL,
+        emoji TEXT NOT NULL DEFAULT '⭐',
         color_hex TEXT,
         sort_order INTEGER NOT NULL DEFAULT 0,
         enabled INTEGER NOT NULL DEFAULT 1,
@@ -348,6 +348,11 @@ class DatabaseHelper {
       await _createCustomAgendaViewsTable(db);
       await _addBuiltInViewSettingsColumns(db);
       await _migrateAgendaViewsToDb(db);
+    }
+
+    if (oldVersion < 12) {
+      // MILESTONE 3: Emoji místo iconCodePoint v custom_agenda_views
+      await _migrateIconCodePointToEmoji(db);
     }
   }
 
@@ -983,7 +988,7 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         tag_filter TEXT NOT NULL,
-        icon_code_point INTEGER NOT NULL,
+        emoji TEXT NOT NULL DEFAULT '⭐',
         color_hex TEXT,
         sort_order INTEGER NOT NULL DEFAULT 0,
         enabled INTEGER NOT NULL DEFAULT 1,
@@ -1017,6 +1022,59 @@ class DatabaseHelper {
       print('ℹ️ Custom Agenda Views migrace: SharedPreferences → DB skipped (optional)');
     } catch (e) {
       print('⚠️ Chyba při migraci agenda views (ignoruji): $e');
+    }
+  }
+
+  // ==================== MIGRACE VERZE 12: EMOJI MÍSTO ICON_CODE_POINT ====================
+
+  /// Migrovat icon_code_point INTEGER → emoji TEXT
+  ///
+  /// SQLite nepodporuje ALTER COLUMN, takže musíme:
+  /// 1. Vytvořit novou tabulku s emoji sloupcem
+  /// 2. Zkopírovat data s default emoji '⭐'
+  /// 3. Dropnout starou tabulku
+  /// 4. Přejmenovat novou tabulku
+  /// 5. Znovu vytvořit indexy
+  Future<void> _migrateIconCodePointToEmoji(Database db) async {
+    try {
+      // 1. Vytvořit temp tabulku s novým schématem
+      await db.execute('''
+        CREATE TABLE custom_agenda_views_new (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          tag_filter TEXT NOT NULL,
+          emoji TEXT NOT NULL DEFAULT '⭐',
+          color_hex TEXT,
+          sort_order INTEGER NOT NULL DEFAULT 0,
+          enabled INTEGER NOT NULL DEFAULT 1,
+          created_at INTEGER NOT NULL,
+
+          CHECK (LENGTH(name) > 0),
+          CHECK (LENGTH(tag_filter) > 0)
+        )
+      ''');
+
+      // 2. Zkopírovat data (icon_code_point ignorujeme, použijeme default emoji)
+      await db.execute('''
+        INSERT INTO custom_agenda_views_new (id, name, tag_filter, emoji, color_hex, sort_order, enabled, created_at)
+        SELECT id, name, tag_filter, '⭐', color_hex, sort_order, enabled, created_at
+        FROM custom_agenda_views
+      ''');
+
+      // 3. Dropnout starou tabulku
+      await db.execute('DROP TABLE custom_agenda_views');
+
+      // 4. Přejmenovat novou tabulku
+      await db.execute('ALTER TABLE custom_agenda_views_new RENAME TO custom_agenda_views');
+
+      // 5. Znovu vytvořit indexy
+      await db.execute('CREATE INDEX idx_custom_views_enabled ON custom_agenda_views(enabled)');
+      await db.execute('CREATE INDEX idx_custom_views_sort ON custom_agenda_views(sort_order)');
+
+      print('✅ Migrace icon_code_point → emoji dokončena');
+    } catch (e) {
+      print('❌ Chyba při migraci emoji: $e');
+      rethrow;
     }
   }
 

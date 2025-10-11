@@ -120,13 +120,24 @@ class ViewBar extends StatelessWidget {
                                       minHeight: 44,
                                     ),
                                     alignment: Alignment.center,
-                                    child: Icon(
-                                      viewItem.icon,
-                                      size: 20,
-                                      color: isSelected
-                                          ? theme.appColors.yellow
-                                          : theme.appColors.base5,
-                                    ),
+                                    child: viewItem.isBuiltIn
+                                        ? Icon(
+                                            viewItem.icon,
+                                            size: 20,
+                                            color: isSelected
+                                                ? theme.appColors.yellow
+                                                : theme.appColors.base5,
+                                          )
+                                        : Text(
+                                            viewItem.emoji!,
+                                            style: TextStyle(
+                                              fontSize: 20,
+                                              // Emoji s opacity pokud není vybraný
+                                              color: isSelected
+                                                  ? null
+                                                  : Colors.white.withOpacity(0.5),
+                                            ),
+                                          ),
                                   ),
                                 ),
                               );
@@ -221,19 +232,19 @@ class ViewBar extends StatelessWidget {
         ),
       );
     } else {
-      // Custom view info
+      // Custom view info (s emoji místo ikony)
       showDialog(
         context: context,
         builder: (context) => InfoDialog(
-          title: viewItem.label,
-          icon: viewItem.icon,
+          title: '${viewItem.emoji} ${viewItem.label}',
+          icon: Icons.tag, // Fallback ikona pro dialog
           iconColor: viewItem.customView?.color ?? theme.appColors.magenta,
           description: 'Vlastní pohled filtrující úkoly podle tagu: ${viewItem.customView?.tagFilter}',
           examples: [
             'Zobrazí pouze úkoly s tagem ${viewItem.customView?.tagFilter}',
             'Nastavení: Settings > Agenda > Custom Views',
           ],
-          tip: 'Klikni na ikonku pro aktivaci. Upravit můžeš v Settings.',
+          tip: 'Klikni na emoji pro aktivaci. Upravit můžeš v Settings.',
         ),
       );
     }
@@ -338,13 +349,20 @@ class _ViewItem {
 
   bool get isBuiltIn => builtInMode != null;
 
+  // Icon pro built-in views
   IconData get icon {
     if (isBuiltIn) {
       return builtInMode!.icon;
-    } else {
-      // Použít helper metodu s MaterialIcons font family
-      return customView!.getIcon();
     }
+    throw StateError('icon getter je pouze pro built-in views');
+  }
+
+  // Emoji pro custom views
+  String? get emoji {
+    if (!isBuiltIn) {
+      return customView!.emoji;
+    }
+    return null;
   }
 
   String get label {

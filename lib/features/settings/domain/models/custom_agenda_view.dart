@@ -15,8 +15,8 @@ class CustomAgendaView extends Equatable {
   /// Tag pro filtrování (např. "projekt", "nakup", "sport" - bez oddělovačů)
   final String tagFilter;
 
-  /// Ikona (Material Icons code point)
-  final int iconCodePoint;
+  /// Emoji ikona (např. "📁", "🛒", "⚽")
+  final String emoji;
 
   /// Barva (optional, hex string)
   final String? colorHex;
@@ -25,14 +25,9 @@ class CustomAgendaView extends Equatable {
     required this.id,
     required this.name,
     required this.tagFilter,
-    required this.iconCodePoint,
+    required this.emoji,
     this.colorHex,
   });
-
-  /// Helper: IconData z code pointu
-  /// POZNÁMKA: Getter není const, použij přímo iconCodePoint ve widgetech
-  /// a vytvoř IconData tam kde je potřeba (např. Icon(IconData(view.iconCodePoint)))
-  IconData getIcon() => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
 
   /// Helper: Color z hex stringu
   Color? get color => colorHex != null
@@ -45,7 +40,7 @@ class CustomAgendaView extends Equatable {
       'id': id,
       'name': name,
       'tagFilter': tagFilter,
-      'iconCodePoint': iconCodePoint,
+      'emoji': emoji,
       'colorHex': colorHex,
     };
   }
@@ -56,7 +51,7 @@ class CustomAgendaView extends Equatable {
       id: json['id'] as String,
       name: json['name'] as String,
       tagFilter: json['tagFilter'] as String,
-      iconCodePoint: json['iconCodePoint'] as int,
+      emoji: json['emoji'] as String? ?? '📁', // Default emoji pokud chybí
       colorHex: json['colorHex'] as String?,
     );
   }
@@ -66,18 +61,18 @@ class CustomAgendaView extends Equatable {
     String? id,
     String? name,
     String? tagFilter,
-    int? iconCodePoint,
+    String? emoji,
     String? colorHex,
   }) {
     return CustomAgendaView(
       id: id ?? this.id,
       name: name ?? this.name,
       tagFilter: tagFilter ?? this.tagFilter,
-      iconCodePoint: iconCodePoint ?? this.iconCodePoint,
+      emoji: emoji ?? this.emoji,
       colorHex: colorHex ?? this.colorHex,
     );
   }
 
   @override
-  List<Object?> get props => [id, name, tagFilter, iconCodePoint, colorHex];
+  List<Object?> get props => [id, name, tagFilter, emoji, colorHex];
 }

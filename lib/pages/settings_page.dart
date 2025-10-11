@@ -1826,7 +1826,7 @@ class _AgendaTab extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
-            // Icon
+            // Emoji
             Container(
               width: 48,
               height: 48,
@@ -1838,10 +1838,11 @@ class _AgendaTab extends StatelessWidget {
                   width: 2,
                 ),
               ),
-              child: Icon(
-                IconData(view.iconCodePoint),
-                color: view.color ?? theme.appColors.magenta,
-                size: 24,
+              child: Center(
+                child: Text(
+                  view.emoji,
+                  style: const TextStyle(fontSize: 24),
+                ),
               ),
             ),
             const SizedBox(width: 16),
@@ -1901,12 +1902,12 @@ class _AgendaTab extends StatelessWidget {
       context: context,
       builder: (dialogContext) => _CustomViewDialog(
         theme: theme,
-        onSave: (name, tagFilter, iconCodePoint) {
+        onSave: (name, tagFilter, emoji) {
           final view = CustomAgendaView(
             id: const Uuid().v4(),
             name: name,
             tagFilter: tagFilter,
-            iconCodePoint: iconCodePoint,
+            emoji: emoji,
           );
           context.read<SettingsCubit>().addCustomView(view);
 
@@ -1932,12 +1933,12 @@ class _AgendaTab extends StatelessWidget {
         theme: theme,
         initialName: view.name,
         initialTagFilter: view.tagFilter,
-        initialIconCodePoint: view.iconCodePoint,
-        onSave: (name, tagFilter, iconCodePoint) {
+        initialEmoji: view.emoji,
+        onSave: (name, tagFilter, emoji) {
           final updated = view.copyWith(
             name: name,
             tagFilter: tagFilter,
-            iconCodePoint: iconCodePoint,
+            emoji: emoji,
           );
           context.read<SettingsCubit>().updateCustomView(updated);
 
@@ -2006,14 +2007,14 @@ class _CustomViewDialog extends StatefulWidget {
   final ThemeData theme;
   final String? initialName;
   final String? initialTagFilter;
-  final int? initialIconCodePoint;
-  final void Function(String name, String tagFilter, int iconCodePoint) onSave;
+  final String? initialEmoji;
+  final void Function(String name, String tagFilter, String emoji) onSave;
 
   const _CustomViewDialog({
     required this.theme,
     this.initialName,
     this.initialTagFilter,
-    this.initialIconCodePoint,
+    this.initialEmoji,
     required this.onSave,
   });
 
@@ -2024,14 +2025,14 @@ class _CustomViewDialog extends StatefulWidget {
 class _CustomViewDialogState extends State<_CustomViewDialog> {
   late TextEditingController _nameController;
   late TextEditingController _tagController;
-  late int _selectedIconCodePoint;
+  late String _selectedEmoji;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName);
     _tagController = TextEditingController(text: widget.initialTagFilter);
-    _selectedIconCodePoint = widget.initialIconCodePoint ?? Icons.star.codePoint;
+    _selectedEmoji = widget.initialEmoji ?? '⭐';
   }
 
   @override
@@ -2150,9 +2151,9 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Icon picker (grid)
+            // Emoji picker (grid)
             Text(
-              'Ikona',
+              'Emoji',
               style: TextStyle(
                 color: theme.appColors.fg,
                 fontSize: 14,
@@ -2171,30 +2172,30 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  _buildIconOption(Icons.star, theme),
-                  _buildIconOption(Icons.work, theme),
-                  _buildIconOption(Icons.home, theme),
-                  _buildIconOption(Icons.favorite, theme),
-                  _buildIconOption(Icons.local_fire_department, theme),
-                  _buildIconOption(Icons.fitness_center, theme),
-                  _buildIconOption(Icons.school, theme),
-                  _buildIconOption(Icons.shopping_cart, theme),
-                  _buildIconOption(Icons.restaurant, theme),
-                  _buildIconOption(Icons.medical_services, theme),
-                  _buildIconOption(Icons.music_note, theme),
-                  _buildIconOption(Icons.palette, theme),
-                  _buildIconOption(Icons.sports_soccer, theme),
-                  _buildIconOption(Icons.beach_access, theme),
-                  _buildIconOption(Icons.flight, theme),
-                  _buildIconOption(Icons.celebration, theme),
-                  _buildIconOption(Icons.bolt, theme),
-                  _buildIconOption(Icons.psychology, theme),
-                  _buildIconOption(Icons.emoji_events, theme),
-                  _buildIconOption(Icons.rocket_launch, theme),
-                  _buildIconOption(Icons.lightbulb, theme),
-                  _buildIconOption(Icons.auto_awesome, theme),
-                  _buildIconOption(Icons.pets, theme),
-                  _buildIconOption(Icons.park, theme),
+                  _buildEmojiOption('⭐', theme),
+                  _buildEmojiOption('💼', theme),
+                  _buildEmojiOption('🏠', theme),
+                  _buildEmojiOption('❤️', theme),
+                  _buildEmojiOption('🔥', theme),
+                  _buildEmojiOption('💪', theme),
+                  _buildEmojiOption('📚', theme),
+                  _buildEmojiOption('🛒', theme),
+                  _buildEmojiOption('🍕', theme),
+                  _buildEmojiOption('💊', theme),
+                  _buildEmojiOption('🎵', theme),
+                  _buildEmojiOption('🎨', theme),
+                  _buildEmojiOption('⚽', theme),
+                  _buildEmojiOption('🏖️', theme),
+                  _buildEmojiOption('✈️', theme),
+                  _buildEmojiOption('🎉', theme),
+                  _buildEmojiOption('⚡', theme),
+                  _buildEmojiOption('🧠', theme),
+                  _buildEmojiOption('🏆', theme),
+                  _buildEmojiOption('🚀', theme),
+                  _buildEmojiOption('💡', theme),
+                  _buildEmojiOption('✨', theme),
+                  _buildEmojiOption('🐾', theme),
+                  _buildEmojiOption('🌳', theme),
                 ],
               ),
             ),
@@ -2222,7 +2223,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             widget.onSave(
               _nameController.text.trim(),
               _tagController.text.trim(),
-              _selectedIconCodePoint,
+              _selectedEmoji,
             );
             Navigator.pop(context);
           },
@@ -2236,16 +2237,16 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
     );
   }
 
-  /// Build icon option button pro grid
-  Widget _buildIconOption(IconData icon, ThemeData theme) {
-    final isSelected = _selectedIconCodePoint == icon.codePoint;
+  /// Build emoji option button pro grid
+  Widget _buildEmojiOption(String emoji, ThemeData theme) {
+    final isSelected = _selectedEmoji == emoji;
 
     return SizedBox(
       width: 48,
       height: 48,
       child: InkWell(
         onTap: () {
-          setState(() => _selectedIconCodePoint = icon.codePoint);
+          setState(() => _selectedEmoji = emoji);
         },
         borderRadius: BorderRadius.circular(8),
         child: Container(
@@ -2259,10 +2260,11 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
               width: isSelected ? 2 : 1,
             ),
           ),
-          child: Icon(
-            icon,
-            color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
-            size: 24,
+          child: Center(
+            child: Text(
+              emoji,
+              style: const TextStyle(fontSize: 24),
+            ),
           ),
         ),
       ),
