@@ -340,38 +340,49 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
 
     return CompositedTransformTarget(
       link: _layerLink,
-      child: Stack(
-        children: [
-          // Hint text (zobrazí se pouze když je pole prázdné)
-          if (_highlightController.text.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                widget.hintText,
-                style: TextStyle(
-                  color: theme.appColors.base5,
-                  fontSize: 16,
+      child: GestureDetector(
+        onTap: () {
+          // Při tapu vždy požádat o focus a otevřít klávesnici OKAMŽITĚ
+          if (!widget.focusNode.hasFocus) {
+            widget.focusNode.requestFocus();
+          }
+        },
+        child: Stack(
+          children: [
+            // Hint text (zobrazí se pouze když je pole prázdné)
+            if (_highlightController.text.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Text(
+                  widget.hintText,
+                  style: TextStyle(
+                    color: theme.appColors.base5,
+                    fontSize: 16,
+                  ),
                 ),
               ),
+            // EditableText s highlighting controllerem (STEJNÝ padding jako hint!)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: EditableText(
+                controller: _highlightController,
+                focusNode: widget.focusNode,
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontSize: 16,
+                ),
+                cursorColor: theme.appColors.cyan,
+                backgroundCursorColor: theme.appColors.base4,
+                maxLines: null,
+                keyboardType: TextInputType.text,
+                textInputAction: TextInputAction.done,
+                autocorrect: true,
+                enableSuggestions: true,
+                onSubmitted: widget.onSubmitted,
+              ),
             ),
-          // EditableText s highlighting controllerem
-          EditableText(
-            controller: _highlightController,
-            focusNode: widget.focusNode,
-            style: TextStyle(
-              color: theme.appColors.fg,
-              fontSize: 16,
-            ),
-            cursorColor: theme.appColors.cyan,
-            backgroundCursorColor: theme.appColors.base4,
-            maxLines: null,
-            keyboardType: TextInputType.text,
-            textInputAction: TextInputAction.done,
-            autocorrect: true,
-            enableSuggestions: true,
-            onSubmitted: widget.onSubmitted,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
