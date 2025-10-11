@@ -1,5 +1,7 @@
+import 'dart:convert'; // Pro jsonDecode při migraci z SharedPrefs
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Pro migraci agenda views
 import '../../models/todo_item.dart';
 
 /// Singleton služba pro správu SQLite databáze
@@ -1014,13 +1016,57 @@ class DatabaseHelper {
 
   /// Migrovat custom agenda views z SharedPreferences → DB
   Future<void> _migrateAgendaViewsToDb(Database db) async {
-    // ⚠️ POZNÁMKA: Migrace z SharedPrefs vyžaduje shared_preferences package
-    // Pokud není dostupný (fresh install), ignoruj
     try {
-      // Dynamický import shared_preferences (optional dependency)
-      // Pro fresh install: nic nedělej (již máme default hodnoty v DB)
-      print('ℹ️ Custom Agenda Views migrace: SharedPreferences → DB skipped (optional)');
+      // ⚠️ POZNÁMKA: Migrace z SharedPrefs vyžaduje shared_preferences package
+      // Import je ve funkci → fail-safe pro fresh install
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // Načíst JSON string z SharedPrefs
+      final jsonString = prefs.getString('agenda_config');
+
+      if (jsonString == null || jsonString.isEmpty) {
+        // Žádná data → fresh install nebo prázdná konfigurace
+        print('ℹ️ Custom Agenda Views migrace: Žádná data v SharedPrefs (fresh install)');
+        return;
+      }
+
+      // Parse JSON
+      final json = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      // 1. Migrovat built-in views do DB
+      await db.update('settings', {
+        'show_all': json['showAll'] == true ? 1 : 0,
+        'show_today': json['showToday'] == true ? 1 : 0,
+        'show_week': json['showWeek'] == true ? 1 : 0,
+        'show_upcoming': json['showUpcoming'] == true ? 1 : 0,
+        'show_overdue': json['showOverdue'] == true ? 1 : 0,
+      }, where: 'id = 1');
+
+      // 2. Migrovat custom views do DB
+      final customViews = json['customViews'] as List<dynamic>?;
+      if (customViews != null && customViews.isNotEmpty) {
+        for (var i = 0; i < customViews.length; i++) {
+          final view = customViews[i] as Map<String, dynamic>;
+
+          await db.insert('custom_agenda_views', {
+            'id': view['id'] as String,
+            'name': view['name'] as String,
+            'tag_filter': (view['tagFilter'] as String).toLowerCase(),
+            'emoji': '⭐', // Default emoji (původně byl iconCodePoint)
+            'color_hex': view['colorHex'] as String?,
+            'sort_order': i,
+            'enabled': 1,
+            'created_at': DateTime.now().millisecondsSinceEpoch,
+          });
+        }
+      }
+
+      // 3. Vyčistit SharedPreferences (již nepotřebujeme)
+      await prefs.remove('agenda_config');
+
+      print('✅ Migrace agenda views dokončena: ${customViews?.length ?? 0} custom views přeneseno');
     } catch (e) {
+      // Ignoruj chybu - možná žádné custom views neexistují nebo SharedPreferences není dostupný
       print('⚠️ Chyba při migraci agenda views (ignoruji): $e');
     }
   }
