@@ -63,11 +63,4 @@ enum SortDirection {
   String get arrowSymbol {
     return this == SortDirection.asc ? '↑' : '↓';
   }
-
-  /// IconData šipky pro AnimatedRotation
-  IconData get arrowIcon {
-    return this == SortDirection.desc
-        ? Icons.arrow_downward
-        : Icons.arrow_upward;
-  }
 }
