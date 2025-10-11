@@ -364,6 +364,131 @@ lib/features/todo_list/
 
 ---
 
+## 🗄️ SQLite Database Refactoring - Implementační Plán
+
+### 📋 Kompletní guide: [sqlite-final.md](sqlite-final.md)
+
+**Funkce**: Refaktoring databáze podle best practices - Tags normalizace + Custom Agenda Views do DB
+
+**Kdy použít**: Major database refactoring (přidání tabulek, migrace dat, performance optimalizace)
+
+**Postup**:
+1. Přečti si kompletní plán v [sqlite-final.md](sqlite-final.md)
+2. Následuj **3 milestones** (MILESTONE 1 → 2 → 3)
+3. **DŮLEŽITÉ**: Toto je kritická operace - snapshot commit před každým milestone!
+4. **⚠️ Nelze downgrade** z DB verze 11 → 10 (testuj na kopii databáze!)
+
+**Klíčové změny**:
+- 🗄️ **Tags normalizace** - CSV → `tags` + `todo_tags` tabulky (many-to-many)
+- 🎨 **Tag autocomplete** - 10 nejpoužívanějších tagů (UX game-changer!)
+- 📊 **Custom Agenda Views** - Přesun z SharedPreferences → DB
+- ⚡ **Performance** - 10-100x rychlejší search, WAL mode, optimální indexy
+
+**Architektura (PŘED → PO)**:
+```
+PŘED:
+- 5 tabulek, 40 sloupců
+- Tags jako CSV string (❌ pomalé)
+- Custom views v SharedPrefs (❌ inconsistence)
+
+PO:
+- 8 tabulek, 58 sloupců
+- Tags normalizované (✅ rychlé, autocomplete)
+- Custom views v DB (✅ konzistence)
+```
+
+**Implementační milestones (postupuj PŘESNĚ v tomto pořadí!)**:
+
+### **MILESTONE 1: Tags Normalization** ⏱️ 4-6h
+**Priorita**: 🔴 CRITICAL
+
+**Kroky**:
+- [ ] 1.1 Vytvoř tabulku `tags` (15 min)
+- [ ] 1.2 Vytvoř tabulku `todo_tags` (10 min)
+- [ ] 1.3 Migrace CSV → normalizované tagy (30 min)
+- [ ] 1.4 Přidej CRUD metody pro tags (30 min)
+- [ ] 1.5 Update TodoRepository (45 min)
+- [ ] 1.6 Přidej Tag Autocomplete UI (60 min)
+- [ ] 1.7 Testing & Commit (30 min)
+- [ ] **Commit**: `✨ feat: Tags normalization (MILESTONE 1)`
+
+**Výsledek**: 10-100x rychlejší search, tag autocomplete
+
+---
+
+### **MILESTONE 2: Custom Agenda Views to DB** ⏱️ 2-3h
+**Priorita**: 🟡 HIGH
+
+**Kroky**:
+- [ ] 2.1 Vytvoř tabulku `custom_agenda_views` (15 min)
+- [ ] 2.2 Přidej built-in view settings do `settings` (10 min)
+- [ ] 2.3 Migrace SharedPrefs → DB (30 min)
+- [ ] 2.4 Přidej CRUD metody (30 min)
+- [ ] 2.5 Update SettingsCubit (30 min)
+- [ ] 2.6 Testing & Commit (20 min)
+- [ ] **Commit**: `✨ feat: Custom Agenda Views to DB (MILESTONE 2)`
+
+**Výsledek**: Konzistence dat, vše v DB
+
+---
+
+### **MILESTONE 3: Cleanup & Performance** ⏱️ 1-2h
+**Priorita**: 🟢 MEDIUM
+
+**Kroky**:
+- [ ] 3.1 Mark deprecated `tags` column (5 min)
+- [ ] 3.2 Enable WAL mode (10 min)
+- [ ] 3.3 Add ANALYZE helper (10 min)
+- [ ] 3.4 Add VACUUM helper (10 min)
+- [ ] 3.5 Check page size (15 min)
+- [ ] 3.6 Final testing & commit (30 min)
+- [ ] **Commit**: `⚡ perf: Cleanup & Performance (MILESTONE 3)`
+
+**Výsledek**: Code hygiene, performance optimalizace
+
+---
+
+**Celkový čas**: 7-11 hodin
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené kroky v [sqlite-final.md](sqlite-final.md) (checkboxy)
+- 📝 Follow step-by-step guide - každý krok má přesný kód!
+- 🐛 Dokumentuj narazené problémy a řešení
+- 📸 **POVINNÝ snapshot commit PŘED každým milestone!**
+- 🔄 Update TODO list v Claude Code UI
+
+**Database Version Bump**:
+```dart
+// database_helper.dart řádek 28
+version: 11,  // ← ZMĚNIT z 10 na 11
+```
+
+**⚠️ KRITICKÉ UPOZORNĚNÍ**:
+- **Nelze downgrade** z DB verze 11 → 10!
+- **Testuj na kopii** databáze (Android emulator)
+- **Backup** před migrací (export/import)
+- **Foreign keys** musí být enabled: `PRAGMA foreign_keys = ON`
+
+**Očekávané zlepšení**:
+
+| Metrická | PŘED | PO | Zlepšení |
+|----------|------|----|-----------|
+| Search s tagem | 🐌 O(n) | ⚡ O(log n) | **10-100x rychlejší** |
+| Tag autocomplete | ❌ Nelze | ✅ Instant | **♾️** |
+| Tag normalizace | ❌ "Projekt" ≠ "projekt" | ✅ Unified | **♾️** |
+| Custom views | ⚠️ SharedPrefs | ✅ DB | **Unified** |
+
+**Priorita**: ⭐⭐⭐ CRITICAL (největší performance win v celém projektu!)
+
+**Poznámka**: Toto je nejvíce impactful refactoring - tag autocomplete + 100x rychlejší search = game-changer pro UX!
+
+**Dodatečné dokumenty**:
+- [sqlite.md](sqlite.md) - Původní audit (problémy + návrhy řešení)
+- [sqlite-columns-analysis.md](sqlite-columns-analysis.md) - Analýza sloupců + SQLite limity
+- [sqlite-final.md](sqlite-final.md) - **HLAVNÍ GUIDE** (step-by-step implementace)
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -516,11 +641,14 @@ Companion dokumenty:
 - help.md - Interaktivní nápověda s AI demo (onboarding & tutorials)
 - voice.md - TTS (Text-to-Speech) feature dokumentace
 - custom-agenda-views.md - Custom Agenda Views implementační plán (konfigurovatelné views)
+- sqlite.md - SQLite database audit (problémy + návrhy řešení)
+- sqlite-columns-analysis.md - Analýza sloupců + SQLite limity
+- sqlite-final.md - SQLite refactoring implementační plán (step-by-step guide)
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.5
+Verze: 1.6
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-01-10 (přidán Custom Agenda Views implementační plán)
+Aktualizováno: 2025-01-10 (přidán SQLite Database Refactoring implementační plán)
 Autor: Claude Code (AI asistent)
 
 ---
