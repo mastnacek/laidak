@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../../core/widgets/tag_service_debug_widget.dart';
 import '../../../../pages/settings_page.dart';
 import '../../../help/presentation/pages/help_page.dart';
 import '../../../settings/presentation/cubit/settings_cubit.dart';
@@ -121,17 +120,6 @@ class _TodoListPageState extends State<TodoListPage> {
         title: const StatsRow(),
         // Settings VPRAVO
         actions: [
-          // 🐛 DEBUG: Bug icon pro TagService debug
-          IconButton(
-            icon: Icon(Icons.bug_report, color: theme.appColors.yellow),
-            tooltip: 'TagService Debug',
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (_) => const TagServiceDebugWidget(),
-              );
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.settings),
             tooltip: 'Nastavení',

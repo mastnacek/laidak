@@ -247,29 +247,17 @@ class HighlightedTextEditingController extends TextEditingController {
     try {
       final definition = _tagService.getDefinition(lower);
 
-      print('🎨 [HighlightedTextField] Tag: "$lower"');
-      print('   Definition: ${definition != null ? "FOUND" : "NULL"}');
-      if (definition != null) {
-        print('   Color from DB: "${definition.color}"');
-      }
-
       // Pokud existuje definice s barvou, použít ji
       if (definition != null && definition.color != null) {
         final color = _parseHexColor(definition.color!);
-        print('   Parsed color: ${color != null ? color.toString() : "NULL (parsing failed)"}');
         if (color != null) {
-          print('   ✅ Returning DB color');
           return color;
         }
       }
-
-      print('   ⚠️ Fallback - no valid color from DB');
     } catch (e) {
       // TagService není inicializovaný → použít fallback barvy
       // Toto je OK, protože highlighting controller může být vytvořen
       // před dokončením inicializace TagService v main()
-      print('   ❌ TagService error: $e');
-      print('   ⚠️ Fallback - TagService not initialized');
     }
 
     // Fallback barvy podle typu tagu (pokud definice neexistuje nebo nemá color)
