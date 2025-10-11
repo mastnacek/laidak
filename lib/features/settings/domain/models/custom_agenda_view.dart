@@ -30,7 +30,9 @@ class CustomAgendaView extends Equatable {
   });
 
   /// Helper: IconData z code pointu
-  IconData get icon => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
+  /// POZNÁMKA: Getter není const, použij přímo iconCodePoint ve widgetech
+  /// a vytvoř IconData tam kde je potřeba (např. Icon(IconData(view.iconCodePoint)))
+  IconData getIcon() => IconData(iconCodePoint, fontFamily: 'MaterialIcons');
 
   /// Helper: Color z hex stringu
   Color? get color => colorHex != null

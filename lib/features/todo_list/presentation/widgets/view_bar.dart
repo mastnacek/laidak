@@ -342,7 +342,7 @@ class _ViewItem {
     if (isBuiltIn) {
       return builtInMode!.icon;
     } else {
-      return customView!.icon;
+      return IconData(customView!.iconCodePoint);
     }
   }
 

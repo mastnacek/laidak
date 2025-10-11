@@ -1839,7 +1839,7 @@ class _AgendaTab extends StatelessWidget {
                 ),
               ),
               child: Icon(
-                view.icon,
+                IconData(view.iconCodePoint),
                 color: view.color ?? theme.appColors.magenta,
                 size: 24,
               ),
