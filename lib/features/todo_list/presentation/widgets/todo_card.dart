@@ -143,7 +143,7 @@ class TodoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: _getTodoBorderColor(context),
-              width: 2,
+              width: 1, // Subtilní border (2025 trendy: minimal borders)
             ),
           ),
           child: Row(
@@ -248,20 +248,15 @@ class TodoCard extends StatelessWidget {
     );
   }
 
-  /// Získat barvu rámečku úkolu podle stavu a priority
+  /// Získat barvu rámečku úkolu podle stavu (2025 trendy: minimal borders)
   Color _getTodoBorderColor(BuildContext context) {
     final theme = Theme.of(context);
     if (todo.isCompleted) {
-      // Splněné úkoly = neonově cyan (Doom One styl)
-      return theme.appColors.cyan;
+      // Splněné úkoly = jemná zelená (subtilní, ne neonová)
+      return theme.appColors.green.withValues(alpha: 0.4);
     } else {
-      // Nesplněné úkoly = barva podle priority
-      if (todo.priority != null) {
-        return _getPriorityColor(context);
-      } else {
-        // Bez priority = šedá
-        return theme.appColors.base4;
-      }
+      // Aktivní úkoly = subtilní šedá (priorita jen v tag chipu!)
+      return theme.appColors.base4;
     }
   }
 
@@ -408,7 +403,7 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  /// Vytvořit pulzující růžové tlačítko motivate
+  /// Vytvořit pulzující motivate tlačítko s moderním emoji (2025 trendy)
   Widget _buildMotivateButton(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -433,16 +428,15 @@ class TodoCard extends StatelessWidget {
           ),
           child: IconButton(
             icon: Text(
-              'M',
+              '✨',
               style: TextStyle(
-                color: theme.appColors.magenta,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 20,
               ),
             ),
             onPressed: () => _motivateTask(context),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
+            tooltip: 'AI Motivace',
           ),
         );
       },
