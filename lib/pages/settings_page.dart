@@ -2124,6 +2124,15 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              'Zadej tag BEZ oddělovačů (např. "projekt", ne "*projekt*")',
+              style: TextStyle(
+                color: theme.appColors.yellow,
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
             const SizedBox(height: 8),
             TextField(
               controller: _tagController,
@@ -2132,8 +2141,13 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
                 fontFamily: 'monospace',
               ),
               decoration: InputDecoration(
-                hintText: 'projekt, nakup, sport',
+                hintText: 'projekt',
                 hintStyle: TextStyle(color: theme.appColors.base5),
+                helperText: 'Pouze holý tag (lowercase)',
+                helperStyle: TextStyle(
+                  color: theme.appColors.base5,
+                  fontSize: 11,
+                ),
                 filled: true,
                 fillColor: theme.appColors.base2,
                 border: OutlineInputBorder(
