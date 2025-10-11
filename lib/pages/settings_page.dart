@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:http/http.dart' as http;
 import '../core/theme/doom_one_theme.dart';
 import '../core/theme/blade_runner_theme.dart';
 import '../core/theme/osaka_jade_theme.dart';
@@ -14,6 +15,7 @@ import '../features/settings/domain/models/custom_agenda_view.dart';
 import '../features/tag_management/presentation/pages/tag_management_page.dart';
 import '../core/services/database_helper.dart';
 import '../core/services/database_debug_utils.dart';
+import '../features/ai_split/data/datasources/openrouter_datasource.dart';
 
 /// Stránka s nastavením AI motivace
 class SettingsPage extends StatefulWidget {
@@ -103,7 +105,6 @@ class _AISettingsTab extends StatefulWidget {
 class _AISettingsTabState extends State<_AISettingsTab> {
   final DatabaseHelper _db = DatabaseHelper();
   final TextEditingController _apiKeyController = TextEditingController();
-  final TextEditingController _modelController = TextEditingController();
   final TextEditingController _temperatureController = TextEditingController();
   final TextEditingController _maxTokensController = TextEditingController();
 
@@ -111,10 +112,15 @@ class _AISettingsTabState extends State<_AISettingsTab> {
   bool _isEnabled = true;
   bool _obscureApiKey = true;
 
+  // Model dropdown state
+  String? _selectedModel;
+  List<String> _availableModels = [];
+  bool _isLoadingModels = false;
+
   // Getter pro theme - dostupný ve všech metodách
   ThemeData get theme => Theme.of(context);
 
-  // Populární modely
+  // Populární modely (pro quick select)
   final List<String> _popularModels = [
     'anthropic/claude-3.5-sonnet',
     'anthropic/claude-3-opus',
@@ -131,12 +137,12 @@ class _AISettingsTabState extends State<_AISettingsTab> {
   void initState() {
     super.initState();
     _loadSettings();
+    _fetchModels(); // Načíst modely z OpenRouter API
   }
 
   @override
   void dispose() {
     _apiKeyController.dispose();
-    _modelController.dispose();
     _temperatureController.dispose();
     _maxTokensController.dispose();
     super.dispose();
@@ -149,7 +155,7 @@ class _AISettingsTabState extends State<_AISettingsTab> {
 
     setState(() {
       _apiKeyController.text = settings['api_key'] as String? ?? '';
-      _modelController.text = settings['model'] as String;
+      _selectedModel = settings['model'] as String;
       _temperatureController.text = (settings['temperature'] as double).toString();
       _maxTokensController.text = (settings['max_tokens'] as int).toString();
       _isEnabled = (settings['enabled'] as int) == 1;
@@ -157,12 +163,153 @@ class _AISettingsTabState extends State<_AISettingsTab> {
     });
   }
 
+  /// Načíst seznam modelů z OpenRouter API
+  Future<void> _fetchModels() async {
+    setState(() => _isLoadingModels = true);
+
+    try {
+      final client = http.Client();
+      final openRouterDataSource = OpenRouterDataSource(client: client);
+
+      // Fetch models z API
+      final models = await openRouterDataSource.fetchAvailableModels();
+
+      setState(() {
+        _availableModels = models.map((m) => m.id).toList();
+        _isLoadingModels = false;
+      });
+
+      client.close();
+    } catch (e) {
+      setState(() => _isLoadingModels = false);
+
+      // Fallback na populární modely pokud API selže
+      setState(() {
+        _availableModels = List.from(_popularModels);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('⚠️ Nepodařilo se načíst modely z API. Použity populární modely.'),
+            backgroundColor: theme.appColors.yellow,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Zobrazit dialog pro zadání vlastního model ID
+  Future<void> _showCustomModelDialog() async {
+    final controller = TextEditingController(text: _selectedModel);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: theme.appColors.bg,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: theme.appColors.cyan, width: 2),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.edit, color: theme.appColors.cyan, size: 28),
+            const SizedBox(width: 12),
+            Text(
+              'VLASTNÍ MODEL',
+              style: TextStyle(
+                color: theme.appColors.cyan,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 400,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Zadej ID modelu (např. mistralai/mistral-medium-3.1)',
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontFamily: 'monospace',
+                ),
+                decoration: InputDecoration(
+                  hintText: 'vendor/model-name',
+                  hintStyle: TextStyle(color: theme.appColors.base5),
+                  filled: true,
+                  fillColor: theme.appColors.base2,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: theme.appColors.base4),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: theme.appColors.base4),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, null),
+            child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final text = controller.text.trim();
+              if (text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('❌ Model ID nesmí být prázdné'),
+                    backgroundColor: theme.appColors.red,
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(dialogContext, text);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.appColors.cyan,
+              foregroundColor: theme.appColors.bg,
+            ),
+            child: const Text('Potvrdit'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      setState(() {
+        _selectedModel = result;
+      });
+    }
+  }
+
   /// Uložit nastavení do databáze
   Future<void> _saveSettings() async {
     try {
       await _db.updateSettings(
         apiKey: _apiKeyController.text.trim(),
-        model: _modelController.text.trim(),
+        model: _selectedModel?.trim() ?? 'mistralai/mistral-medium-3.1',
         temperature: double.tryParse(_temperatureController.text) ?? 1.0,
         maxTokens: int.tryParse(_maxTokensController.text) ?? 1000,
         enabled: _isEnabled,
@@ -317,39 +464,106 @@ class _AISettingsTabState extends State<_AISettingsTab> {
           ),
           const SizedBox(height: 24),
 
-          // Model
+          // Model - Dropdown s možností vlastního textu
           _buildSectionTitle('🤖 AI Model'),
           const SizedBox(height: 8),
-          TextField(
-            controller: _modelController,
-            style: TextStyle(
-              color: theme.appColors.fg,
-              fontFamily: 'monospace',
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: theme.appColors.base2,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.appColors.base4),
             ),
-            decoration: InputDecoration(
-              hintText: 'mistralai/mistral-medium-3.1',
-              hintStyle: TextStyle(color: theme.appColors.base5),
-              filled: true,
-              fillColor: theme.appColors.base2,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.base4),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.base4),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: _availableModels.contains(_selectedModel) ? _selectedModel : null,
+                      isExpanded: true,
+                      dropdownColor: theme.appColors.base2,
+                      style: TextStyle(
+                        color: theme.appColors.fg,
+                        fontFamily: 'monospace',
+                        fontSize: 14,
+                      ),
+                      hint: Text(
+                        _selectedModel ?? 'mistralai/mistral-medium-3.1',
+                        style: TextStyle(
+                          color: theme.appColors.fg,
+                          fontFamily: 'monospace',
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      items: [
+                        // Vlastní model (šedě)
+                        DropdownMenuItem<String>(
+                          value: null,
+                          child: Text(
+                            '✏️ Zadat vlastní model...',
+                            style: TextStyle(
+                              color: theme.appColors.base5,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ),
+                        // Separator
+                        if (_availableModels.isNotEmpty) ...[
+                          const DropdownMenuItem<String>(
+                            enabled: false,
+                            value: '__separator__',
+                            child: Divider(height: 1),
+                          ),
+                          // Modely z API
+                          ..._availableModels.map((model) => DropdownMenuItem<String>(
+                                value: model,
+                                child: Text(
+                                  model,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              )),
+                        ],
+                      ],
+                      onChanged: (value) {
+                        if (value == null) {
+                          // Zobrazit dialog pro vlastní model
+                          _showCustomModelDialog();
+                        } else if (value != '__separator__') {
+                          setState(() {
+                            _selectedModel = value;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                // Refresh button vedle dropdownu
+                if (_isLoadingModels)
+                  const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                else
+                  IconButton(
+                    icon: const Icon(Icons.refresh, size: 20),
+                    tooltip: 'Načíst modely z OpenRouter API',
+                    onPressed: _fetchModels,
+                    padding: const EdgeInsets.all(8),
+                    constraints: const BoxConstraints(),
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
 
-          // Populární modely
+          // Quick select populární modely
           Text(
-            'Populární modely:',
+            'Rychlý výběr:',
             style: TextStyle(
               color: theme.appColors.base5,
               fontSize: 12,
@@ -361,30 +575,27 @@ class _AISettingsTabState extends State<_AISettingsTab> {
             spacing: 8,
             runSpacing: 8,
             children: _popularModels.map((model) {
+              final isSelected = _selectedModel == model;
               return InkWell(
                 onTap: () {
-                  setState(() => _modelController.text = model);
+                  setState(() => _selectedModel = model);
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _modelController.text == model
+                    color: isSelected
                         ? theme.appColors.cyan.withValues(alpha: 0.2)
                         : theme.appColors.base2,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: _modelController.text == model
-                          ? theme.appColors.cyan
-                          : theme.appColors.base4,
+                      color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
                       width: 1,
                     ),
                   ),
                   child: Text(
                     model.split('/').last,
                     style: TextStyle(
-                      color: _modelController.text == model
-                          ? theme.appColors.cyan
-                          : theme.appColors.base5,
+                      color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),

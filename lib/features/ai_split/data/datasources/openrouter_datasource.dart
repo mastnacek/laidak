@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../../core/utils/app_logger.dart';
+import '../../../../core/models/openrouter_model.dart';
 import '../../domain/entities/ai_split_request.dart';
 
 /// DataSource pro OpenRouter API
@@ -125,5 +126,42 @@ OBSAHOVÁ PRAVIDLA:
     if (diff.inDays < 7) return '${diff.inDays} dní';
     if (diff.inDays < 30) return '${(diff.inDays / 7).round()} týdnů';
     return '${(diff.inDays / 30).round()} měsíců';
+  }
+
+  /// Načíst seznam všech dostupných modelů z OpenRouter API
+  ///
+  /// Vrací seznam [OpenRouterModel] objektů.
+  /// Endpoint: https://openrouter.ai/api/v1/models
+  Future<List<OpenRouterModel>> fetchAvailableModels() async {
+    try {
+      AppLogger.debug('🔍 Načítám seznam modelů z OpenRouter API...');
+
+      final response = await client.get(
+        Uri.parse('$baseUrl/models'),
+        headers: {
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://github.com/your-repo',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final data = json['data'] as List<dynamic>;
+
+        final models = data
+            .map((modelJson) => OpenRouterModel.fromJson(modelJson as Map<String, dynamic>))
+            .toList();
+
+        AppLogger.debug('✅ Načteno ${models.length} modelů z OpenRouter API');
+        return models;
+      } else {
+        AppLogger.error('❌ Chyba při načítání modelů: ${response.statusCode}');
+        AppLogger.error('Response body: ${response.body}');
+        throw Exception('Chyba při načítání modelů: ${response.statusCode}');
+      }
+    } catch (e, stackTrace) {
+      AppLogger.error('❌ Exception při načítání modelů', error: e, stackTrace: stackTrace);
+      throw Exception('Nepodařilo se načíst modely: $e');
+    }
   }
 }
