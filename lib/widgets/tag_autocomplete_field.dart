@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/services/database_helper.dart';
 import '../core/theme/theme_colors.dart';
+import 'highlighted_text_field.dart';
 
 /// TextField s tag autocomplete dropdownem
 ///
@@ -32,11 +33,22 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
   String _currentTagPrefix = '';
   String _delimiterStart = '*';
   String _delimiterEnd = '*';
+  late HighlightedTextEditingController _highlightController;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_onTextChanged);
+
+    // Vytvořit highlighting controller a sync s widget.controller
+    _highlightController = HighlightedTextEditingController(
+      text: widget.controller.text,
+    );
+
+    // Sync mezi původním controllerem a highlighting controllerem
+    widget.controller.addListener(_syncFromOriginal);
+    _highlightController.addListener(_syncToOriginal);
+    _highlightController.addListener(_onTextChanged);
+
     _loadDelimiters();
   }
 
@@ -59,15 +71,32 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onTextChanged);
+    widget.controller.removeListener(_syncFromOriginal);
+    _highlightController.removeListener(_syncToOriginal);
+    _highlightController.removeListener(_onTextChanged);
+    _highlightController.dispose();
     _removeOverlay();
     super.dispose();
   }
 
+  /// Sync z původního controlleru do highlighting controlleru
+  void _syncFromOriginal() {
+    if (_highlightController.text != widget.controller.text) {
+      _highlightController.value = widget.controller.value;
+    }
+  }
+
+  /// Sync z highlighting controlleru do původního controlleru
+  void _syncToOriginal() {
+    if (widget.controller.text != _highlightController.text) {
+      widget.controller.value = _highlightController.value;
+    }
+  }
+
   /// Detekovat typed tag a zobrazit autocomplete
   Future<void> _onTextChanged() async {
-    final text = widget.controller.text;
-    final cursorPos = widget.controller.selection.baseOffset;
+    final text = _highlightController.text;
+    final cursorPos = _highlightController.selection.baseOffset;
 
     // Najít aktuální typed tag (text mezi * a cursorem)
     final tagMatch = _findCurrentTag(text, cursorPos);
@@ -264,8 +293,8 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
 
   /// Handle výběr tagu z dropdownu
   void _onTagSelected(String tagName) {
-    final text = widget.controller.text;
-    final cursorPos = widget.controller.selection.baseOffset;
+    final text = _highlightController.text;
+    final cursorPos = _highlightController.selection.baseOffset;
 
     // Najít start delimiter před cursorem
     int startPos = -1;
@@ -286,7 +315,7 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
     final after = text.substring(cursorPos);
     final newText = '$before$tagName$_delimiterEnd$after';
 
-    widget.controller.value = TextEditingValue(
+    _highlightController.value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(
         offset: before.length + tagName.length + _delimiterEnd.length,
@@ -311,28 +340,38 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
 
     return CompositedTransformTarget(
       link: _layerLink,
-      child: TextField(
-        controller: widget.controller,
-        focusNode: widget.focusNode,
-        decoration: InputDecoration(
-          hintText: widget.hintText,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 12,
-            horizontal: 0,
+      child: Stack(
+        children: [
+          // Hint text (zobrazí se pouze když je pole prázdné)
+          if (_highlightController.text.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text(
+                widget.hintText,
+                style: TextStyle(
+                  color: theme.appColors.base5,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          // EditableText s highlighting controllerem
+          EditableText(
+            controller: _highlightController,
+            focusNode: widget.focusNode,
+            style: TextStyle(
+              color: theme.appColors.fg,
+              fontSize: 16,
+            ),
+            cursorColor: theme.appColors.cyan,
+            backgroundCursorColor: theme.appColors.base4,
+            maxLines: null,
+            keyboardType: TextInputType.text,
+            textInputAction: TextInputAction.done,
+            autocorrect: true,
+            enableSuggestions: true,
+            onSubmitted: widget.onSubmitted,
           ),
-          isDense: true,
-          hintStyle: TextStyle(
-            color: theme.appColors.base5,
-            fontSize: 16,
-          ),
-        ),
-        style: TextStyle(
-          color: theme.appColors.fg,
-          fontSize: 16,
-        ),
-        onSubmitted: widget.onSubmitted,
-        textInputAction: TextInputAction.done,
+        ],
       ),
     );
   }
