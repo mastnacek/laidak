@@ -18,7 +18,25 @@ import 'features/ai_split/presentation/cubit/ai_split_cubit.dart';
 import 'features/ai_split/data/repositories/ai_split_repository_impl.dart';
 import 'features/ai_split/data/datasources/openrouter_datasource.dart';
 import 'core/services/database_helper.dart';
+import 'core/services/database_debug_utils.dart';
 import 'services/tag_service.dart';
+
+/// 🐛 DEBUG: Vypsat tag definitions pro debugging
+Future<void> _printDebugTagDefinitions() async {
+  try {
+    await DatabaseDebugUtils.printTagDefinitions();
+
+    // Také vypsat cache z TagService
+    final tagService = TagService();
+    final allDefs = tagService.getAllDefinitions();
+    print('📦 TagService cache: ${allDefs.length} definitions loaded');
+    for (final def in allDefs) {
+      print('  - ${def.tagName} (${def.tagType.name}): color="${def.color}"');
+    }
+  } catch (e) {
+    print('❌ Debug print failed: $e');
+  }
+}
 
 void main() async {
   // Ensure Flutter bindings
@@ -37,6 +55,10 @@ void main() async {
 
   // Inicializovat TagService (načíst definice tagů do cache)
   await TagService().init();
+  AppLogger.info('✅ TagService initialized');
+
+  // 🐛 DEBUG: Vypsat tag definitions z databáze
+  await _printDebugTagDefinitions();
 
   // Inicializovat databázi
   final db = DatabaseHelper();

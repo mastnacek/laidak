@@ -68,8 +68,8 @@ class DatabaseDebugUtils {
       final info = await getDatabaseInfo();
 
       // Zkontrolovat verzi
-      if (info['version'] != 9) {
-        print('⚠️ [DatabaseDebugUtils] Databáze má nesprávnou verzi: ${info['version']} (očekáváno: 9)');
+      if (info['version'] != 12) {
+        print('⚠️ [DatabaseDebugUtils] Databáze má nesprávnou verzi: ${info['version']} (očekáváno: 12)');
         return false;
       }
 
@@ -99,6 +99,36 @@ class DatabaseDebugUtils {
     } catch (e) {
       print('❌ [DatabaseDebugUtils] Chyba při validaci databáze: $e');
       return false;
+    }
+  }
+
+  /// Vypsat všechny tag definitions z databáze (DEBUG!)
+  static Future<void> printTagDefinitions() async {
+    try {
+      final db = await DatabaseHelper().database;
+      final tags = await db.query('tag_definitions', orderBy: 'tag_type, sort_order');
+
+      print('═══════════════════════════════════════════════════════');
+      print('📋 TAG DEFINITIONS (${tags.length} items):');
+      print('═══════════════════════════════════════════════════════');
+
+      for (final tag in tags) {
+        final name = tag['tag_name'] as String;
+        final type = tag['tag_type'] as String;
+        final color = tag['color'] as String?;
+        final emoji = tag['emoji'] as String?;
+        final enabled = (tag['enabled'] as int) == 1;
+
+        print('  $emoji $name ($type)');
+        print('    Color: ${color ?? "NULL"}');
+        print('    Enabled: $enabled');
+        print('    ---');
+      }
+
+      print('═══════════════════════════════════════════════════════');
+    } catch (e) {
+      print('❌ [DatabaseDebugUtils] Chyba při čtení tag_definitions: $e');
+      rethrow;
     }
   }
 }
