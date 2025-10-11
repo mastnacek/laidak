@@ -180,7 +180,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       'id': view.id,
       'name': view.name,
       'tag_filter': view.tagFilter.toLowerCase(),
-      'icon_code_point': view.iconCodePoint,
+      'emoji': view.emoji,
       'color_hex': view.colorHex,
       'sort_order': currentState.agendaConfig.customViews.length,
       'enabled': 1,
@@ -212,7 +212,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     await _db.updateCustomAgendaView(view.id, {
       'name': view.name,
       'tag_filter': view.tagFilter.toLowerCase(),
-      'icon_code_point': view.iconCodePoint,
+      'emoji': view.emoji,
       'color_hex': view.colorHex,
     });
 
@@ -276,7 +276,7 @@ class SettingsCubit extends Cubit<SettingsState> {
           id: map['id'] as String,
           name: map['name'] as String,
           tagFilter: map['tag_filter'] as String,
-          iconCodePoint: map['icon_code_point'] as int,
+          emoji: map['emoji'] as String? ?? '⭐',
           colorHex: map['color_hex'] as String?,
         );
       }).toList();
