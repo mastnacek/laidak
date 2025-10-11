@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/theme/doom_one_theme.dart';
 import '../services/tag_service.dart';
+import '../core/services/database_helper.dart';
 
 /// TextField s live syntax highlighting pro tagy
 /// Používá dynamické barvy z TagService
@@ -113,8 +114,36 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
 /// Custom TextEditingController s syntax highlighting
 class HighlightedTextEditingController extends TextEditingController {
   final TagService _tagService = TagService();
+  String _delimiterStart = '*';
+  String _delimiterEnd = '*';
+  RegExp? _tagRegex;
 
-  HighlightedTextEditingController({super.text});
+  HighlightedTextEditingController({super.text}) {
+    _initDelimiters();
+  }
+
+  /// Načíst delimitery z DB a vytvořit regex (async init)
+  Future<void> _initDelimiters() async {
+    try {
+      final db = DatabaseHelper();
+      final settings = await db.getSettings();
+      _delimiterStart = settings['tag_delimiter_start'] as String? ?? '*';
+      _delimiterEnd = settings['tag_delimiter_end'] as String? ?? '*';
+
+      // Vytvořit regex s escapovanými delimitery
+      final start = RegExp.escape(_delimiterStart);
+      final end = RegExp.escape(_delimiterEnd);
+      _tagRegex = RegExp('$start([^$end]+)$end');
+
+      // Trigger rebuild pro aplikaci nového regex
+      notifyListeners();
+    } catch (e) {
+      // Fallback na default delimitery pokud DB není ready
+      _delimiterStart = '*';
+      _delimiterEnd = '*';
+      _tagRegex = RegExp(r'\*([^*]+)\*');
+    }
+  }
 
   @override
   TextSpan buildTextSpan({
@@ -135,7 +164,8 @@ class HighlightedTextEditingController extends TextEditingController {
     final sanitizedText = _sanitizeText(text);
 
     final spans = <InlineSpan>[];
-    final tagRegex = RegExp(r'\*([^*]+)\*');
+    // Použít dynamický regex (fallback na default pokud ještě není načtený)
+    final tagRegex = _tagRegex ?? RegExp(r'\*([^*]+)\*');
     int lastMatchEnd = 0;
 
     for (final match in tagRegex.allMatches(sanitizedText)) {

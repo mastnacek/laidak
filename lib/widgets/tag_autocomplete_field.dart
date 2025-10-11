@@ -30,11 +30,31 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
   final LayerLink _layerLink = LayerLink();
   List<Map<String, dynamic>> _suggestions = [];
   String _currentTagPrefix = '';
+  String _delimiterStart = '*';
+  String _delimiterEnd = '*';
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_onTextChanged);
+    _loadDelimiters();
+  }
+
+  /// Načíst delimitery z DB
+  Future<void> _loadDelimiters() async {
+    try {
+      final settings = await _db.getSettings();
+      setState(() {
+        _delimiterStart = settings['tag_delimiter_start'] as String? ?? '*';
+        _delimiterEnd = settings['tag_delimiter_end'] as String? ?? '*';
+      });
+    } catch (e) {
+      // Fallback na default delimitery
+      setState(() {
+        _delimiterStart = '*';
+        _delimiterEnd = '*';
+      });
+    }
   }
 
   @override
@@ -66,24 +86,28 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
   String? _findCurrentTag(String text, int cursorPos) {
     if (cursorPos <= 0 || cursorPos > text.length) return null;
 
-    // Najít * před cursorem
+    // Najít start delimiter před cursorem
     int startPos = -1;
+    final delimiterLength = _delimiterStart.length;
+
     for (int i = cursorPos - 1; i >= 0; i--) {
-      if (text[i] == '*') {
+      // Check if delimiter starts at position i
+      if (i + delimiterLength <= text.length &&
+          text.substring(i, i + delimiterLength) == _delimiterStart) {
         startPos = i;
         break;
       }
-      // Pokud narazíme na mezeru nebo další *, přerušit
+      // Pokud narazíme na mezeru, přerušit
       if (text[i] == ' ') break;
     }
 
     if (startPos == -1) return null;
 
-    // Extrahovat text mezi * a cursorem
-    final tagContent = text.substring(startPos + 1, cursorPos);
+    // Extrahovat text mezi start delimiter a cursorem
+    final tagContent = text.substring(startPos + delimiterLength, cursorPos);
 
-    // Pokud je prázdný nebo končí *, není to validní typed tag
-    if (tagContent.isEmpty || tagContent.endsWith('*')) return null;
+    // Pokud je prázdný nebo končí end delimiterem, není to validní typed tag
+    if (tagContent.isEmpty || tagContent.endsWith(_delimiterEnd)) return null;
 
     return tagContent;
   }
@@ -243,10 +267,13 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
     final text = widget.controller.text;
     final cursorPos = widget.controller.selection.baseOffset;
 
-    // Najít * před cursorem
+    // Najít start delimiter před cursorem
     int startPos = -1;
+    final delimiterLength = _delimiterStart.length;
+
     for (int i = cursorPos - 1; i >= 0; i--) {
-      if (text[i] == '*') {
+      if (i + delimiterLength <= text.length &&
+          text.substring(i, i + delimiterLength) == _delimiterStart) {
         startPos = i;
         break;
       }
@@ -255,14 +282,14 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
     if (startPos == -1) return;
 
     // Replace typed text s vybraným tagem
-    final before = text.substring(0, startPos + 1);
+    final before = text.substring(0, startPos + delimiterLength);
     final after = text.substring(cursorPos);
-    final newText = '$before$tagName*$after';
+    final newText = '$before$tagName$_delimiterEnd$after';
 
     widget.controller.value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(
-        offset: before.length + tagName.length + 1,
+        offset: before.length + tagName.length + _delimiterEnd.length,
       ),
     );
 
