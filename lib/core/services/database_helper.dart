@@ -1036,16 +1036,35 @@ class DatabaseHelper {
   }
 
   /// Vyhledat tagy (autocomplete během psaní)
+  ///
+  /// Vrací custom tagy + systémové tagy (priority, date, status) s barvami/emoji z tag_definitions
   Future<List<Map<String, dynamic>>> searchTags(String query, {int limit = 5}) async {
     final db = await database;
 
-    return await db.query(
-      'tags',
-      where: 'tag_name LIKE ? AND tag_type = ?',
-      whereArgs: ['%${query.toLowerCase()}%', 'custom'],
-      orderBy: 'usage_count DESC',
-      limit: limit,
-    );
+    // LEFT JOIN s tag_definitions pro získání barvy/emoji (systémové tagy)
+    final results = await db.rawQuery('''
+      SELECT
+        t.tag_name,
+        t.display_name,
+        t.tag_type,
+        t.usage_count,
+        td.emoji,
+        td.color
+      FROM tags t
+      LEFT JOIN tag_definitions td ON t.tag_name = td.tag_name
+      WHERE t.tag_name LIKE ?
+      ORDER BY
+        CASE t.tag_type
+          WHEN 'priority' THEN 1
+          WHEN 'date' THEN 2
+          WHEN 'status' THEN 3
+          ELSE 4
+        END,
+        t.usage_count DESC
+      LIMIT ?
+    ''', ['%${query.toLowerCase()}%', limit]);
+
+    return results;
   }
 
   /// Získat nebo vytvořit tag (při vytváření TODO)

@@ -154,6 +154,21 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
                     final tag = _suggestions[index];
                     final displayName = tag['display_name'] as String;
                     final usageCount = tag['usage_count'] as int;
+                    final emoji = tag['emoji'] as String?;
+                    final colorHex = tag['color'] as String?;
+
+                    // Parse barvu z hex (#ff0000 → Color)
+                    Color tagColor = theme.appColors.cyan; // Default pro custom
+                    if (colorHex != null && colorHex.startsWith('#')) {
+                      try {
+                        tagColor = Color(
+                          int.parse(colorHex.substring(1), radix: 16) + 0xFF000000,
+                        );
+                      } catch (e) {
+                        // Fallback na cyan pokud parsing selže
+                        tagColor = theme.appColors.cyan;
+                      }
+                    }
 
                     return InkWell(
                       onTap: () => _onTagSelected(displayName),
@@ -164,18 +179,26 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
                         ),
                         child: Row(
                           children: [
-                            Icon(
-                              Icons.label,
-                              size: 16,
-                              color: theme.appColors.cyan,
-                            ),
+                            // Emoji pro systémové tagy, ikona pro custom
+                            if (emoji != null)
+                              Text(
+                                emoji,
+                                style: const TextStyle(fontSize: 16),
+                              )
+                            else
+                              Icon(
+                                Icons.label,
+                                size: 16,
+                                color: tagColor,
+                              ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 displayName,
                                 style: TextStyle(
-                                  color: theme.appColors.fg,
+                                  color: tagColor,
                                   fontSize: 14,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
