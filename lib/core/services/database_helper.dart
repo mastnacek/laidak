@@ -1037,11 +1037,11 @@ class DatabaseHelper {
 
   /// Vyhledat tagy (autocomplete během psaní)
   ///
-  /// Vrací custom tagy + systémové tagy (priority, date, status) s barvami/emoji z tag_definitions
+  /// Vrací custom tagy + systémové tagy (priority, date, status) s barvami/emoji/glow z tag_definitions
   Future<List<Map<String, dynamic>>> searchTags(String query, {int limit = 5}) async {
     final db = await database;
 
-    // LEFT JOIN s tag_definitions pro získání barvy/emoji (systémové tagy)
+    // LEFT JOIN s tag_definitions pro získání barvy/emoji/glow (systémové tagy)
     final results = await db.rawQuery('''
       SELECT
         t.tag_name,
@@ -1049,7 +1049,9 @@ class DatabaseHelper {
         t.tag_type,
         t.usage_count,
         td.emoji,
-        td.color
+        td.color,
+        td.glow_enabled,
+        td.glow_strength
       FROM tags t
       LEFT JOIN tag_definitions td ON t.tag_name = td.tag_name
       WHERE t.tag_name LIKE ?

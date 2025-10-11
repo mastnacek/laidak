@@ -2,15 +2,20 @@ import 'package:flutter/material.dart';
 
 /// TodoTagChip - Chip pro zobrazení tagu
 ///
-/// Jednoduchý reusable widget pro zobrazení tagů (priorita, datum, akce, vlastní tagy).
+/// Reusable widget pro zobrazení tagů (priorita, datum, akce, vlastní tagy).
+/// Podporuje optional glow efekt pro systémové tagy.
 class TodoTagChip extends StatelessWidget {
   final String text;
   final Color color;
+  final bool glowEnabled;
+  final double glowStrength;
 
   const TodoTagChip({
     super.key,
     required this.text,
     required this.color,
+    this.glowEnabled = false,
+    this.glowStrength = 0.5,
   });
 
   @override
@@ -21,6 +26,15 @@ class TodoTagChip extends StatelessWidget {
         color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color, width: 1),
+        boxShadow: glowEnabled
+            ? [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.4 * glowStrength),
+                  blurRadius: 8 * glowStrength,
+                  spreadRadius: 2 * glowStrength,
+                ),
+              ]
+            : null,
       ),
       child: Text(
         text,

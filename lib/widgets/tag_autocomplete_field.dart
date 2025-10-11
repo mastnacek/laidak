@@ -156,6 +156,8 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
                     final usageCount = tag['usage_count'] as int;
                     final emoji = tag['emoji'] as String?;
                     final colorHex = tag['color'] as String?;
+                    final glowEnabled = (tag['glow_enabled'] as int?) == 1;
+                    final glowStrength = (tag['glow_strength'] as num?)?.toDouble() ?? 0.5;
 
                     // Parse barvu z hex (#ff0000 → Color)
                     Color tagColor = theme.appColors.cyan; // Default pro custom
@@ -179,11 +181,24 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
                         ),
                         child: Row(
                           children: [
-                            // Emoji pro systémové tagy, ikona pro custom
+                            // Emoji pro systémové tagy, ikona pro custom (s glow efektem)
                             if (emoji != null)
-                              Text(
-                                emoji,
-                                style: const TextStyle(fontSize: 16),
+                              Container(
+                                decoration: glowEnabled
+                                    ? BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: tagColor.withValues(alpha: 0.4 * glowStrength),
+                                            blurRadius: 8 * glowStrength,
+                                            spreadRadius: 2 * glowStrength,
+                                          ),
+                                        ],
+                                      )
+                                    : null,
+                                child: Text(
+                                  emoji,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
                               )
                             else
                               Icon(
