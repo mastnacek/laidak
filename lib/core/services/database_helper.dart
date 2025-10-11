@@ -23,12 +23,20 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'todo.db');
 
-    return await openDatabase(
+    final db = await openDatabase(
       path,
       version: 11,  // ← ZMĚNIT z 10 na 11 (Tags normalization)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
+
+    // ✅ Enable WAL mode (concurrent reads & writes)
+    await db.execute('PRAGMA journal_mode = WAL');
+
+    // ✅ Enable foreign keys (důležité pro CASCADE delete)
+    await db.execute('PRAGMA foreign_keys = ON');
+
+    return db;
   }
 
   /// Vytvořit tabulky při první inicializaci
@@ -1202,5 +1210,26 @@ class DatabaseHelper {
     if (updates.isNotEmpty) {
       await db.update('settings', updates, where: 'id = 1');
     }
+  }
+
+  // ==================== PERFORMANCE & MAINTENANCE ====================
+
+  /// Optimalizovat query planner (pravidelně spouštět)
+  Future<void> analyzeDatabase() async {
+    final db = await database;
+    await db.execute('ANALYZE');
+  }
+
+  /// Vyčistit fragmentaci DB (POZOR: může trvat dlouho!)
+  Future<void> vacuumDatabase() async {
+    final db = await database;
+    await db.execute('VACUUM');
+  }
+
+  /// Získat aktuální page size
+  Future<int> getPageSize() async {
+    final db = await database;
+    final result = await db.rawQuery('PRAGMA page_size');
+    return result.first['page_size'] as int;
   }
 }
