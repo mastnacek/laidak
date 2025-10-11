@@ -421,7 +421,7 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  /// Vytvořit pulzující motivate tlačítko s moderním emoji (2025 trendy)
+  /// Vytvořit pulzující motivate tlačítko s moderním emoji (decentní)
   Widget _buildMotivateButton(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -430,25 +430,25 @@ class TodoCard extends StatelessWidget {
       duration: const Duration(milliseconds: 2000),
       curve: Curves.easeInOut,
       builder: (context, value, child) {
-        // Jemný puls efekt: 0.9 -> 1.0 -> 0.9
-        final pulseValue = 0.9 + (0.1 * (0.5 - (value - 0.5).abs()) * 2);
+        // Subtilnější puls efekt: 0.95 -> 1.0 -> 0.95
+        final pulseValue = 0.95 + (0.05 * (0.5 - (value - 0.5).abs()) * 2);
 
         return Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: theme.appColors.magenta.withValues(alpha: 0.3 * pulseValue),
-                blurRadius: 6 * pulseValue,
-                spreadRadius: 1 * pulseValue,
+                color: theme.appColors.magenta.withValues(alpha: 0.15 * pulseValue),
+                blurRadius: 3 * pulseValue,
+                spreadRadius: 0,
               ),
             ],
           ),
           child: IconButton(
-            icon: Text(
+            icon: const Text(
               '✨',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 16, // Zmenšeno z 20 na 16
               ),
             ),
             onPressed: () => _motivateTask(context),
