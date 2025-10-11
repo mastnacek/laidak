@@ -1038,6 +1038,7 @@ class DatabaseHelper {
   /// Vyhledat tagy (autocomplete během psaní)
   ///
   /// Vrací custom tagy + systémové tagy (priority, date, status) s barvami/emoji/glow z tag_definitions
+  /// Používá prefix matching (začíná na query), ne substring matching
   Future<List<Map<String, dynamic>>> searchTags(String query, {int limit = 5}) async {
     final db = await database;
 
@@ -1064,7 +1065,7 @@ class DatabaseHelper {
         END,
         t.usage_count DESC
       LIMIT ?
-    ''', ['%${query.toLowerCase()}%', limit]);
+    ''', ['${query.toLowerCase()}%', limit]);
 
     return results;
   }
