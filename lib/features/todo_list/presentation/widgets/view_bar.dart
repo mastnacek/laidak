@@ -120,24 +120,16 @@ class ViewBar extends StatelessWidget {
                                       minHeight: 44,
                                     ),
                                     alignment: Alignment.center,
-                                    child: viewItem.isBuiltIn
-                                        ? Icon(
-                                            viewItem.icon,
-                                            size: 20,
-                                            color: isSelected
-                                                ? theme.appColors.yellow
-                                                : theme.appColors.base5,
-                                          )
-                                        : Text(
-                                            viewItem.emoji!,
-                                            style: TextStyle(
-                                              fontSize: 20,
-                                              // Emoji s opacity pokud není vybraný
-                                              color: isSelected
-                                                  ? null
-                                                  : Colors.white.withOpacity(0.5),
-                                            ),
-                                          ),
+                                    child: Text(
+                                      viewItem.emoji,
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        // Emoji s opacity pokud není vybraný
+                                        color: isSelected
+                                            ? null
+                                            : Colors.white.withOpacity(0.5),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -219,20 +211,20 @@ class ViewBar extends StatelessWidget {
   /// Zobrazit InfoDialog s popisem view
   void _showInfoDialog(BuildContext context, _ViewItem viewItem, ThemeData theme) {
     if (viewItem.isBuiltIn) {
-      // Built-in view info
+      // Built-in view info (s emoji)
       showDialog(
         context: context,
         builder: (context) => InfoDialog(
-          title: viewItem.label,
-          icon: viewItem.icon,
+          title: '${viewItem.emoji} ${viewItem.label}',
+          icon: Icons.view_agenda, // Fallback ikona pro dialog
           iconColor: theme.appColors.yellow,
           description: _getViewModeDescription(viewItem.builtInMode!),
           examples: _getViewModeExamples(viewItem.builtInMode!),
-          tip: 'Klikni na ikonku pro aktivaci tohoto pohledu. Klikni znovu pro vrácení na "Všechny".',
+          tip: 'Klikni na emoji pro aktivaci tohoto pohledu. Klikni znovu pro vrácení na "Všechny".',
         ),
       );
     } else {
-      // Custom view info (s emoji místo ikony)
+      // Custom view info (s emoji)
       showDialog(
         context: context,
         builder: (context) => InfoDialog(
@@ -349,20 +341,13 @@ class _ViewItem {
 
   bool get isBuiltIn => builtInMode != null;
 
-  // Icon pro built-in views
-  IconData get icon {
+  // Emoji pro všechny views (built-in i custom)
+  String get emoji {
     if (isBuiltIn) {
-      return builtInMode!.icon;
-    }
-    throw StateError('icon getter je pouze pro built-in views');
-  }
-
-  // Emoji pro custom views
-  String? get emoji {
-    if (!isBuiltIn) {
+      return builtInMode!.emoji;
+    } else {
       return customView!.emoji;
     }
-    return null;
   }
 
   String get label {

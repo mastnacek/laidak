@@ -52,7 +52,20 @@ enum ViewMode {
     };
   }
 
-  /// Ikona pro view mode (kompaktní UI)
+  /// Emoji pro view mode (kompaktní UI)
+  String get emoji {
+    return switch (this) {
+      ViewMode.all => '📋',
+      ViewMode.today => '📅',
+      ViewMode.week => '🗓️',
+      ViewMode.upcoming => '⏰',
+      ViewMode.overdue => '⚠️',
+      ViewMode.custom => '🏷️', // Dynamické emoji se nastaví jinde
+    };
+  }
+
+  /// Ikona pro view mode (DEPRECATED - použij emoji místo)
+  @Deprecated('Použij emoji getter místo icon')
   IconData get icon {
     return switch (this) {
       ViewMode.all => Icons.list,
@@ -60,7 +73,7 @@ enum ViewMode {
       ViewMode.week => Icons.view_week,
       ViewMode.upcoming => Icons.schedule,
       ViewMode.overdue => Icons.warning,
-      ViewMode.custom => Icons.filter_alt, // Dynamická ikona se nastaví jinde
+      ViewMode.custom => Icons.filter_alt,
     };
   }
 }
