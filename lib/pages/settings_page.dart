@@ -2313,26 +2313,45 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
                     Navigator.pop(bottomSheetContext);
                   },
                   config: Config(
-                    bgColor: theme.appColors.bg,
-                    categoryViewConfig: CategoryViewConfig(
-                      indicatorColor: theme.appColors.cyan,
-                      iconColor: theme.appColors.base5,
-                      iconColorSelected: theme.appColors.cyan,
-                      backgroundColor: theme.appColors.bg,
-                      categoryIcons: const CategoryIcons(),
-                    ),
+                    height: 256,
+                    checkPlatformCompatibility: true,
                     emojiViewConfig: EmojiViewConfig(
                       backgroundColor: theme.appColors.bg,
-                      buttonMode: ButtonMode.MATERIAL,
                       columns: 8,
                       emojiSizeMax: 28,
-                    ),
-                    searchViewConfig: SearchViewConfig(
-                      backgroundColor: theme.appColors.bgAlt,
-                      hintText: 'Hledat emoji...',
+                      verticalSpacing: 0,
+                      horizontalSpacing: 0,
+                      gridPadding: EdgeInsets.zero,
+                      recentsLimit: 28,
+                      replaceEmojiOnLimitExceed: false,
+                      noRecents: Text(
+                        'Žádné nedávné emoji',
+                        style: TextStyle(fontSize: 20, color: theme.appColors.base5),
+                        textAlign: TextAlign.center,
+                      ),
+                      loadingIndicator: const SizedBox.shrink(),
+                      buttonMode: ButtonMode.MATERIAL,
                     ),
                     skinToneConfig: const SkinToneConfig(
                       enabled: true,
+                    ),
+                    categoryViewConfig: CategoryViewConfig(
+                      backgroundColor: theme.appColors.bg,
+                      indicatorColor: theme.appColors.cyan,
+                      iconColor: theme.appColors.base5,
+                      iconColorSelected: theme.appColors.cyan,
+                      categoryIcons: const CategoryIcons(),
+                      initCategory: Category.RECENT,
+                    ),
+                    bottomActionBarConfig: BottomActionBarConfig(
+                      backgroundColor: theme.appColors.bg,
+                      buttonColor: theme.appColors.cyan,
+                      buttonIconColor: theme.appColors.bg,
+                    ),
+                    searchViewConfig: SearchViewConfig(
+                      backgroundColor: theme.appColors.bgAlt,
+                      buttonIconColor: theme.appColors.cyan,
+                      hintText: 'Hledat emoji...',
                     ),
                   ),
                 ),
