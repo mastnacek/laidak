@@ -31,10 +31,10 @@ class DatabaseHelper {
     );
 
     // ✅ Enable WAL mode (concurrent reads & writes)
-    await db.execute('PRAGMA journal_mode = WAL');
+    await db.rawQuery('PRAGMA journal_mode = WAL');
 
     // ✅ Enable foreign keys (důležité pro CASCADE delete)
-    await db.execute('PRAGMA foreign_keys = ON');
+    await db.rawQuery('PRAGMA foreign_keys = ON');
 
     return db;
   }
