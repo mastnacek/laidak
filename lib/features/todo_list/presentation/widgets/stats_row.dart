@@ -34,25 +34,25 @@ class StatsRow extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               _StatChip(
-                icon: Icons.check_circle,
+                emoji: '✅',
                 count: stats.completed,
                 tooltip: 'Hotové úkoly',
               ),
               const SizedBox(width: 8),
               _StatChip(
-                icon: Icons.flag,
+                emoji: '🔴',
                 count: stats.active,
                 tooltip: 'Aktivní úkoly',
               ),
               const SizedBox(width: 8),
               _StatChip(
-                icon: Icons.today,
+                emoji: '📅',
                 count: stats.today,
                 tooltip: 'Úkoly dnes',
               ),
               const SizedBox(width: 8),
               _StatChip(
-                icon: Icons.date_range,
+                emoji: '⏰',
                 count: stats.week,
                 tooltip: 'Úkoly tento týden',
               ),
@@ -96,12 +96,12 @@ class StatsRow extends StatelessWidget {
 }
 
 class _StatChip extends StatelessWidget {
-  final IconData icon;
+  final String emoji;
   final int count;
   final String tooltip;
 
   const _StatChip({
-    required this.icon,
+    required this.emoji,
     required this.count,
     required this.tooltip,
   });
@@ -116,8 +116,7 @@ class _StatChip extends StatelessWidget {
           context: context,
           builder: (context) => InfoDialog(
             title: tooltip,
-            icon: icon,
-            iconColor: _getStatColor(icon, theme),
+            emoji: emoji, // Použij emoji místo icon
             description: _getStatDescription(tooltip),
             examples: _getStatExamples(tooltip),
             tip: 'Tato statistika se aktualizuje v reálném čase při změnách úkolů.',
@@ -134,10 +133,11 @@ class _StatChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 16, // Malé ikony
-              color: theme.appColors.base5,
+            Text(
+              emoji,
+              style: const TextStyle(
+                fontSize: 16, // Emoji size
+              ),
             ),
             const SizedBox(width: 4),
             Text(
@@ -152,15 +152,6 @@ class _StatChip extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  /// Získat barvu pro stat podle ikony
-  Color _getStatColor(IconData icon, ThemeData theme) {
-    if (icon == Icons.check_circle) return theme.appColors.green;
-    if (icon == Icons.flag) return theme.appColors.red;
-    if (icon == Icons.today) return theme.appColors.yellow;
-    if (icon == Icons.date_range) return theme.appColors.cyan;
-    return theme.appColors.blue;
   }
 
   /// Získat popis pro statistiku

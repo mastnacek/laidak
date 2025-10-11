@@ -3,7 +3,7 @@ import '../theme/theme_colors.dart';
 
 /// InfoDialog - Univerzální dialog pro zobrazení nápovědy k funkcím
 ///
-/// Použití:
+/// Použití s Material Icon:
 /// ```dart
 /// onLongPress: () => showDialog(
 ///   context: context,
@@ -16,10 +16,24 @@ import '../theme/theme_colors.dart';
 ///   ),
 /// ),
 /// ```
+///
+/// Použití s Emoji:
+/// ```dart
+/// onLongPress: () => showDialog(
+///   context: context,
+///   builder: (context) => InfoDialog(
+///     title: 'Název funkce',
+///     emoji: '🎯',
+///     description: 'Popis jak funkce funguje...',
+///     examples: ['Příklad 1', 'Příklad 2'],
+///   ),
+/// ),
+/// ```
 class InfoDialog extends StatelessWidget {
   final String title;
-  final IconData icon;
-  final Color iconColor;
+  final IconData? icon; // Optional - pokud není, použij emoji
+  final Color? iconColor; // Optional - jen pro Material Icons
+  final String? emoji; // Optional - alternativa k icon
   final String description;
   final List<String>? examples;
   final String? tip;
@@ -27,22 +41,24 @@ class InfoDialog extends StatelessWidget {
   const InfoDialog({
     super.key,
     required this.title,
-    required this.icon,
-    required this.iconColor,
+    this.icon,
+    this.iconColor,
+    this.emoji,
     required this.description,
     this.examples,
     this.tip,
-  });
+  }) : assert(icon != null || emoji != null, 'Musíš zadat buď icon nebo emoji');
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final effectiveIconColor = iconColor ?? theme.appColors.cyan; // Default barva pro emoji
 
     return Dialog(
       backgroundColor: theme.appColors.bg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: iconColor, width: 2),
+        side: BorderSide(color: effectiveIconColor, width: 2),
       ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(
@@ -59,13 +75,20 @@ class InfoDialog extends StatelessWidget {
               // Header
               Row(
                 children: [
-                  Icon(icon, color: iconColor, size: 32),
+                  // Ikona nebo emoji
+                  if (icon != null)
+                    Icon(icon, color: effectiveIconColor, size: 32)
+                  else if (emoji != null)
+                    Text(
+                      emoji!,
+                      style: const TextStyle(fontSize: 32),
+                    ),
                   const SizedBox(width: 12),
                   Flexible(
                     child: Text(
                       title,
                       style: TextStyle(
-                        color: iconColor,
+                        color: effectiveIconColor,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -185,7 +208,7 @@ class InfoDialog extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: iconColor,
+                    backgroundColor: effectiveIconColor,
                     foregroundColor: theme.appColors.bg,
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
