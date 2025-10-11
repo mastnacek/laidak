@@ -143,8 +143,17 @@ class TodoCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: _getTodoBorderColor(context),
-              width: 1, // Subtilní border (2025 trendy: minimal borders)
+              width: 2, // Zvýšená width pro lepší viditelnost
             ),
+            boxShadow: [
+              // Jemný glow efekt pro dokončené úkoly (zelená aura)
+              if (todo.isCompleted)
+                BoxShadow(
+                  color: theme.appColors.green.withValues(alpha: 0.3),
+                  blurRadius: 4,
+                  spreadRadius: 0,
+                ),
+            ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,15 +257,24 @@ class TodoCard extends StatelessWidget {
     );
   }
 
-  /// Získat barvu rámečku úkolu podle stavu (2025 trendy: minimal borders)
+  /// Získat barvu rámečku úkolu podle stavu (2025 trendy: accent colors)
   Color _getTodoBorderColor(BuildContext context) {
     final theme = Theme.of(context);
     if (todo.isCompleted) {
-      // Splněné úkoly = jemná zelená (subtilní, ne neonová)
-      return theme.appColors.green.withValues(alpha: 0.4);
+      // Splněné úkoly = zelená (celebrate the win!)
+      return theme.appColors.green;
     } else {
-      // Aktivní úkoly = subtilní šedá (priorita jen v tag chipu!)
-      return theme.appColors.base4;
+      // Aktivní úkoly - subtilní accent podle priority
+      switch (todo.priority) {
+        case 'a':
+          return theme.appColors.red.withValues(alpha: 0.5); // Urgentní = červená
+        case 'b':
+          return theme.appColors.yellow.withValues(alpha: 0.5); // Důležité = žlutá
+        case 'c':
+          return theme.appColors.green.withValues(alpha: 0.5); // Nízká = zelená
+        default:
+          return theme.appColors.base4; // Bez priority = šedá
+      }
     }
   }
 

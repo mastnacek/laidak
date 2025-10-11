@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// Sort modes pro řazení úkolů
 ///
 /// Každý mode představuje jiné kritérium pro sortování.
@@ -27,13 +25,13 @@ enum SortMode {
     };
   }
 
-  /// Ikona pro UI button
-  IconData get icon {
+  /// Emoji pro UI button (konzistence s ViewBar)
+  String get emoji {
     return switch (this) {
-      SortMode.priority => Icons.flag,
-      SortMode.dueDate => Icons.calendar_today,
-      SortMode.status => Icons.check_circle,
-      SortMode.createdAt => Icons.access_time,
+      SortMode.priority => '🔴',
+      SortMode.dueDate => '📅',
+      SortMode.status => '✅',
+      SortMode.createdAt => '🆕',
     };
   }
 

@@ -78,8 +78,7 @@ class SortBar extends StatelessWidget {
                         context: context,
                         builder: (context) => InfoDialog(
                           title: mode.label,
-                          icon: mode.icon,
-                          iconColor: theme.appColors.yellow,
+                          emoji: mode.emoji,
                           description: _getSortModeDescription(mode),
                           examples: _getSortModeExamples(mode),
                           tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
@@ -118,15 +117,21 @@ class SortBar extends StatelessWidget {
     ThemeData theme,
   ) {
     if (!isActive) {
-      // Inactive: just the mode icon
-      return Icon(mode.icon, size: 20);
+      // Inactive: just the mode emoji
+      return Text(
+        mode.emoji,
+        style: const TextStyle(fontSize: 20),
+      );
     }
 
-    // Active: icon with animated arrow overlay
+    // Active: emoji with animated arrow overlay
     return Stack(
       alignment: Alignment.center,
       children: [
-        Icon(mode.icon, size: 20),
+        Text(
+          mode.emoji,
+          style: const TextStyle(fontSize: 20),
+        ),
         Positioned(
           right: 0,
           bottom: 0,
