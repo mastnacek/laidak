@@ -48,60 +48,104 @@ class SortBar extends StatelessWidget {
                 : SortDirection.desc;
 
             return Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: SortMode.values.map((mode) {
-                final isActive = mode == currentSortMode;
+              children: [
+                // Sort buttons (vlevo)
+                ...SortMode.values.map((mode) {
+                  final isActive = mode == currentSortMode;
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: InkWell(
-                    onTap: () {
-                      final bloc = context.read<TodoListBloc>();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: InkWell(
+                      onTap: () {
+                        final bloc = context.read<TodoListBloc>();
 
-                      // Triple toggle logic:
-                      // 1. First click: DESC
-                      // 2. Second click: ASC
-                      // 3. Third click: OFF (clear sort)
-                      if (!isActive) {
-                        // Activate with DESC
-                        bloc.add(SortTodosEvent(mode, SortDirection.desc));
-                      } else if (currentDirection == SortDirection.desc) {
-                        // Switch to ASC
-                        bloc.add(SortTodosEvent(mode, SortDirection.asc));
-                      } else {
-                        // Clear sort
-                        bloc.add(const ClearSortEvent());
-                      }
-                    },
-                    onLongPress: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => InfoDialog(
-                          title: mode.label,
-                          emoji: mode.emoji,
-                          description: _getSortModeDescription(mode),
-                          examples: _getSortModeExamples(mode),
-                          tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
+                        // Triple toggle logic:
+                        // 1. First click: DESC
+                        // 2. Second click: ASC
+                        // 3. Third click: OFF (clear sort)
+                        if (!isActive) {
+                          // Activate with DESC
+                          bloc.add(SortTodosEvent(mode, SortDirection.desc));
+                        } else if (currentDirection == SortDirection.desc) {
+                          // Switch to ASC
+                          bloc.add(SortTodosEvent(mode, SortDirection.asc));
+                        } else {
+                          // Clear sort
+                          bloc.add(const ClearSortEvent());
+                        }
+                      },
+                      onLongPress: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => InfoDialog(
+                            title: mode.label,
+                            emoji: mode.emoji,
+                            description: _getSortModeDescription(mode),
+                            examples: _getSortModeExamples(mode),
+                            tip: '1. klik = Sestupně ↓  |  2. klik = Vzestupně ↑  |  3. klik = Vypnout',
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(22),
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 44,
+                          minHeight: 44,
                         ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(22),
-                    child: Container(
+                        alignment: Alignment.center,
+                        child: _buildSortIcon(
+                          mode,
+                          isActive,
+                          currentDirection,
+                          theme,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+
+                // Spacer - posune eye icon úplně doprava
+                const Spacer(),
+
+                // Divider před visibility toggle
+                Container(
+                  width: 1,
+                  height: 24,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                  color: theme.appColors.base3,
+                ),
+
+                // Visibility toggle (eye icon úplně vpravo)
+                BlocBuilder<TodoListBloc, TodoListState>(
+                  builder: (context, state) {
+                    final showCompleted =
+                        state is TodoListLoaded ? state.showCompleted : false;
+
+                    return IconButton(
+                      icon: Icon(
+                        showCompleted ? Icons.visibility : Icons.visibility_off,
+                        size: 24,
+                      ),
+                      tooltip: showCompleted
+                          ? 'Skrýt hotové úkoly'
+                          : 'Zobrazit hotové úkoly',
+                      color: showCompleted
+                          ? theme.appColors.green
+                          : theme.appColors.base5,
                       constraints: const BoxConstraints(
                         minWidth: 44,
                         minHeight: 44,
                       ),
-                      alignment: Alignment.center,
-                      child: _buildSortIcon(
-                        mode,
-                        isActive,
-                        currentDirection,
-                        theme,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                      padding: EdgeInsets.zero,
+                      onPressed: () {
+                        context
+                            .read<TodoListBloc>()
+                            .add(const ToggleShowCompletedEvent());
+                      },
+                    );
+                  },
+                ),
+              ],
             );
           },
           ),

@@ -83,7 +83,7 @@ class ViewBar extends StatelessWidget {
               top: false,
               child: Row(
                 children: [
-                  // View mode buttons (dynamicky generované)
+                  // View mode buttons (dynamicky generované) - zabírají celou šířku
                   Expanded(
                     child: BlocBuilder<TodoListBloc, TodoListState>(
                       builder: (context, todoState) {
@@ -138,45 +138,6 @@ class ViewBar extends StatelessWidget {
                         );
                       },
                     ),
-                  ),
-
-                  // Divider před visibility toggle
-                  Container(
-                    width: 1,
-                    height: 24,
-                    margin: const EdgeInsets.symmetric(horizontal: 8),
-                    color: theme.appColors.base3,
-                  ),
-
-                  // Visibility toggle (výraznější ikona 24dp)
-                  BlocBuilder<TodoListBloc, TodoListState>(
-                    builder: (context, state) {
-                      final showCompleted =
-                          state is TodoListLoaded ? state.showCompleted : false;
-
-                      return IconButton(
-                        icon: Icon(
-                          showCompleted ? Icons.visibility : Icons.visibility_off,
-                          size: 24,
-                        ),
-                        tooltip: showCompleted
-                            ? 'Skrýt hotové úkoly'
-                            : 'Zobrazit hotové úkoly',
-                        color: showCompleted
-                            ? theme.appColors.green
-                            : theme.appColors.base5,
-                        constraints: const BoxConstraints(
-                          minWidth: 44,
-                          minHeight: 44,
-                        ),
-                        padding: EdgeInsets.zero,
-                        onPressed: () {
-                          context
-                              .read<TodoListBloc>()
-                              .add(const ToggleShowCompletedEvent());
-                        },
-                      );
-                    },
                   ),
                 ],
               ),
