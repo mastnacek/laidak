@@ -342,7 +342,8 @@ class _ViewItem {
     if (isBuiltIn) {
       return builtInMode!.icon;
     } else {
-      return IconData(customView!.iconCodePoint);
+      // Použít helper metodu s MaterialIcons font family
+      return customView!.getIcon();
     }
   }
 
