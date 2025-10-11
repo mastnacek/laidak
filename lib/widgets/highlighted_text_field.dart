@@ -254,11 +254,11 @@ class HighlightedTextEditingController extends TextEditingController {
       'poslouchat'
     ];
     if (actions.contains(lower)) {
-      return DoomOneTheme.magenta;
+      return DoomOneTheme.violet;
     }
 
-    // Obecný tag
-    return DoomOneTheme.cyan;
+    // Obecný tag (custom tagy)
+    return DoomOneTheme.magenta;
   }
 
   /// Parsovat hex color string na Flutter Color
