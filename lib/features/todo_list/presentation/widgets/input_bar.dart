@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../services/tag_parser.dart';
-import '../../../../widgets/highlighted_text_field.dart';
+import '../../../../widgets/tag_autocomplete_field.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
@@ -197,9 +197,9 @@ class _InputBarState extends State<InputBar> {
                             onSubmitted: (_) => _onSubmit(),
                             textInputAction: TextInputAction.search,
                           )
-                        : HighlightedTextField(
+                        : TagAutocompleteField(
                             controller: _controller,
-                            focusNode: _focusNode, // Předat focusNode!
+                            focusNode: _focusNode,
                             hintText: '*a* *dnes* nakoupit...',
                             onSubmitted: (_) => _onSubmit(),
                           ),
