@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../../core/widgets/tag_autocomplete.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/highlighted_text_field.dart';
 import '../bloc/todo_list_bloc.dart';
@@ -150,19 +149,7 @@ class _InputBarState extends State<InputBar> {
           ),
         ),
         child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ✅ Tag autocomplete (zobrazit pouze v normal mode, ne search mode)
-              if (!_isSearchMode)
-                TagAutocomplete(
-                  controller: _controller,
-                  startDelimiter: '*',  // TODO: Load from settings
-                  endDelimiter: '*',
-                ),
-
-              // Input row
-              Row(
+          child: Row(
                 children: [
                   // Search icon (edge-aligned)
                   IconButton(
@@ -235,8 +222,6 @@ class _InputBarState extends State<InputBar> {
                   ),
                 ],
               ),
-            ],
-          ),
         ),
       ),
     );
