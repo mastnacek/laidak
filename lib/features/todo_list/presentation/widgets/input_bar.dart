@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/tag_autocomplete.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/highlighted_text_field.dart';
 import '../bloc/todo_list_bloc.dart';
@@ -149,78 +150,92 @@ class _InputBarState extends State<InputBar> {
           ),
         ),
         child: SafeArea(
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-            // Search icon (edge-aligned)
-            IconButton(
-              icon: Icon(
-                _isSearchMode ? Icons.close : Icons.search,
-                size: 24,
-              ),
-              tooltip: _isSearchMode ? 'Zrušit vyhledávání' : 'Vyhledat úkol',
-              color: _isSearchMode
-                  ? theme.appColors.red
-                  : theme.appColors.base5,
-              onPressed: _toggleSearchMode,
-            ),
+              // ✅ Tag autocomplete (zobrazit pouze v normal mode, ne search mode)
+              if (!_isSearchMode)
+                TagAutocomplete(
+                  controller: _controller,
+                  startDelimiter: '*',  // TODO: Load from settings
+                  endDelimiter: '*',
+                ),
 
-            // TextField (EXPANDED = maximální šířka!)
-            Expanded(
-              child: _isSearchMode
-                  ? TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      decoration: InputDecoration(
-                        hintText: '🔍 Vyhledat úkol...',
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 0,
-                        ),
-                        isDense: true,
-                        hintStyle: TextStyle(
-                          color: theme.appColors.base5,
-                          fontSize: 16,
-                        ),
-                      ),
-                      style: TextStyle(
-                        color: theme.appColors.fg,
-                        fontSize: 16,
-                      ),
-                      onTap: () {
-                        // Při tapu explicitně požádat o focus
-                        if (!_focusNode.hasFocus) {
-                          _focusNode.requestFocus();
-                        }
-                      },
-                      onChanged: _onTextChanged,
-                      onSubmitted: (_) => _onSubmit(),
-                      textInputAction: TextInputAction.search,
-                    )
-                  : HighlightedTextField(
-                      controller: _controller,
-                      focusNode: _focusNode, // Předat focusNode!
-                      hintText: '*a* *dnes* nakoupit...',
-                      onSubmitted: (_) => _onSubmit(),
+              // Input row
+              Row(
+                children: [
+                  // Search icon (edge-aligned)
+                  IconButton(
+                    icon: Icon(
+                      _isSearchMode ? Icons.close : Icons.search,
+                      size: 24,
                     ),
-            ),
+                    tooltip: _isSearchMode ? 'Zrušit vyhledávání' : 'Vyhledat úkol',
+                    color: _isSearchMode
+                        ? theme.appColors.red
+                        : theme.appColors.base5,
+                    onPressed: _toggleSearchMode,
+                  ),
 
-            // Add button (edge-aligned, skrytý v search mode)
-            BlocBuilder<TodoListBloc, TodoListState>(
-              builder: (context, state) {
-                if (_isSearchMode) {
-                  return const SizedBox(width: 48);
-                }
+                  // TextField (EXPANDED = maximální šířka!)
+                  Expanded(
+                    child: _isSearchMode
+                        ? TextField(
+                            controller: _controller,
+                            focusNode: _focusNode,
+                            decoration: InputDecoration(
+                              hintText: '🔍 Vyhledat úkol...',
+                              border: InputBorder.none,
+                              contentPadding: const EdgeInsets.symmetric(
+                                vertical: 12,
+                                horizontal: 0,
+                              ),
+                              isDense: true,
+                              hintStyle: TextStyle(
+                                color: theme.appColors.base5,
+                                fontSize: 16,
+                              ),
+                            ),
+                            style: TextStyle(
+                              color: theme.appColors.fg,
+                              fontSize: 16,
+                            ),
+                            onTap: () {
+                              // Při tapu explicitně požádat o focus
+                              if (!_focusNode.hasFocus) {
+                                _focusNode.requestFocus();
+                              }
+                            },
+                            onChanged: _onTextChanged,
+                            onSubmitted: (_) => _onSubmit(),
+                            textInputAction: TextInputAction.search,
+                          )
+                        : HighlightedTextField(
+                            controller: _controller,
+                            focusNode: _focusNode, // Předat focusNode!
+                            hintText: '*a* *dnes* nakoupit...',
+                            onSubmitted: (_) => _onSubmit(),
+                          ),
+                  ),
 
-                return IconButton(
-                  icon: const Icon(Icons.add, size: 24),
-                  tooltip: 'Přidat úkol',
-                  color: theme.appColors.green,
-                  onPressed: _onSubmit,
-                );
-              },
-            ),
-          ],
+                  // Add button (edge-aligned, skrytý v search mode)
+                  BlocBuilder<TodoListBloc, TodoListState>(
+                    builder: (context, state) {
+                      if (_isSearchMode) {
+                        return const SizedBox(width: 48);
+                      }
+
+                      return IconButton(
+                        icon: const Icon(Icons.add, size: 24),
+                        tooltip: 'Přidat úkol',
+                        color: theme.appColors.green,
+                        onPressed: _onSubmit,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
