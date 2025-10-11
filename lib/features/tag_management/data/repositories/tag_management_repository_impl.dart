@@ -85,10 +85,9 @@ class TagManagementRepositoryImpl implements TagManagementRepository {
   /// Helper: Převést novou domain entitu na starý model (z lib/models/tag_definition.dart)
   ///
   /// Potřebné kvůli backward compatibility s TagService
-  dynamic _convertToOldModel(TagDefinition definition) {
-    // Importujeme starý TagDefinition z lib/models/tag_definition.dart
-    // a vytvoříme jeho instanci
-    final oldTagDefinition = _OldTagDefinition(
+  old_model.TagDefinition _convertToOldModel(TagDefinition definition) {
+    // Vytvoříme instanci starého TagDefinition z lib/models/tag_definition.dart
+    return old_model.TagDefinition(
       id: definition.id,
       tagName: definition.tagName,
       tagType: _convertTagTypeReverse(definition.tagType),
@@ -100,51 +99,6 @@ class TagManagementRepositoryImpl implements TagManagementRepository {
       sortOrder: definition.sortOrder,
       enabled: definition.enabled,
     );
-    return oldTagDefinition;
-  }
-}
-
-/// Dočasná kopie starého TagDefinition pro backward compatibility
-///
-/// TODO: Postupně odstranit když všechen kód přejde na nové domain entity
-class _OldTagDefinition {
-  final int? id;
-  final String tagName;
-  final old_model.TagType tagType;
-  final String? displayName;
-  final String? emoji;
-  final String? color;
-  final bool glowEnabled;
-  final double glowStrength;
-  final int sortOrder;
-  final bool enabled;
-
-  _OldTagDefinition({
-    this.id,
-    required this.tagName,
-    required this.tagType,
-    this.displayName,
-    this.emoji,
-    this.color,
-    this.glowEnabled = false,
-    this.glowStrength = 0.5,
-    this.sortOrder = 0,
-    this.enabled = true,
-  });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'tag_name': tagName.toLowerCase(),
-      'tag_type': tagType.toDbString(),
-      'display_name': displayName,
-      'emoji': emoji,
-      'color': color,
-      'glow_enabled': glowEnabled ? 1 : 0,
-      'glow_strength': glowStrength,
-      'sort_order': sortOrder,
-      'enabled': enabled ? 1 : 0,
-    };
   }
 }
 
