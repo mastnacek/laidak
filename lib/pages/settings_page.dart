@@ -2152,7 +2152,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             ),
             const SizedBox(height: 16),
 
-            // Emoji picker (grid)
+            // Emoji picker (button)
             Text(
               'Emoji',
               style: TextStyle(
@@ -2162,42 +2162,70 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
               ),
             ),
             const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.appColors.base2,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.appColors.base4),
-              ),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildEmojiOption('⭐', theme),
-                  _buildEmojiOption('💼', theme),
-                  _buildEmojiOption('🏠', theme),
-                  _buildEmojiOption('❤️', theme),
-                  _buildEmojiOption('🔥', theme),
-                  _buildEmojiOption('💪', theme),
-                  _buildEmojiOption('📚', theme),
-                  _buildEmojiOption('🛒', theme),
-                  _buildEmojiOption('🍕', theme),
-                  _buildEmojiOption('💊', theme),
-                  _buildEmojiOption('🎵', theme),
-                  _buildEmojiOption('🎨', theme),
-                  _buildEmojiOption('⚽', theme),
-                  _buildEmojiOption('🏖️', theme),
-                  _buildEmojiOption('✈️', theme),
-                  _buildEmojiOption('🎉', theme),
-                  _buildEmojiOption('⚡', theme),
-                  _buildEmojiOption('🧠', theme),
-                  _buildEmojiOption('🏆', theme),
-                  _buildEmojiOption('🚀', theme),
-                  _buildEmojiOption('💡', theme),
-                  _buildEmojiOption('✨', theme),
-                  _buildEmojiOption('🐾', theme),
-                  _buildEmojiOption('🌳', theme),
-                ],
+            InkWell(
+              onTap: () => _showEmojiPickerBottomSheet(context, theme),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.appColors.base2,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: theme.appColors.cyan, width: 2),
+                ),
+                child: Row(
+                  children: [
+                    // Vybrané emoji (velké)
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: theme.appColors.cyan.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: theme.appColors.cyan,
+                          width: 2,
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          _selectedEmoji,
+                          style: const TextStyle(fontSize: 32),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Text
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vyber emoji',
+                            style: TextStyle(
+                              color: theme.appColors.cyan,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Klikni pro otevření emoji pickeru',
+                            style: TextStyle(
+                              color: theme.appColors.base5,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Ikona
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: theme.appColors.cyan,
+                      size: 20,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -2238,37 +2266,81 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
     );
   }
 
-  /// Build emoji option button pro grid
-  Widget _buildEmojiOption(String emoji, ThemeData theme) {
-    final isSelected = _selectedEmoji == emoji;
-
-    return SizedBox(
-      width: 48,
-      height: 48,
-      child: InkWell(
-        onTap: () {
-          setState(() => _selectedEmoji = emoji);
-        },
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isSelected
-                ? theme.appColors.cyan.withValues(alpha: 0.2)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
-              width: isSelected ? 2 : 1,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              emoji,
-              style: const TextStyle(fontSize: 24),
-            ),
-          ),
-        ),
+  /// Zobrazit emoji picker v bottom sheet
+  void _showEmojiPickerBottomSheet(BuildContext context, ThemeData theme) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.appColors.bg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
+      builder: (BuildContext bottomSheetContext) {
+        return SizedBox(
+          height: 400,
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: theme.appColors.base3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      'Vyber emoji',
+                      style: TextStyle(
+                        color: theme.appColors.cyan,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: Icon(Icons.close, color: theme.appColors.base5),
+                      onPressed: () => Navigator.pop(bottomSheetContext),
+                    ),
+                  ],
+                ),
+              ),
+              // Emoji Picker
+              Expanded(
+                child: EmojiPicker(
+                  onEmojiSelected: (category, emoji) {
+                    setState(() => _selectedEmoji = emoji.emoji);
+                    Navigator.pop(bottomSheetContext);
+                  },
+                  config: Config(
+                    bgColor: theme.appColors.bg,
+                    categoryViewConfig: CategoryViewConfig(
+                      indicatorColor: theme.appColors.cyan,
+                      iconColor: theme.appColors.base5,
+                      iconColorSelected: theme.appColors.cyan,
+                      backgroundColor: theme.appColors.bg,
+                      categoryIcons: const CategoryIcons(),
+                    ),
+                    emojiViewConfig: EmojiViewConfig(
+                      backgroundColor: theme.appColors.bg,
+                      buttonMode: ButtonMode.MATERIAL,
+                      columns: 8,
+                      emojiSizeMax: 28,
+                    ),
+                    searchViewConfig: SearchViewConfig(
+                      backgroundColor: theme.appColors.bgAlt,
+                      hintText: 'Hledat emoji...',
+                    ),
+                    skinToneConfig: const SkinToneConfig(
+                      enabled: true,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
