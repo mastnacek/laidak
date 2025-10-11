@@ -6,8 +6,8 @@ class OpenRouterModel {
   final String id;
   final String name;
   final String? description;
-  final double? promptPrice; // Cena za 1M input tokens ($)
-  final double? completionPrice; // Cena za 1M output tokens ($)
+  final double? promptPrice; // Cena za 1M input tokens v USD (např. 3.0 = $3 per 1M tokens)
+  final double? completionPrice; // Cena za 1M output tokens v USD
 
   const OpenRouterModel({
     required this.id,
@@ -20,18 +20,24 @@ class OpenRouterModel {
   /// Parse from JSON (z OpenRouter API)
   factory OpenRouterModel.fromJson(Map<String, dynamic> json) {
     // Pricing může být v json['pricing'] objektu
+    // Format: {"prompt": "0.000003", "completion": "0.000015"} (cena za token v USD)
     final pricing = json['pricing'] as Map<String, dynamic>?;
+
+    // Parse string ceny a konvertuj na cenu za 1M tokenů (pro lepší čitelnost)
+    double? parseTokenPrice(String? priceStr) {
+      if (priceStr == null || priceStr.isEmpty) return null;
+      final pricePerToken = double.tryParse(priceStr);
+      if (pricePerToken == null) return null;
+      // Konvertovat na cenu za 1M tokenů
+      return pricePerToken * 1000000;
+    }
 
     return OpenRouterModel(
       id: json['id'] as String,
       name: json['name'] as String? ?? json['id'] as String,
       description: json['description'] as String?,
-      promptPrice: pricing != null
-          ? double.tryParse(pricing['prompt']?.toString() ?? '0')
-          : null,
-      completionPrice: pricing != null
-          ? double.tryParse(pricing['completion']?.toString() ?? '0')
-          : null,
+      promptPrice: pricing != null ? parseTokenPrice(pricing['prompt'] as String?) : null,
+      completionPrice: pricing != null ? parseTokenPrice(pricing['completion'] as String?) : null,
     );
   }
 
