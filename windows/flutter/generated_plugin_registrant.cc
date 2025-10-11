@@ -6,9 +6,12 @@
 
 #include "generated_plugin_registrant.h"
 
+#include <emoji_picker_flutter/emoji_picker_flutter_plugin_c_api.h>
 #include <just_audio_windows/just_audio_windows_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
+  EmojiPickerFlutterPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("EmojiPickerFlutterPluginCApi"));
   JustAudioWindowsPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("JustAudioWindowsPlugin"));
 }
