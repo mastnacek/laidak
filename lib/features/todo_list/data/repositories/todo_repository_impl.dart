@@ -18,13 +18,17 @@ class TodoRepositoryImpl implements TodoRepository {
     // DatabaseHelper vrací List<TodoItem> (starý model)
     final todoItems = await _db.getAllTodos();
 
-    // Převést TodoItem → Todo entity s načtenými subtasks
+    // Převést TodoItem → Todo entity s načtenými subtasks a tags
     final todos = <Todo>[];
     for (final item in todoItems) {
+      // Načíst subtasks (stávající kód)
       final subtasksMaps = await _db.getSubtasksByTodoId(item.id!);
       final subtasks = subtasksMaps.map((map) => SubtaskModel.fromMap(map)).toList();
 
-      todos.add(_todoItemToEntity(item, subtasks));
+      // ✅ NOVÉ: Načíst tagy z normalizované tabulky
+      final tags = await _db.getTagsForTodo(item.id!);
+
+      todos.add(_todoItemToEntity(item, subtasks, tags));
     }
 
     return todos;
@@ -36,7 +40,12 @@ class TodoRepositoryImpl implements TodoRepository {
     final todoItem = _entityToTodoItem(todo);
 
     // Uložit do databáze
-    await _db.insertTodo(todoItem);
+    final insertedItem = await _db.insertTodo(todoItem);
+
+    // ✅ NOVÉ: Přidat tagy do todo_tags tabulky
+    if (todo.tags.isNotEmpty) {
+      await _db.addTagsToTodo(insertedItem.id!, todo.tags);
+    }
   }
 
   @override
@@ -51,6 +60,12 @@ class TodoRepositoryImpl implements TodoRepository {
 
     // Aktualizovat v databázi
     await _db.updateTodo(todoItem);
+
+    // ✅ NOVÉ: Update tagy (remove all + add new)
+    await _db.removeAllTagsFromTodo(todo.id!);
+    if (todo.tags.isNotEmpty) {
+      await _db.addTagsToTodo(todo.id!, todo.tags);
+    }
   }
 
   @override
@@ -74,7 +89,11 @@ class TodoRepositoryImpl implements TodoRepository {
   }
 
   /// Helper: Převést TodoItem (starý model) → Todo entity
-  Todo _todoItemToEntity(TodoItem item, [List<SubtaskModel>? subtasks]) {
+  Todo _todoItemToEntity(
+    TodoItem item,
+    List<SubtaskModel> subtasks,
+    List<String> tags,  // ✅ NOVÉ: tags z normalizované tabulky
+  ) {
     return Todo(
       id: item.id,
       task: item.task,
@@ -82,7 +101,7 @@ class TodoRepositoryImpl implements TodoRepository {
       createdAt: item.createdAt,
       priority: item.priority,
       dueDate: item.dueDate,
-      tags: item.tags,
+      tags: tags,  // ✅ NOVÉ: použij normalizované tagy
       subtasks: subtasks,
       aiRecommendations: item.aiRecommendations,
       aiDeadlineAnalysis: item.aiDeadlineAnalysis,
@@ -98,7 +117,7 @@ class TodoRepositoryImpl implements TodoRepository {
       createdAt: todo.createdAt,
       priority: todo.priority,
       dueDate: todo.dueDate,
-      tags: todo.tags,
+      tags: [],  // ❌ DEPRECATED: CSV sloupec už nepoužíváme
       aiRecommendations: todo.aiRecommendations,
       aiDeadlineAnalysis: todo.aiDeadlineAnalysis,
     );

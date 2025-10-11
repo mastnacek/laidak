@@ -25,7 +25,7 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 10,
+      version: 11,  // ← ZMĚNIT z 10 na 11 (Tags normalization)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -42,7 +42,7 @@ class DatabaseHelper {
         createdAt TEXT NOT NULL,
         priority TEXT,
         dueDate TEXT,
-        tags TEXT,
+        tags TEXT,  -- ❌ DEPRECATED: Používej todo_tags tabulku!
         ai_recommendations TEXT,
         ai_deadline_analysis TEXT
       )
@@ -90,6 +90,42 @@ class DatabaseHelper {
         enabled INTEGER NOT NULL DEFAULT 1
       )
     ''');
+
+    // Tabulka custom tagů (normalizované)
+    await db.execute('''
+      CREATE TABLE tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tag_name TEXT UNIQUE NOT NULL,
+        display_name TEXT,
+        tag_type TEXT NOT NULL DEFAULT 'custom',
+        usage_count INTEGER NOT NULL DEFAULT 0,
+        last_used INTEGER,
+        created_at INTEGER NOT NULL,
+
+        CHECK (tag_name = LOWER(tag_name))
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_tags_type ON tags(tag_type)');
+    await db.execute('CREATE INDEX idx_tags_usage ON tags(usage_count DESC)');
+    await db.execute('CREATE INDEX idx_tags_name ON tags(tag_name)');
+
+    // Many-to-many vazba: TODO ↔ Tags
+    await db.execute('''
+      CREATE TABLE todo_tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        todo_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+
+        FOREIGN KEY(todo_id) REFERENCES todos(id) ON DELETE CASCADE,
+        FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE,
+
+        UNIQUE(todo_id, tag_id)
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_todo_tags_todo_id ON todo_tags(todo_id)');
+    await db.execute('CREATE INDEX idx_todo_tags_tag_id ON todo_tags(tag_id)');
 
     // Tabulka podúkolů pro AI split
     await db.execute('''
@@ -267,6 +303,12 @@ class DatabaseHelper {
       await db.execute('''
         ALTER TABLE settings ADD COLUMN has_seen_gesture_hint INTEGER NOT NULL DEFAULT 0
       ''');
+    }
+
+    if (oldVersion < 11) {
+      // MILESTONE 1: Tags normalization
+      await _createTagsTables(db);
+      await _migrateTagsToNormalizedSchema(db);
     }
   }
 
@@ -765,5 +807,244 @@ class DatabaseHelper {
     if (updates.isEmpty) return 0;
 
     return await db.update('todos', updates, where: 'id = ?', whereArgs: [id]);
+  }
+
+  // ==================== MIGRACE VERZE 11: TAGS NORMALIZATION ====================
+
+  /// Vytvořit tabulky pro normalizované tagy (verze 11)
+  Future<void> _createTagsTables(Database db) async {
+    // Tabulka tags
+    await db.execute('''
+      CREATE TABLE tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tag_name TEXT UNIQUE NOT NULL,
+        display_name TEXT,
+        tag_type TEXT NOT NULL DEFAULT 'custom',
+        usage_count INTEGER NOT NULL DEFAULT 0,
+        last_used INTEGER,
+        created_at INTEGER NOT NULL,
+
+        CHECK (tag_name = LOWER(tag_name))
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_tags_type ON tags(tag_type)');
+    await db.execute('CREATE INDEX idx_tags_usage ON tags(usage_count DESC)');
+    await db.execute('CREATE INDEX idx_tags_name ON tags(tag_name)');
+
+    // Tabulka todo_tags
+    await db.execute('''
+      CREATE TABLE todo_tags (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        todo_id INTEGER NOT NULL,
+        tag_id INTEGER NOT NULL,
+
+        FOREIGN KEY(todo_id) REFERENCES todos(id) ON DELETE CASCADE,
+        FOREIGN KEY(tag_id) REFERENCES tags(id) ON DELETE CASCADE,
+
+        UNIQUE(todo_id, tag_id)
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_todo_tags_todo_id ON todo_tags(todo_id)');
+    await db.execute('CREATE INDEX idx_todo_tags_tag_id ON todo_tags(tag_id)');
+  }
+
+  /// Migrovat CSV tagy → normalizované tabulky
+  Future<void> _migrateTagsToNormalizedSchema(Database db) async {
+    try {
+      // 1. Načíst všechny todos s CSV tags
+      final todos = await db.query('todos');
+
+      for (final todo in todos) {
+        final todoId = todo['id'] as int;
+        final tagsCSV = todo['tags'] as String?;
+
+        if (tagsCSV == null || tagsCSV.isEmpty) continue;
+
+        // 2. Split CSV a trim
+        final tagsList = tagsCSV
+            .split(',')
+            .map((t) => t.trim())
+            .where((t) => t.isNotEmpty);
+
+        for (final tagName in tagsList) {
+          // 3. Normalize tag name (lowercase)
+          final normalized = tagName.toLowerCase();
+
+          // 4. Insert nebo get existing tag
+          final tagId = await _getOrCreateTag(db, normalized, tagName);
+
+          // 5. Vytvořit vazbu todo_tags (ignore duplicates)
+          await db.insert(
+            'todo_tags',
+            {
+              'todo_id': todoId,
+              'tag_id': tagId,
+            },
+            conflictAlgorithm: ConflictAlgorithm.ignore,
+          );
+
+          // 6. Inkrementovat usage_count
+          await db.rawUpdate(
+            'UPDATE tags SET usage_count = usage_count + 1, last_used = ? WHERE id = ?',
+            [DateTime.now().millisecondsSinceEpoch, tagId],
+          );
+        }
+      }
+
+      // 7. Vyčistit CSV sloupec (nastavit na empty string, ne NULL)
+      // ⚠️ Nechávám sloupec (SQLite nepodporuje DROP COLUMN), ale označím jako deprecated
+      await db.rawUpdate("UPDATE todos SET tags = ''");
+
+    } catch (e) {
+      print('❌ Chyba při migraci tagů: $e');
+      rethrow;
+    }
+  }
+
+  /// Get nebo create tag (helper pro migraci)
+  Future<int> _getOrCreateTag(
+    Database db,
+    String normalized,
+    String original,
+  ) async {
+    // Check if exists
+    final existing = await db.query(
+      'tags',
+      where: 'tag_name = ?',
+      whereArgs: [normalized],
+    );
+
+    if (existing.isNotEmpty) {
+      return existing.first['id'] as int;
+    }
+
+    // Create new tag
+    return await db.insert('tags', {
+      'tag_name': normalized,
+      'display_name': original,
+      'tag_type': 'custom',
+      'usage_count': 0,
+      'created_at': DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
+  // ==================== TAGS CRUD ====================
+
+  /// Získat TOP custom tagy (pro autocomplete)
+  Future<List<Map<String, dynamic>>> getTopCustomTags({int limit = 10}) async {
+    final db = await database;
+
+    return await db.query(
+      'tags',
+      where: 'tag_type = ?',
+      whereArgs: ['custom'],
+      orderBy: 'usage_count DESC, last_used DESC',
+      limit: limit,
+    );
+  }
+
+  /// Vyhledat tagy (autocomplete během psaní)
+  Future<List<Map<String, dynamic>>> searchTags(String query, {int limit = 5}) async {
+    final db = await database;
+
+    return await db.query(
+      'tags',
+      where: 'tag_name LIKE ? AND tag_type = ?',
+      whereArgs: ['%${query.toLowerCase()}%', 'custom'],
+      orderBy: 'usage_count DESC',
+      limit: limit,
+    );
+  }
+
+  /// Získat nebo vytvořit tag (při vytváření TODO)
+  Future<int> getOrCreateTagId(String tagName) async {
+    final db = await database;
+    final normalized = tagName.toLowerCase();
+
+    // Check if exists
+    final existing = await db.query(
+      'tags',
+      where: 'tag_name = ?',
+      whereArgs: [normalized],
+    );
+
+    if (existing.isNotEmpty) {
+      // Update last_used timestamp
+      await db.update(
+        'tags',
+        {
+          'last_used': DateTime.now().millisecondsSinceEpoch,
+          'usage_count': (existing.first['usage_count'] as int) + 1,
+        },
+        where: 'id = ?',
+        whereArgs: [existing.first['id']],
+      );
+
+      return existing.first['id'] as int;
+    }
+
+    // Create new tag
+    return await db.insert('tags', {
+      'tag_name': normalized,
+      'display_name': tagName,
+      'tag_type': 'custom',
+      'usage_count': 1,
+      'last_used': DateTime.now().millisecondsSinceEpoch,
+      'created_at': DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
+  /// Přidat tags k TODO
+  Future<void> addTagsToTodo(int todoId, List<String> tagNames) async {
+    final db = await database;
+
+    for (final tagName in tagNames) {
+      final tagId = await getOrCreateTagId(tagName);
+
+      // Vytvořit vazbu (ignore duplicates)
+      await db.insert(
+        'todo_tags',
+        {
+          'todo_id': todoId,
+          'tag_id': tagId,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
+  }
+
+  /// Odstranit všechny tags z TODO
+  Future<void> removeAllTagsFromTodo(int todoId) async {
+    final db = await database;
+    await db.delete('todo_tags', where: 'todo_id = ?', whereArgs: [todoId]);
+  }
+
+  /// Získat tagy pro TODO
+  Future<List<String>> getTagsForTodo(int todoId) async {
+    final db = await database;
+
+    final results = await db.rawQuery('''
+      SELECT t.display_name
+      FROM tags t
+      INNER JOIN todo_tags tt ON t.id = tt.tag_id
+      WHERE tt.todo_id = ?
+      ORDER BY t.display_name
+    ''', [todoId]);
+
+    return results.map((row) => row['display_name'] as String).toList();
+  }
+
+  /// Vyčistit nepoužívané tagy (optional - pro maintenance)
+  Future<void> cleanupUnusedTags() async {
+    final db = await database;
+
+    // Smazat tagy, které nemají žádnou vazbu na TODO
+    await db.rawDelete('''
+      DELETE FROM tags
+      WHERE id NOT IN (SELECT DISTINCT tag_id FROM todo_tags)
+        AND tag_type = 'custom'
+    ''');
   }
 }
