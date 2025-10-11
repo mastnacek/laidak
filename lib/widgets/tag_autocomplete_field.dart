@@ -113,10 +113,13 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
     Overlay.of(context).insert(_overlayEntry!);
   }
 
-  /// Vytvořit OverlayEntry s dropdownem
+  /// Vytvořit OverlayEntry s dropdownem NAD input fieldem
   OverlayEntry _createOverlayEntry() {
     final renderBox = context.findRenderObject() as RenderBox?;
     final size = renderBox?.size ?? Size.zero;
+
+    // Vypočítat výšku dropdownu (max 200px, ale může být menší)
+    final dropdownHeight = (_suggestions.length * 48.0).clamp(0.0, 200.0);
 
     return OverlayEntry(
       builder: (context) {
@@ -127,7 +130,9 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
           child: CompositedTransformFollower(
             link: _layerLink,
             showWhenUnlinked: false,
-            offset: Offset(0, size.height + 4),
+            // Záporný offset = dropdown NAD input fieldem
+            // -4 = gap, -dropdownHeight = výška dropdownu
+            offset: Offset(0, -dropdownHeight - 4),
             child: Material(
               elevation: 8,
               borderRadius: BorderRadius.circular(8),
