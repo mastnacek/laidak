@@ -79,14 +79,21 @@ class _InputBarState extends State<InputBar> {
         // Pokud je prázdné pole, jen přepnout do search mode
         setState(() {
           _isSearchMode = true;
-          _focusNode.requestFocus();
           widget.onFocusChanged?.call(true);
+        });
+        // KRITICKÉ: Request focus AFTER setState (Android keyboard fix)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _focusNode.requestFocus();
         });
       } else {
         // Máme text → vyhledat a přepnout do search mode
         setState(() {
           _isSearchMode = true;
           widget.onFocusChanged?.call(true);
+        });
+        // KRITICKÉ: Request focus AFTER setState (Android keyboard fix)
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _focusNode.requestFocus();
         });
         context.read<TodoListBloc>().add(SearchTodosEvent(text));
       }
@@ -187,15 +194,17 @@ class _InputBarState extends State<InputBar> {
                               color: theme.appColors.fg,
                               fontSize: 16,
                             ),
+                            // KRITICKÉ: Při tapu VŽDY request focus (Android fix)
                             onTap: () {
-                              // Při tapu explicitně požádat o focus
-                              if (!_focusNode.hasFocus) {
-                                _focusNode.requestFocus();
-                              }
+                              _focusNode.requestFocus();
                             },
                             onChanged: _onTextChanged,
                             onSubmitted: (_) => _onSubmit(),
                             textInputAction: TextInputAction.search,
+                            // KRITICKÉ: Force show cursor (Android keyboard fix)
+                            showCursor: true,
+                            // KRITICKÉ: Autofocus pokud přepínáme do search mode
+                            autofocus: false,
                           )
                         : TagAutocompleteField(
                             controller: _controller,

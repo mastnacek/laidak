@@ -348,27 +348,31 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
     return CompositedTransformTarget(
       link: _layerLink,
       child: GestureDetector(
+        // KRITICKÉ: Při tapu vždy zobrazit klávesnici (Android fix)
         onTap: () {
-          // Při tapu vždy požádat o focus a otevřít klávesnici OKAMŽITĚ
-          if (!widget.focusNode.hasFocus) {
-            widget.focusNode.requestFocus();
-          }
+          // Na Android musíme explicitně request focus i když už má focus
+          widget.focusNode.requestFocus();
         },
+        // Povolit child interakci (selection handles, cursor positioning)
+        behavior: HitTestBehavior.translucent,
         child: Stack(
           children: [
             // Hint text (zobrazí se pouze když je pole prázdné)
             if (_highlightController.text.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  widget.hintText,
-                  style: TextStyle(
-                    color: theme.appColors.base5,
-                    fontSize: 16,
+              IgnorePointer(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Text(
+                    widget.hintText,
+                    style: TextStyle(
+                      color: theme.appColors.base5,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
               ),
             // EditableText s highlighting controllerem (STEJNÝ padding jako hint!)
+            // DŮLEŽITÉ: showCursor: true zajistí zobrazení klávesnice na Android!
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: EditableText(
@@ -386,6 +390,10 @@ class _TagAutocompleteFieldState extends State<TagAutocompleteField> {
                 autocorrect: true,
                 enableSuggestions: true,
                 onSubmitted: widget.onSubmitted,
+                // KRITICKÉ: Explicitně zapnout cursor (Android keyboard fix)
+                showCursor: true,
+                // KRITICKÉ: Force show selection handles (Android fix)
+                showSelectionHandles: true,
               ),
             ),
           ],
