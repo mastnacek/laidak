@@ -489,6 +489,180 @@ version: 11,  // ← ZMĚNIT z 10 na 11
 
 ---
 
+## ⚙️ Settings Refactoring - God Object Elimination
+
+### 📋 Problém: `settings_page.dart` má 2661 řádků (GOD OBJECT!)
+
+**Současný stav**:
+- ❌ `lib/pages/settings_page.dart` - 2661 lines (ŠPATNĚ!)
+- ❌ 5 tabů v jednom souboru (massive violation)
+- ❌ God object anti-pattern
+- ✅ Feature struktura existuje: `lib/features/settings/` (ale prázdná!)
+
+**Cíl**: Rozdělit god object podle Feature-First architektury
+
+**Kdy použít**: Major refactoring existující feature (god object → clean architecture)
+
+**Postup**:
+1. Postupuj podle **4 fází** níže
+2. Každá fáze = 1 commit (snapshot před risky operací)
+3. Dodržuj SCÉNÁŘ 2 z [mapa-bloc.md](mapa-bloc.md) - Úprava existující feature
+
+**Architektura PŘED → PO**:
+```
+PŘED (❌):
+lib/pages/settings_page.dart         # 2661 lines GOD OBJECT
+├── _AISettingsTab                   # 200 lines
+├── _PromptsTab                      # 500 lines
+├── _ThemesTab                       # 300 lines
+├── _AgendaTab                       # 800 lines (už existuje v features!)
+└── _CustomViewDialog                # 400 lines
+
+PO (✅):
+lib/features/settings/
+├── presentation/
+│   ├── pages/
+│   │   ├── settings_page.dart       # 100 lines (main TabBar scaffold)
+│   │   ├── ai_settings_tab.dart     # 200 lines
+│   │   ├── prompts_tab.dart         # 500 lines
+│   │   ├── themes_tab.dart          # 300 lines
+│   │   └── agenda_tab.dart          # EXISTUJE (přesunuto z lib/pages/)
+│   ├── widgets/
+│   │   └── custom_view_dialog.dart  # 400 lines
+│   └── cubit/settings_cubit.dart    # EXISTUJE
+└── domain/models/                    # EXISTUJE
+```
+
+---
+
+### **FÁZE 1: Extrakce AI Settings Tab** ⏱️ 30 min
+
+**Cíl**: Přesunout `_AISettingsTab` do samostatného souboru
+
+**Kroky**:
+- [ ] 1.1 Vytvoř `lib/features/settings/presentation/pages/ai_settings_tab.dart`
+- [ ] 1.2 Zkopíruj `_AISettingsTab` class (řádky ~100-1022)
+- [ ] 1.3 Změň na public: `class AISettingsTab extends StatefulWidget`
+- [ ] 1.4 Přidej import do `settings_page.dart`
+- [ ] 1.5 Nahraď `_AISettingsTab()` → `AISettingsTab()`
+- [ ] 1.6 Smaž původní `_AISettingsTab` z `settings_page.dart`
+- [ ] **Test**: Ověř že AI Settings tab funguje
+- [ ] **Commit**: `♻️ refactor: Extract AI Settings Tab (FÁZE 1)`
+
+**Výsledek**: `settings_page.dart` zmenšen o ~900 řádků
+
+---
+
+### **FÁZE 2: Extrakce Prompts Tab** ⏱️ 30 min
+
+**Cíl**: Přesunout `_PromptsTab` do samostatného souboru
+
+**Kroky**:
+- [ ] 2.1 Vytvoř `lib/features/settings/presentation/pages/prompts_tab.dart`
+- [ ] 2.2 Zkopíruj `_PromptsTab` class (řádky ~1025-1554)
+- [ ] 2.3 Změň na public: `class PromptsTab extends StatefulWidget`
+- [ ] 2.4 Přidej import do `settings_page.dart`
+- [ ] 2.5 Nahraď `_PromptsTab()` → `PromptsTab()`
+- [ ] 2.6 Smaž původní `_PromptsTab` z `settings_page.dart`
+- [ ] **Test**: Ověř že Prompts tab funguje
+- [ ] **Commit**: `♻️ refactor: Extract Prompts Tab (FÁZE 2)`
+
+**Výsledek**: `settings_page.dart` zmenšen o dalších ~500 řádků
+
+---
+
+### **FÁZE 3: Extrakce Themes Tab** ⏱️ 30 min
+
+**Cíl**: Přesunout `_ThemesTab` do samostatného souboru
+
+**Kroky**:
+- [ ] 3.1 Vytvoř `lib/features/settings/presentation/pages/themes_tab.dart`
+- [ ] 3.2 Zkopíruj `_ThemesTab` class (řádky ~1557-1868)
+- [ ] 3.3 Změň na public: `class ThemesTab extends StatefulWidget`
+- [ ] 3.4 Přidej import do `settings_page.dart`
+- [ ] 3.5 Nahraď `_ThemesTab()` → `ThemesTab()`
+- [ ] 3.6 Smaž původní `_ThemesTab` z `settings_page.dart`
+- [ ] **Test**: Ověř že Themes tab funguje
+- [ ] **Commit**: `♻️ refactor: Extract Themes Tab (FÁZE 3)`
+
+**Výsledek**: `settings_page.dart` zmenšen o dalších ~300 řádků
+
+---
+
+### **FÁZE 4: Extrakce Agenda Tab + Cleanup** ⏱️ 45 min
+
+**Cíl**: Přesunout `_AgendaTab` + `_CustomViewDialog` a přesunout main page
+
+**Kroky**:
+- [ ] 4.1 Zkontroluj jestli už neexistuje `agenda_tab.dart` v features/settings/
+- [ ] 4.2 Pokud NE: Vytvoř `lib/features/settings/presentation/pages/agenda_tab.dart`
+- [ ] 4.3 Zkopíruj `_AgendaTab` class (řádky ~1871-2286)
+- [ ] 4.4 Vytvoř `lib/features/settings/presentation/widgets/custom_view_dialog.dart`
+- [ ] 4.5 Zkopíruj `_CustomViewDialog` class (řádky ~2289-2661)
+- [ ] 4.6 Změň na public widgety
+- [ ] 4.7 Přidej importy do `settings_page.dart`
+- [ ] 4.8 Nahraď private widgety → public
+- [ ] 4.9 Smaž původní widgety z `settings_page.dart`
+- [ ] 4.10 **Přesuň** `lib/pages/settings_page.dart` → `lib/features/settings/presentation/pages/settings_page.dart`
+- [ ] 4.11 **Smaž** starý `lib/pages/settings_page.dart`
+- [ ] 4.12 **Update importy** všude kde se používal import `lib/pages/settings_page.dart`
+- [ ] **Test**: Kompletní manuální test všech 5 tabů
+- [ ] **Commit**: `♻️ refactor: Extract Agenda Tab + move to features (FÁZE 4)`
+
+**Výsledek**:
+- ✅ God object eliminován
+- ✅ `settings_page.dart` má ~100 řádků (pouze TabBar scaffold)
+- ✅ Každý tab v samostatném souboru
+- ✅ Vše v `lib/features/settings/`
+
+---
+
+**Celkový čas**: 2-3 hodiny
+
+**Očekávaná struktura PO refaktoringu**:
+```
+lib/features/settings/
+├── domain/models/
+│   ├── agenda_view_config.dart       ✅ EXISTUJE
+│   └── custom_agenda_view.dart       ✅ EXISTUJE
+├── presentation/
+│   ├── cubit/
+│   │   ├── settings_cubit.dart       ✅ EXISTUJE
+│   │   └── settings_state.dart       ✅ EXISTUJE
+│   ├── pages/
+│   │   ├── settings_page.dart        🆕 PŘESUNUTO (~100 lines)
+│   │   ├── ai_settings_tab.dart      🆕 NOVÝ (200 lines)
+│   │   ├── prompts_tab.dart          🆕 NOVÝ (500 lines)
+│   │   ├── themes_tab.dart           🆕 NOVÝ (300 lines)
+│   │   └── agenda_tab.dart           🆕 NOVÝ (800 lines)
+│   └── widgets/
+│       └── custom_view_dialog.dart   🆕 NOVÝ (400 lines)
+```
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené kroky v checkboxech výše
+- 📝 Poznamenej problémy při migraci
+- 🐛 Dokumentuj edge cases (missing imports, etc.)
+- 📸 **POVINNÝ commit po KAŽDÉ fázi!**
+- 🔄 Update TODO list v Claude Code UI
+
+**Edge Cases**:
+- ⚠️ **Import conflicts**: Po přesunu `settings_page.dart` update všechny importy (GoRouter, main.dart, etc.)
+- ⚠️ **TabBar length**: Ověř že TabBar má správný počet tabů (5)
+- ⚠️ **Theme access**: Zkontroluj že všechny taby mají přístup k `Theme.of(context)`
+
+**Priorita**: ⭐⭐⭐ CRITICAL (god object je code smell - musí se odstranit!)
+
+**Poznámka**: Toto je čistící refaktoring (cleanup) - žádné nové funkce, pouze lepší organizace kódu!
+
+**Bezpečnostní opatření**:
+- ✅ Snapshot commit PŘED začátkem
+- ✅ Test po každé fázi
+- ✅ Commit po každé fázi
+- ✅ Pokud něco selže → `git reset --hard HEAD~1`
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -646,9 +820,9 @@ Companion dokumenty:
 - sqlite-final.md - SQLite refactoring implementační plán (step-by-step guide)
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.6
+Verze: 1.7
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-01-10 (přidán SQLite Database Refactoring implementační plán)
+Aktualizováno: 2025-01-10 (přidán Settings Refactoring - God Object Elimination)
 Autor: Claude Code (AI asistent)
 
 ---
