@@ -118,15 +118,21 @@ CREATE TABLE pomodoro_sessions (
 
 ### **UI Design**:
 
-1. **Top AppBar struktura**:
+1. **TODO Item Card - Pomodoro ikona**:
 ```
 ┌─────────────────────────────────────────┐
-│ [📋] [📅] [🗓️] [⏰] [⚠️] [👁️]         │  ← ViewBar (existující)
-│ [✅5][🔴12][📅3][⏰7]    [✨][🍅][⚙️][?] │  ← StatsRow + Actions
+│ ☐ Napsat dokumentaci                    │
+│                                          │
+│ 📅 12.1.2025  🔴 Urgentní               │
+│                                          │
+│ [✨ AI]  [🍅 Pomodoro]  [🗑️ Smazat]     │  ← 🍅 POD sparkles!
 └─────────────────────────────────────────┘
-                              ↑
-                        Nová ikona!
 ```
+
+**Umístění**:
+- 🍅 Ikona je **v každém TODO itemu**
+- Pozice: Pod sparkles ikonou ✨ (v action row)
+- Klik na 🍅 → Quick start dialog → Spustí Pomodoro pro tento úkol
 
 2. **Pomodoro Tab Page**:
 ```
@@ -1458,17 +1464,33 @@ class HistoryList extends StatelessWidget {
 
 ## 🔗 Integrace do TodoListPage
 
-### **Přidání Pomodoro akce do úkolu**:
+### **Přidání Pomodoro button do TODO Card**:
 ```dart
-// todo_list_page.dart - v každém TodoItem
-IconButton(
-  icon: const Icon(Icons.timer, color: Colors.orange),
-  tooltip: 'Spustit Pomodoro',
-  onPressed: () {
-    // Navigate to Pomodoro tab
-    // NEBO show quick start dialog
-    _showPomodoroQuickStart(context, todo.id);
-  },
+// lib/features/todo_list/presentation/widgets/todo_item.dart
+// V action row (pod sparkles button)
+
+Row(
+  children: [
+    // Sparkles button (AI features)
+    IconButton(
+      icon: const Icon(Icons.auto_awesome),
+      tooltip: 'AI Features',
+      onPressed: () => _showAiMenu(context),
+    ),
+
+    // 🆕 POMODORO BUTTON
+    IconButton(
+      icon: const Icon(Icons.timer, color: Colors.orange),
+      tooltip: 'Spustit Pomodoro',
+      onPressed: () => _showPomodoroQuickStart(context, todo.id),
+    ),
+
+    // Delete button
+    IconButton(
+      icon: const Icon(Icons.delete),
+      onPressed: () => _deleteTodo(context),
+    ),
+  ],
 )
 
 void _showPomodoroQuickStart(BuildContext context, int taskId) {
@@ -1520,62 +1542,37 @@ void _showPomodoroQuickStart(BuildContext context, int taskId) {
 
 ---
 
-## 🧭 Top AppBar - Přidání Pomodoro ikony
+## 🧭 Navigace do Pomodoro Page
 
-### **Aktualizace TopBar**:
+### **Způsoby otevření Pomodoro stránky**:
+
+**1. Z TODO Card** (primární):
+- Klik na 🍅 ikonu v TODO itemu
+- Quick start dialog → vybrat délku → START
+- Automaticky otevře Pomodoro Tab s běžícím timerem
+
+**2. Z Top AppBar** (sekundární - OPTIONAL):
 ```dart
+// OPTIONAL: Přidat Pomodoro ikonu do TopBar pro přímý přístup
 // lib/features/todo_list/presentation/widgets/top_bar.dart
-Row(
-  children: [
-    // Existující Stats
-    _buildStat('✅', completedCount, Colors.green),
-    _buildStat('🔴', urgentCount, Colors.red),
-    _buildStat('📅', dueTodayCount, Colors.orange),
-    _buildStat('⏰', overdueCount, Colors.red.shade700),
 
-    const Spacer(),
-
-    // Sparkles (AI)
-    IconButton(
-      icon: const Icon(Icons.auto_awesome),
-      onPressed: () {
-        // Navigate to AI features
-      },
-    ),
-
-    // 🆕 POMODORO IKONA
-    IconButton(
-      icon: const Icon(Icons.timer, color: Colors.orange),
-      tooltip: 'Pomodoro Timer',
-      onPressed: () {
-        // Navigate to Pomodoro tab
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const PomodoroPage(),
-          ),
-        );
-      },
-    ),
-
-    // Settings
-    IconButton(
-      icon: const Icon(Icons.settings),
-      onPressed: () {
-        // Navigate to Settings
-      },
-    ),
-
-    // Help
-    IconButton(
-      icon: const Icon(Icons.help_outline),
-      onPressed: () {
-        // Navigate to Help
-      },
-    ),
-  ],
+IconButton(
+  icon: const Icon(Icons.timer, color: Colors.orange),
+  tooltip: 'Pomodoro Timer',
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PomodoroPage(),
+      ),
+    );
+  },
 )
 ```
+
+**Doporučení**:
+- ✅ Primární vstup: Z TODO Card (lepší UX - vybereš úkol a hned spustíš)
+- ⚠️ TopBar ikona: Pouze pokud chceš zobrazit historii/nastavení bez spuštění
 
 ---
 
@@ -1750,16 +1747,17 @@ Row(
 
 ### **User Story 1: Základní Pomodoro**
 ```
-1. User klikne na 🍅 ikonu v TopBar
-2. Otevře se Pomodoro Tab
-3. Klikne na "START"
-4. Vybere úkol ze seznamu
-5. Timer začne běžet (25 min)
-6. Notification zobrazena v Android status bar
-7. Po 25 min: Zvuk + "Pomodoro Complete!" notifikace
-8. User klikne "BREAK" → 5 min přestávka
-9. Po přestávce: Klikne "CONTINUE" → další Pomodoro
-10. Po 4 Pomodoro: Klikne "DONE" → úkol dokončen
+1. User vybere úkol "Napsat dokumentaci"
+2. Klikne na 🍅 ikonu v TODO Card
+3. Zobrazí se Quick Start dialog
+4. Vybere délku: 25 minut (default)
+5. Klikne "START"
+6. Otevře se Pomodoro Tab s běžícím timerem
+7. Notification zobrazena v Android status bar
+8. Po 25 min: Zvuk + "Pomodoro Complete!" notifikace
+9. User klikne "BREAK" → 5 min přestávka
+10. Po přestávce: Klikne "CONTINUE" → další Pomodoro
+11. Po 4 Pomodoro: Klikne "DONE" → úkol dokončen
 ```
 
 ### **User Story 2: Custom Duration**
