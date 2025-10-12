@@ -959,12 +959,16 @@ class TodoCard extends StatelessWidget {
       ),
     );
 
-    // Pokud user klikl START, přejít na Pomodoro Page (s vlastním AppBar)
+    // Pokud user klikl START, přejít na Pomodoro Page (s vlastním AppBar + auto-start)
     if (result != null && context.mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const PomodoroPage(showAppBar: true),
+          builder: (context) => PomodoroPage(
+            showAppBar: true,
+            taskId: todo.id,
+            duration: Duration(minutes: result),
+          ),
         ),
       );
     }

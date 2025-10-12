@@ -22,20 +22,42 @@ import '../../../../core/services/database_helper.dart';
 /// Parametr [showAppBar]:
 /// - false: Používá se v PageView (MainPage má společný AppBar)
 /// - true: Používá se jako samostatný route (např. z TODO Card)
+///
+/// Parametr [taskId] a [duration]:
+/// - Pokud jsou nastaveny, timer se automaticky spustí při otevření
 class PomodoroPage extends StatelessWidget {
   final bool showAppBar;
+  final int? taskId;
+  final Duration? duration;
 
-  const PomodoroPage({super.key, this.showAppBar = false});
+  const PomodoroPage({
+    super.key,
+    this.showAppBar = false,
+    this.taskId,
+    this.duration,
+  });
 
   @override
   Widget build(BuildContext context) {
     final content = BlocProvider(
-      create: (context) => PomodoroBloc(
-        repository: PomodoroRepositoryImpl(
-          databaseHelper: DatabaseHelper(),
-        ),
-        timerService: PomodoroTimerService(),
-      )..add(const LoadHistoryEvent()),
+      create: (context) {
+        final bloc = PomodoroBloc(
+          repository: PomodoroRepositoryImpl(
+            databaseHelper: DatabaseHelper(),
+          ),
+          timerService: PomodoroTimerService(),
+        );
+
+        // Load history
+        bloc.add(const LoadHistoryEvent());
+
+        // Auto-start timer pokud máme taskId a duration
+        if (taskId != null && duration != null) {
+          bloc.add(StartPomodoroEvent(taskId!, duration));
+        }
+
+        return bloc;
+      },
       child: BlocListener<PomodoroBloc, PomodoroState>(
         listener: (context, state) {
           // Zobrazit error message jako SnackBar
