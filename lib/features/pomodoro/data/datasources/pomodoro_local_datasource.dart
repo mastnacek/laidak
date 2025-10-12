@@ -83,7 +83,7 @@ class PomodoroLocalDataSource {
     final db = await _dbHelper.database;
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
-    final startTimestamp = startOfDay.millisecondsSinceEpoch;
+    final startTimestamp = startOfDay.millisecondsSinceEpoch ~/ 1000; // ✅ SEKUNDY!
 
     final results = await db.query(
       'pomodoro_sessions',
@@ -144,7 +144,7 @@ class PomodoroLocalDataSource {
     final db = await _dbHelper.database;
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
-    final startTimestamp = startOfDay.millisecondsSinceEpoch;
+    final startTimestamp = startOfDay.millisecondsSinceEpoch ~/ 1000; // ✅ SEKUNDY!
 
     final results = await db.rawQuery('''
       SELECT COUNT(*) as count
