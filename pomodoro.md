@@ -2014,11 +2014,27 @@ lib/features/pomodoro/domain/repositories/
 
 ---
 
-### **MILESTONE 1.3: PomodoroTimerService** ⏳ PENDING
-- [ ] Isolate-based timer service
-- [ ] Start/Pause/Resume/Stop operace
-- [ ] Stream<Duration> pro tick events
-- [ ] Přesnost ~50ms (separátní thread)
+### **MILESTONE 1.3: PomodoroTimerService** ✅ HOTOVO (2025-01-12)
+- ✅ Isolate-based timer service
+- ✅ Start/Pause/Resume/Stop operace
+- ✅ Stream<Duration> pro tick events
+- ✅ Přesnost ~50ms (separátní thread)
+
+**Změny**:
+```
+lib/features/pomodoro/domain/services/
+└── pomodoro_timer_service.dart  (NOVÝ - 315 řádků)
+```
+
+**Features**:
+- ✅ Background isolate execution (separátní thread)
+- ✅ SendPort/ReceivePort IPC komunikace
+- ✅ Timer.periodic s 1s tickem
+- ✅ Broadcast stream pro multiple listeners
+- ✅ Pause/Resume bez ztráty zbývajícího času
+- ✅ Proper cleanup (stop() method)
+
+**Pending commit**: `✨ feat: Pomodoro Timer Service (MILESTONE 1.3)`
 
 ---
 
@@ -2051,25 +2067,35 @@ lib/features/pomodoro/domain/repositories/
 - ✅ 15 metod pokrývá CRUD, config persistence, statistiky
 - ✅ Dependency Inversion Principle - BLoC bude záviset na interface, ne implementaci
 - ✅ Detailní dokumentace každé metody (SQL queries, use cases, error handling)
-- **Čeká na commit**: `✨ feat: Pomodoro Repository Interface (MILESTONE 1.2)`
+- **Commited**: `af0e4df ✨ feat: Pomodoro Repository Interface (MILESTONE 1.2)`
+
+### 2025-01-12 (MILESTONE 1.3 - Timer Service)
+- ✅ Implementován `PomodoroTimerService` s Isolate-based timerem
+- ✅ Background isolate pro přesný timing (~50ms accuracy)
+- ✅ SendPort/ReceivePort IPC komunikace (Main ↔ Background)
+- ✅ Start/Pause/Resume/Stop operace s proper state management
+- ✅ Broadcast Stream<Duration> pro multiple listeners
+- ✅ Closure helper funkce `startPeriodicTimer()` pro state access
+- ✅ Proper resource cleanup v stop() metodě
+- **Čeká na commit**: `✨ feat: Pomodoro Timer Service (MILESTONE 1.3)`
 
 ---
 
 ## 🔄 NEXT STEPS
 
-### Aktuální krok: MILESTONE 1.2 → Commit
+### Aktuální krok: MILESTONE 1.3 → Commit
 **Co udělat**:
-1. ✅ Vytvořen `pomodoro_repository.dart`
+1. ✅ Vytvořen `pomodoro_timer_service.dart` (315 řádků)
 2. ⏳ Commit změn
-3. ⏳ Pokračovat na MILESTONE 1.3 (PomodoroTimerService)
+3. ⏳ Pokračovat na MILESTONE 1.4 (PomodoroBloc)
 
-### Následující: MILESTONE 1.3 - PomodoroTimerService
-**Odhad**: 1-2 hodiny
+### Následující: MILESTONE 1.4 - PomodoroBloc
+**Odhad**: 2-3 hodiny
 **Kroky**:
-- Implementovat Isolate-based timer
-- SendPort/ReceivePort komunikace
-- Pause/Resume logika
-- Stream controller pro ticks
+- Vytvořit Events (StartPomodoro, Pause, Resume, Stop, TimerTick, etc.)
+- Vytvořit States (PomodoroState s Equatable)
+- Implementovat event handlers s Fail Fast validací
+- Integrovat s PomodoroTimerService (stream subscription)
 
 ---
 
