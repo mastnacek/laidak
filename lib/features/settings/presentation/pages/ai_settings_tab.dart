@@ -16,33 +16,43 @@ class AISettingsTab extends StatefulWidget {
 
 class _AISettingsTabState extends State<AISettingsTab> {
   final DatabaseHelper _db = DatabaseHelper();
-  final TextEditingController _apiKeyController = TextEditingController();
-  final TextEditingController _temperatureController = TextEditingController();
-  final TextEditingController _maxTokensController = TextEditingController();
 
+  // ===== MOTIVATION MODEL =====
+  final TextEditingController _motivationTempController = TextEditingController();
+  final TextEditingController _motivationTokensController = TextEditingController();
+  String? _selectedMotivationModel;
+
+  // ===== TASK MODEL =====
+  final TextEditingController _taskTempController = TextEditingController();
+  final TextEditingController _taskTokensController = TextEditingController();
+  String? _selectedTaskModel;
+
+  // ===== SHARED =====
+  final TextEditingController _apiKeyController = TextEditingController();
+  bool _obscureApiKey = true;
   bool _isLoading = true;
   bool _isEnabled = true;
-  bool _obscureApiKey = true;
 
   // Model dropdown state
-  String? _selectedModel;
   List<OpenRouterModel> _availableModels = [];
   bool _isLoadingModels = false;
 
   // Getter pro theme - dostupný ve všech metodách
   ThemeData get theme => Theme.of(context);
 
-  // Populární modely (pro quick select)
-  final List<String> _popularModels = [
+  // Doporučené modely podle účelu
+  final List<String> _motivationModels = [
+    'mistralai/mistral-medium',
+    'mistralai/mistral-large',
+    'anthropic/claude-3-opus',
+    'openai/gpt-4o',
+  ];
+
+  final List<String> _taskModels = [
     'anthropic/claude-3.5-sonnet',
     'anthropic/claude-3-opus',
-    'openai/gpt-4-turbo',
     'openai/gpt-4o',
     'google/gemini-pro-1.5',
-    'mistralai/mistral-medium-3.1',
-    'mistralai/mistral-large',
-    'meta-llama/llama-3.1-70b-instruct',
-    'meta-llama/llama-3.1-405b-instruct',
   ];
 
   @override
@@ -55,8 +65,10 @@ class _AISettingsTabState extends State<AISettingsTab> {
   @override
   void dispose() {
     _apiKeyController.dispose();
-    _temperatureController.dispose();
-    _maxTokensController.dispose();
+    _motivationTempController.dispose();
+    _motivationTokensController.dispose();
+    _taskTempController.dispose();
+    _taskTokensController.dispose();
     super.dispose();
   }
 
@@ -66,11 +78,20 @@ class _AISettingsTabState extends State<AISettingsTab> {
     final settings = await _db.getSettings();
 
     setState(() {
-      _apiKeyController.text = settings['api_key'] as String? ?? '';
-      _selectedModel = settings['model'] as String;
-      _temperatureController.text = (settings['temperature'] as double).toString();
-      _maxTokensController.text = (settings['max_tokens'] as int).toString();
+      // Shared
+      _apiKeyController.text = settings['openrouter_api_key'] as String? ?? '';
       _isEnabled = (settings['enabled'] as int) == 1;
+
+      // Motivation
+      _selectedMotivationModel = settings['ai_motivation_model'] as String;
+      _motivationTempController.text = (settings['ai_motivation_temperature'] as double).toString();
+      _motivationTokensController.text = (settings['ai_motivation_max_tokens'] as int).toString();
+
+      // Task
+      _selectedTaskModel = settings['ai_task_model'] as String;
+      _taskTempController.text = (settings['ai_task_temperature'] as double).toString();
+      _taskTokensController.text = (settings['ai_task_max_tokens'] as int).toString();
+
       _isLoading = false;
     });
   }
@@ -111,9 +132,10 @@ class _AISettingsTabState extends State<AISettingsTab> {
     } catch (e) {
       setState(() => _isLoadingModels = false);
 
-      // Fallback na populární modely jako OpenRouterModel objekty (bez pricing)
+      // Fallback na doporučené modely jako OpenRouterModel objekty (bez pricing)
+      final fallbackModels = [..._motivationModels, ..._taskModels].toSet().toList();
       setState(() {
-        _availableModels = _popularModels
+        _availableModels = fallbackModels
             .map((id) => OpenRouterModel(
                   id: id,
                   name: id.split('/').last,
@@ -124,7 +146,7 @@ class _AISettingsTabState extends State<AISettingsTab> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('⚠️ Nepodařilo se načíst modely z API. Použity populární modely.'),
+            content: const Text('⚠️ Nepodařilo se načíst modely z API. Použity doporučené modely.'),
             backgroundColor: theme.appColors.yellow,
           ),
         );
@@ -214,8 +236,8 @@ class _AISettingsTabState extends State<AISettingsTab> {
   }
 
   /// Zobrazit dialog pro zadání vlastního model ID
-  Future<void> _showCustomModelDialog() async {
-    final controller = TextEditingController(text: _selectedModel);
+  Future<void> _showCustomModelDialog(ValueChanged<String?> onChanged) async {
+    final controller = TextEditingController();
 
     final result = await showDialog<String>(
       context: context,
@@ -312,9 +334,7 @@ class _AISettingsTabState extends State<AISettingsTab> {
     );
 
     if (result != null && result.isNotEmpty) {
-      setState(() {
-        _selectedModel = result;
-      });
+      onChanged(result);
     }
   }
 
@@ -322,11 +342,19 @@ class _AISettingsTabState extends State<AISettingsTab> {
   Future<void> _saveSettings() async {
     try {
       await _db.updateSettings(
-        apiKey: _apiKeyController.text.trim(),
-        model: _selectedModel?.trim() ?? 'mistralai/mistral-medium-3.1',
-        temperature: double.tryParse(_temperatureController.text) ?? 1.0,
-        maxTokens: int.tryParse(_maxTokensController.text) ?? 1000,
+        // Shared
+        openRouterApiKey: _apiKeyController.text.trim(),
         enabled: _isEnabled,
+
+        // Motivation
+        aiMotivationModel: _selectedMotivationModel?.trim() ?? 'mistralai/mistral-medium',
+        aiMotivationTemperature: double.tryParse(_motivationTempController.text) ?? 0.9,
+        aiMotivationMaxTokens: int.tryParse(_motivationTokensController.text) ?? 200,
+
+        // Task
+        aiTaskModel: _selectedTaskModel?.trim() ?? 'anthropic/claude-3.5-sonnet',
+        aiTaskTemperature: double.tryParse(_taskTempController.text) ?? 0.3,
+        aiTaskMaxTokens: int.tryParse(_taskTokensController.text) ?? 1000,
       );
 
       if (mounted) {
