@@ -663,6 +663,163 @@ lib/features/settings/
 
 ---
 
+## 🍅 Pomodoro Timer - Implementační Plán
+
+### 📋 Kompletní guide: [pomodoro.md](pomodoro.md)
+
+**Funkce**: Pomodoro Timer pro produktivní práci s úkoly (25 min práce + 5 min pauza)
+
+**Kdy použít**: Implementace nové feature `lib/features/pomodoro/`
+
+**Postup**:
+1. Přečti si kompletní plán v [pomodoro.md](pomodoro.md)
+2. Následuj **6 MILESTONES** (malé kroky, commit po každém milestonu)
+3. **DŮLEŽITÉ**: Hlídej zbývající tokeny! Pokud < 50k, ukonči session a pokračuj v nové.
+4. Dodržuj SCÉNÁŘ 1 z [mapa-bloc.md](mapa-bloc.md) - Přidání nové feature
+
+**Klíčové komponenty**:
+- ⏱️ **PomodoroTimerService** - Isolate-based timer (přesnost ~50ms)
+- 🧠 **PomodoroBloc** - State management (Events + States)
+- 🗄️ **PomodoroRepository** - SQLite persistence (pomodoro_sessions tabulka)
+- 📱 **PomodoroPage** - UI s circular timer + controls
+- 🔔 **NotificationService** - Android foreground notifications (optional)
+
+**Architektura**:
+```
+lib/features/pomodoro/
+├── presentation/
+│   ├── bloc/
+│   │   ├── pomodoro_bloc.dart
+│   │   ├── pomodoro_event.dart
+│   │   └── pomodoro_state.dart
+│   ├── pages/pomodoro_page.dart
+│   └── widgets/
+│       ├── timer_display.dart
+│       └── timer_controls.dart
+├── domain/
+│   ├── entities/
+│   │   ├── pomodoro_session.dart
+│   │   ├── timer_state.dart
+│   │   └── pomodoro_config.dart
+│   ├── repositories/pomodoro_repository.dart
+│   └── services/pomodoro_timer_service.dart
+└── data/
+    └── repositories/pomodoro_repository_impl.dart
+```
+
+**Implementační milestones (postupuj PŘESNĚ v tomto pořadí!)**:
+
+### **MILESTONE 1: Core Timer Logic** ⏱️ 4-6h
+**Priorita**: 🔴 CRITICAL
+
+**Kroky**: Viz [pomodoro.md](pomodoro.md) sekce "📋 IMPLEMENTATION PROGRESS - MILESTONE 1"
+- Domain entities (PomodoroSession, TimerState, PomodoroConfig)
+- Repository interface
+- Isolate-based timer service
+- PomodoroBloc (events, states, handlers)
+- Unit tests
+- **Commit**: `✨ feat: Core Pomodoro Timer Logic (MILESTONE 1)`
+
+---
+
+### **MILESTONE 2: Database Integration** ⏱️ 2-3h
+**Priorita**: 🔴 CRITICAL
+
+**Kroky**: Viz [pomodoro.md](pomodoro.md) sekce "MILESTONE 2"
+- Přidej tabulku `pomodoro_sessions`
+- DB migrace (version 12)
+- PomodoroRepositoryImpl
+- CRUD operace
+- **Commit**: `💾 feat: Pomodoro Database Persistence (MILESTONE 2)`
+
+---
+
+### **MILESTONE 3: Basic UI** ⏱️ 3-4h
+**Priorita**: 🟡 HIGH
+
+**Kroky**: Viz [pomodoro.md](pomodoro.md) sekce "MILESTONE 3"
+- Circular timer display (AnimatedBuilder)
+- Control buttons (Start/Pause/Resume/Stop)
+- BlocBuilder reactive UI
+- Session info display
+- **Commit**: `🎨 feat: Pomodoro Basic UI (MILESTONE 3)`
+
+---
+
+### **MILESTONE 4: Android Notifications** ⏱️ 2-3h
+**Priorita**: 🟢 MEDIUM (optional)
+
+**Kroky**: Viz [pomodoro.md](pomodoro.md) sekce "MILESTONE 4"
+- Foreground service setup
+- Notification actions
+- Background updates
+- **Commit**: `🔔 feat: Android Notifications (MILESTONE 4)`
+
+---
+
+### **MILESTONE 5: Integration & Polish** ⏱️ 2-3h
+**Priorita**: 🟡 HIGH
+
+**Kroky**: Viz [pomodoro.md](pomodoro.md) sekce "MILESTONE 5"
+- TodoCard integration (🍅 button + dialog)
+- Navigation setup
+- History view
+- Sound effects
+- **Commit**: `✨ feat: Pomodoro Integration & Polish (MILESTONE 5)`
+
+---
+
+### **MILESTONE 6: Desktop Support** ⏱️ 3-4h
+**Priorita**: 🟢 LOW (optional)
+
+**Kroky**: Viz [pomodoro.md](pomodoro.md) sekce "MILESTONE 6"
+- Windows tray icon
+- Desktop notifications
+- Platform checks
+- **Commit**: `💻 feat: Pomodoro Desktop Support (MILESTONE 6)`
+
+---
+
+**Celkový čas**: 16-23 hodin (rozděleno do 6 milestones)
+
+**⚠️ TOKEN BUDGET MANAGEMENT - KRITICKÉ!**:
+```
+Celkový budget: 200,000 tokens
+Bezpečná hranice: 50,000 tokens zbývá
+Nebezpečná zóna: < 30,000 tokens
+
+PRAVIDLO:
+- Před KAŽDÝM větším čtením/editací zkontroluj zbývající tokeny
+- Pokud < 50,000 tokens zbývá → STOP a požádej o continuation
+- NIKDY neriskuj autocompact mid-implementation!
+- Každý milestone commituj → restart v nové session je bezpečný
+```
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené kroky v [pomodoro.md](pomodoro.md) (checkboxy)
+- 📝 Update "IMPLEMENTATION PROGRESS" sekci po každém kroku
+- 🐛 Dokumentuj narazené problémy a řešení
+- 📸 **POVINNÝ commit po KAŽDÉM milestonu!**
+- 🔄 Update TODO list v Claude Code UI
+- 🔢 **Hlídej zbývající tokeny před každou operací!**
+
+**Edge Cases**:
+- Co když app je force-closed? → Timer se ztratí (future: save expected_end_time)
+- Co když device restart? → Session lost (expected behavior v1.0)
+- Jak battery optimization? → Notifications každých 5s (ne každou sekundu)
+- Persistence settings? → PomodoroConfig v SharedPreferences
+
+**Priorita**: ⭐⭐⭐ HIGH (produktivita feature - game-changer pro focus work)
+
+**Poznámka**: Inspirováno Tauri TODO app - viz analýza Tauri implementace v [pomodoro.md](pomodoro.md)
+
+**Současný stav**:
+- ✅ Navigace setup (TODO Card → Dialog → PomodoroPage)
+- ✅ Quick Start Dialog s výběrem délky
+- ⏳ MILESTONE 1 pending (Core Timer Logic)
+
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
