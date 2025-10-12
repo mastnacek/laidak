@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 12,  // ← ZMĚNIT z 11 na 12 (Emoji místo iconCodePoint)
+      version: 13,  // ← Pomodoro Sessions tabulka
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -181,6 +181,24 @@ class DatabaseHelper {
         'CREATE INDEX idx_subtasks_parent_todo_id ON subtasks(parent_todo_id)');
     await db
         .execute('CREATE INDEX idx_subtasks_completed ON subtasks(completed)');
+
+    // Tabulka Pomodoro sessions
+    await db.execute('''
+      CREATE TABLE pomodoro_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL,
+        started_at INTEGER NOT NULL,
+        ended_at INTEGER,
+        duration INTEGER NOT NULL,
+        actual_duration INTEGER,
+        completed INTEGER NOT NULL DEFAULT 0,
+        is_break INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY(task_id) REFERENCES todos(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_pomodoro_task ON pomodoro_sessions(task_id)');
+    await db.execute('CREATE INDEX idx_pomodoro_date ON pomodoro_sessions(started_at)');
 
     // Performance indexy pro todos tabulku (rychlejší vyhledávání a sortování)
     await db.execute('CREATE INDEX idx_todos_task ON todos(task)');
@@ -355,6 +373,11 @@ class DatabaseHelper {
     if (oldVersion < 12) {
       // MILESTONE 3: Emoji místo iconCodePoint v custom_agenda_views
       await _migrateIconCodePointToEmoji(db);
+    }
+
+    if (oldVersion < 13) {
+      // MILESTONE: Pomodoro Sessions tabulka
+      await _createPomodoroSessionsTable(db);
     }
   }
 
@@ -1337,6 +1360,28 @@ class DatabaseHelper {
     if (updates.isNotEmpty) {
       await db.update('settings', updates, where: 'id = 1');
     }
+  }
+
+  // ==================== MIGRACE VERZE 13: POMODORO SESSIONS ====================
+
+  /// Vytvořit tabulku pomodoro_sessions (verze 13)
+  Future<void> _createPomodoroSessionsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE pomodoro_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL,
+        started_at INTEGER NOT NULL,
+        ended_at INTEGER,
+        duration INTEGER NOT NULL,
+        actual_duration INTEGER,
+        completed INTEGER NOT NULL DEFAULT 0,
+        is_break INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY(task_id) REFERENCES todos(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_pomodoro_task ON pomodoro_sessions(task_id)');
+    await db.execute('CREATE INDEX idx_pomodoro_date ON pomodoro_sessions(started_at)');
   }
 
   // ==================== PERFORMANCE & MAINTENANCE ====================
