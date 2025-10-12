@@ -294,12 +294,20 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
           ? await _repository.getSessionsByTask(event.taskId!)
           : await _repository.getTodaySessions();
 
+      // DEBUG: Log načtenou historii
+      print('🐛 DEBUG _onLoadHistory: Načteno ${history.length} sessions z DB');
+      for (final session in history) {
+        print('  - Session ID=${session.id}, taskId=${session.taskId}, '
+            'completed=${session.completed}, started=${session.startedAt}');
+      }
+
       emit(state.copyWith(
         history: history,
         isLoading: false,
         errorMessage: null,
       ));
     } catch (e) {
+      print('🐛 DEBUG _onLoadHistory: CHYBA: $e');
       emit(state.copyWith(
         errorMessage: 'Nelze načíst historii: $e',
         isLoading: false,
