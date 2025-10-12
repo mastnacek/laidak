@@ -46,11 +46,27 @@ class SettingsCubit extends Cubit<SettingsState> {
       // Načíst agenda config ze SharedPreferences
       final agendaConfig = await _loadAgendaConfig();
 
+      // Načíst AI settings z databáze
+      final openRouterApiKey = settings['openrouter_api_key'] as String?;
+      final aiMotivationModel = settings['ai_motivation_model'] as String? ?? 'mistralai/mistral-medium';
+      final aiMotivationTemperature = (settings['ai_motivation_temperature'] as num?)?.toDouble() ?? 0.9;
+      final aiMotivationMaxTokens = settings['ai_motivation_max_tokens'] as int? ?? 200;
+      final aiTaskModel = settings['ai_task_model'] as String? ?? 'anthropic/claude-3.5-sonnet';
+      final aiTaskTemperature = (settings['ai_task_temperature'] as num?)?.toDouble() ?? 0.3;
+      final aiTaskMaxTokens = settings['ai_task_max_tokens'] as int? ?? 1000;
+
       emit(SettingsLoaded(
         selectedThemeId: themeId,
         currentTheme: theme,
         hasSeenGestureHint: hasSeenGestureHint,
         agendaConfig: agendaConfig,
+        openRouterApiKey: openRouterApiKey,
+        aiMotivationModel: aiMotivationModel,
+        aiMotivationTemperature: aiMotivationTemperature,
+        aiMotivationMaxTokens: aiMotivationMaxTokens,
+        aiTaskModel: aiTaskModel,
+        aiTaskTemperature: aiTaskTemperature,
+        aiTaskMaxTokens: aiTaskMaxTokens,
       ));
     } catch (e) {
       emit(SettingsError('Chyba při načítání nastavení: $e'));
@@ -346,5 +362,175 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> _saveAgendaConfig(AgendaViewConfig config) async {
     await _saveBuiltInViews(config);
     // Custom views se ukládají přes CRUD metody
+  }
+
+  // ========== AI SETTINGS MANAGEMENT ==========
+
+  /// Uložit OpenRouter API klíč
+  Future<void> saveOpenRouterApiKey(String apiKey) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (apiKey.trim().isEmpty) {
+      AppLogger.error('❌ API klíč nesmí být prázdný');
+      return;
+    }
+
+    try {
+      // Uložit do DB
+      await _db.updateSettings(openRouterApiKey: apiKey);
+
+      // Update state
+      emit(currentState.copyWith(openRouterApiKey: apiKey));
+
+      AppLogger.info('✅ OpenRouter API klíč uložen');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání API klíče: $e');
+    }
+  }
+
+  /// Nastavit model pro motivaci
+  Future<void> setMotivationModel(String model) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (model.trim().isEmpty) {
+      AppLogger.error('❌ Model nesmí být prázdný');
+      return;
+    }
+
+    try {
+      // Uložit do DB
+      await _db.updateSettings(aiMotivationModel: model);
+
+      // Update state
+      emit(currentState.copyWith(aiMotivationModel: model));
+
+      AppLogger.info('✅ Motivation model nastaven: $model');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání motivation modelu: $e');
+    }
+  }
+
+  /// Nastavit teplotu pro motivaci
+  Future<void> setMotivationTemperature(double temperature) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (temperature < 0.0 || temperature > 2.0) {
+      AppLogger.error('❌ Teplota musí být mezi 0.0 a 2.0');
+      return;
+    }
+
+    try {
+      // Uložit do DB
+      await _db.updateSettings(aiMotivationTemperature: temperature);
+
+      // Update state
+      emit(currentState.copyWith(aiMotivationTemperature: temperature));
+
+      AppLogger.info('✅ Motivation temperature nastavena: $temperature');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání motivation temperature: $e');
+    }
+  }
+
+  /// Nastavit max tokens pro motivaci
+  Future<void> setMotivationMaxTokens(int maxTokens) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (maxTokens < 1 || maxTokens > 4000) {
+      AppLogger.error('❌ Max tokens musí být mezi 1 a 4000');
+      return;
+    }
+
+    try {
+      // Uložit do DB
+      await _db.updateSettings(aiMotivationMaxTokens: maxTokens);
+
+      // Update state
+      emit(currentState.copyWith(aiMotivationMaxTokens: maxTokens));
+
+      AppLogger.info('✅ Motivation max tokens nastaveny: $maxTokens');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání motivation max tokens: $e');
+    }
+  }
+
+  /// Nastavit model pro rozdělení úkolů (AI Split)
+  Future<void> setTaskModel(String model) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (model.trim().isEmpty) {
+      AppLogger.error('❌ Model nesmí být prázdný');
+      return;
+    }
+
+    try {
+      // Uložit do DB
+      await _db.updateSettings(aiTaskModel: model);
+
+      // Update state
+      emit(currentState.copyWith(aiTaskModel: model));
+
+      AppLogger.info('✅ Task model nastaven: $model');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání task modelu: $e');
+    }
+  }
+
+  /// Nastavit teplotu pro rozdělení úkolů
+  Future<void> setTaskTemperature(double temperature) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (temperature < 0.0 || temperature > 2.0) {
+      AppLogger.error('❌ Teplota musí být mezi 0.0 a 2.0');
+      return;
+    }
+
+    try {
+      // Uložit do DB
+      await _db.updateSettings(aiTaskTemperature: temperature);
+
+      // Update state
+      emit(currentState.copyWith(aiTaskTemperature: temperature));
+
+      AppLogger.info('✅ Task temperature nastavena: $temperature');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání task temperature: $e');
+    }
+  }
+
+  /// Nastavit max tokens pro rozdělení úkolů
+  Future<void> setTaskMaxTokens(int maxTokens) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (maxTokens < 1 || maxTokens > 4000) {
+      AppLogger.error('❌ Max tokens musí být mezi 1 a 4000');
+      return;
+    }
+
+    try {
+      // Uložit do DB
+      await _db.updateSettings(aiTaskMaxTokens: maxTokens);
+
+      // Update state
+      emit(currentState.copyWith(aiTaskMaxTokens: maxTokens));
+
+      AppLogger.info('✅ Task max tokens nastaveny: $maxTokens');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání task max tokens: $e');
+    }
   }
 }

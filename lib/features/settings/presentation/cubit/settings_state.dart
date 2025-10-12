@@ -33,11 +33,40 @@ final class SettingsLoaded extends SettingsState {
   /// Konfigurace Agenda Views (built-in + custom views)
   final AgendaViewConfig agendaConfig;
 
+  // --- AI Settings ---
+  /// OpenRouter API klíč
+  final String? openRouterApiKey;
+
+  /// Model pro motivaci (uncensored, kreativní)
+  final String aiMotivationModel;
+
+  /// Teplota pro motivaci (0.0-2.0)
+  final double aiMotivationTemperature;
+
+  /// Max tokens pro motivaci
+  final int aiMotivationMaxTokens;
+
+  /// Model pro rozdělení úkolů (chytrý, JSON-ready)
+  final String aiTaskModel;
+
+  /// Teplota pro task rozdělení (0.0-2.0)
+  final double aiTaskTemperature;
+
+  /// Max tokens pro task rozdělení
+  final int aiTaskMaxTokens;
+
   const SettingsLoaded({
     required this.selectedThemeId,
     required this.currentTheme,
     this.hasSeenGestureHint = false,
     AgendaViewConfig? agendaConfig,
+    this.openRouterApiKey,
+    this.aiMotivationModel = 'mistralai/mistral-medium',
+    this.aiMotivationTemperature = 0.9,
+    this.aiMotivationMaxTokens = 200,
+    this.aiTaskModel = 'anthropic/claude-3.5-sonnet',
+    this.aiTaskTemperature = 0.3,
+    this.aiTaskMaxTokens = 1000,
   }) : agendaConfig = agendaConfig ?? const AgendaViewConfig();
 
   /// copyWith pro immutable updates
@@ -46,17 +75,43 @@ final class SettingsLoaded extends SettingsState {
     ThemeData? currentTheme,
     bool? hasSeenGestureHint,
     AgendaViewConfig? agendaConfig,
+    String? openRouterApiKey,
+    String? aiMotivationModel,
+    double? aiMotivationTemperature,
+    int? aiMotivationMaxTokens,
+    String? aiTaskModel,
+    double? aiTaskTemperature,
+    int? aiTaskMaxTokens,
   }) {
     return SettingsLoaded(
       selectedThemeId: selectedThemeId ?? this.selectedThemeId,
       currentTheme: currentTheme ?? this.currentTheme,
       hasSeenGestureHint: hasSeenGestureHint ?? this.hasSeenGestureHint,
       agendaConfig: agendaConfig ?? this.agendaConfig,
+      openRouterApiKey: openRouterApiKey ?? this.openRouterApiKey,
+      aiMotivationModel: aiMotivationModel ?? this.aiMotivationModel,
+      aiMotivationTemperature: aiMotivationTemperature ?? this.aiMotivationTemperature,
+      aiMotivationMaxTokens: aiMotivationMaxTokens ?? this.aiMotivationMaxTokens,
+      aiTaskModel: aiTaskModel ?? this.aiTaskModel,
+      aiTaskTemperature: aiTaskTemperature ?? this.aiTaskTemperature,
+      aiTaskMaxTokens: aiTaskMaxTokens ?? this.aiTaskMaxTokens,
     );
   }
 
   @override
-  List<Object?> get props => [selectedThemeId, currentTheme, hasSeenGestureHint, agendaConfig];
+  List<Object?> get props => [
+        selectedThemeId,
+        currentTheme,
+        hasSeenGestureHint,
+        agendaConfig,
+        openRouterApiKey,
+        aiMotivationModel,
+        aiMotivationTemperature,
+        aiMotivationMaxTokens,
+        aiTaskModel,
+        aiTaskTemperature,
+        aiTaskMaxTokens,
+      ];
 }
 
 /// Error state - chyba při načítání/ukládání nastavení

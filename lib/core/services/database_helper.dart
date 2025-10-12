@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 13,  // ← Pomodoro Sessions tabulka
+      version: 14,  // ← AI Settings (Motivation + Task models)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -76,7 +76,14 @@ class DatabaseHelper {
         show_today INTEGER NOT NULL DEFAULT 1,
         show_week INTEGER NOT NULL DEFAULT 1,
         show_upcoming INTEGER NOT NULL DEFAULT 0,
-        show_overdue INTEGER NOT NULL DEFAULT 1
+        show_overdue INTEGER NOT NULL DEFAULT 1,
+        openrouter_api_key TEXT,
+        ai_motivation_model TEXT NOT NULL DEFAULT 'mistralai/mistral-medium',
+        ai_motivation_temperature REAL NOT NULL DEFAULT 0.9,
+        ai_motivation_max_tokens INTEGER NOT NULL DEFAULT 200,
+        ai_task_model TEXT NOT NULL DEFAULT 'anthropic/claude-3.5-sonnet',
+        ai_task_temperature REAL NOT NULL DEFAULT 0.3,
+        ai_task_max_tokens INTEGER NOT NULL DEFAULT 1000
       )
     ''');
 
@@ -379,6 +386,17 @@ class DatabaseHelper {
       // MILESTONE: Pomodoro Sessions tabulka
       await _createPomodoroSessionsTable(db);
     }
+
+    if (oldVersion < 14) {
+      // AI Settings: Přidat sloupce pro Motivation + Task models
+      await db.execute('ALTER TABLE settings ADD COLUMN openrouter_api_key TEXT');
+      await db.execute('ALTER TABLE settings ADD COLUMN ai_motivation_model TEXT NOT NULL DEFAULT \'mistralai/mistral-medium\'');
+      await db.execute('ALTER TABLE settings ADD COLUMN ai_motivation_temperature REAL NOT NULL DEFAULT 0.9');
+      await db.execute('ALTER TABLE settings ADD COLUMN ai_motivation_max_tokens INTEGER NOT NULL DEFAULT 200');
+      await db.execute('ALTER TABLE settings ADD COLUMN ai_task_model TEXT NOT NULL DEFAULT \'anthropic/claude-3.5-sonnet\'');
+      await db.execute('ALTER TABLE settings ADD COLUMN ai_task_temperature REAL NOT NULL DEFAULT 0.3');
+      await db.execute('ALTER TABLE settings ADD COLUMN ai_task_max_tokens INTEGER NOT NULL DEFAULT 1000');
+    }
   }
 
   /// Vložit výchozí AI nastavení
@@ -399,6 +417,14 @@ class DatabaseHelper {
       'show_week': 1,
       'show_upcoming': 0,
       'show_overdue': 1,
+      // AI Settings
+      'openrouter_api_key': null,
+      'ai_motivation_model': 'mistralai/mistral-medium',
+      'ai_motivation_temperature': 0.9,
+      'ai_motivation_max_tokens': 200,
+      'ai_task_model': 'anthropic/claude-3.5-sonnet',
+      'ai_task_temperature': 0.3,
+      'ai_task_max_tokens': 1000,
     });
   }
 
@@ -616,6 +642,14 @@ class DatabaseHelper {
     String? tagDelimiterEnd,
     String? selectedTheme,
     bool? hasSeenGestureHint,
+    // AI Settings - OpenRouter API
+    String? openRouterApiKey,
+    String? aiMotivationModel,
+    double? aiMotivationTemperature,
+    int? aiMotivationMaxTokens,
+    String? aiTaskModel,
+    double? aiTaskTemperature,
+    int? aiTaskMaxTokens,
   }) async {
     final db = await database;
 
@@ -633,6 +667,14 @@ class DatabaseHelper {
     if (tagDelimiterEnd != null) updateData['tag_delimiter_end'] = tagDelimiterEnd;
     if (selectedTheme != null) updateData['selected_theme'] = selectedTheme;
     if (hasSeenGestureHint != null) updateData['has_seen_gesture_hint'] = hasSeenGestureHint ? 1 : 0;
+    // AI Settings
+    if (openRouterApiKey != null) updateData['openrouter_api_key'] = openRouterApiKey;
+    if (aiMotivationModel != null) updateData['ai_motivation_model'] = aiMotivationModel;
+    if (aiMotivationTemperature != null) updateData['ai_motivation_temperature'] = aiMotivationTemperature;
+    if (aiMotivationMaxTokens != null) updateData['ai_motivation_max_tokens'] = aiMotivationMaxTokens;
+    if (aiTaskModel != null) updateData['ai_task_model'] = aiTaskModel;
+    if (aiTaskTemperature != null) updateData['ai_task_temperature'] = aiTaskTemperature;
+    if (aiTaskMaxTokens != null) updateData['ai_task_max_tokens'] = aiTaskMaxTokens;
 
     if (updateData.isEmpty) return;
 
