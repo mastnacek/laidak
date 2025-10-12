@@ -38,6 +38,7 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
     on<ContinuePomodoroEvent>(_onContinuePomodoro);
     on<LoadHistoryEvent>(_onLoadHistory);
     on<UpdateConfigEvent>(_onUpdateConfig);
+    on<FinishTaskEvent>(_onFinishTask);
   }
 
   /// Handler: Spustit nové Pomodoro
@@ -318,6 +319,27 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
         errorMessage: 'Nelze uložit konfiguraci: $e',
       ));
     }
+  }
+
+  /// Handler: Ukončit práci na úkolu (vyčistit currentTaskId)
+  void _onFinishTask(
+    FinishTaskEvent event,
+    Emitter<PomodoroState> emit,
+  ) {
+    // Fail Fast validace
+    if (state.isTimerActive) {
+      emit(state.copyWith(
+        errorMessage: 'Nejdřív zastavte běžící timer!',
+      ));
+      return;
+    }
+
+    // Vyčistit currentTaskId a sessionCount
+    emit(state.copyWith(
+      currentTaskId: null,
+      sessionCount: 0,
+      errorMessage: null,
+    ));
   }
 
   /// Cleanup při dispose

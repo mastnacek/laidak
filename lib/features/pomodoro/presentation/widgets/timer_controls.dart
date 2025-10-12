@@ -144,6 +144,28 @@ class TimerControls extends StatelessWidget {
                   ),
                 ),
               ),
+
+            // FINISH button (ukončit práci na úkolu)
+            if (state.timerState == TimerState.idle &&
+                state.currentTaskId != null)
+              ElevatedButton.icon(
+                onPressed: () {
+                  context.read<PomodoroBloc>().add(const FinishTaskEvent());
+                },
+                icon: const Icon(Icons.check_circle, size: 28),
+                label: const Text(
+                  'FINISH',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
           ],
         );
       },

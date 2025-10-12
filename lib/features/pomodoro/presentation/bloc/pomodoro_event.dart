@@ -95,3 +95,11 @@ class UpdateConfigEvent extends PomodoroEvent {
   @override
   List<Object?> get props => [config];
 }
+
+/// Ukončit práci na úkolu (vyčistit currentTaskId)
+class FinishTaskEvent extends PomodoroEvent {
+  const FinishTaskEvent();
+
+  @override
+  List<Object?> get props => [];
+}
