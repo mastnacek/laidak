@@ -130,9 +130,7 @@ class TimerControls extends StatelessWidget {
                 state.currentTaskId != null)
               ElevatedButton.icon(
                 onPressed: () {
-                  context.read<PomodoroBloc>().add(
-                        const ContinuePomodoroEvent(),
-                      );
+                  _showContinueDialog(context, state.currentTaskId!);
                 },
                 icon: const Icon(Icons.refresh, size: 28),
                 label: const Text(
@@ -253,6 +251,159 @@ class TimerControls extends StatelessWidget {
             child: const Text('Ano, zastavit'),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Dialog pro Continue (vyber delky pro dalsi session)
+  void _showContinueDialog(BuildContext context, int taskId) {
+    int? selectedMinutes; // null = vlastní hodnota
+    final customController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('🍅 Pokračovat v Pomodoro'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Task info
+              Text(
+                'Úkol #$taskId',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Délka
+              const Text(
+                'Délka session:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Rychlé volby (tlačítka)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [1, 5, 15, 25, 30, 45, 60].map((minutes) {
+                  final isSelected = selectedMinutes == minutes;
+                  return OutlinedButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedMinutes = minutes;
+                        customController.clear();
+                      });
+                    },
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: isSelected
+                          ? Colors.orange.withValues(alpha: 0.2)
+                          : null,
+                      side: BorderSide(
+                        color: isSelected ? Colors.orange : Colors.grey,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                    child: Text(
+                      '$minutes min',
+                      style: TextStyle(
+                        color: isSelected ? Colors.orange : null,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+
+              // Vlastní zadání (TextField)
+              const Text(
+                'Nebo zadej vlastní:',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: customController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Zadej minuty (1-180)',
+                  suffixText: 'min',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide:
+                        const BorderSide(color: Colors.orange, width: 2),
+                  ),
+                ),
+                onChanged: (value) {
+                  // Pokud user píše, zrušit vybranou rychlou volbu
+                  if (value.isNotEmpty) {
+                    setState(() {
+                      selectedMinutes = null;
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Zrušit'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                // Určit finální počet minut
+                int? finalMinutes;
+                if (selectedMinutes != null) {
+                  finalMinutes = selectedMinutes;
+                } else if (customController.text.isNotEmpty) {
+                  finalMinutes = int.tryParse(customController.text);
+                }
+
+                // Validace
+                if (finalMinutes == null ||
+                    finalMinutes < 1 ||
+                    finalMinutes > 180) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('⚠️ Zadej platný počet minut (1-180)'),
+                      backgroundColor: Colors.orange,
+                    ),
+                  );
+                  return;
+                }
+
+                // Spustit novou session s custom duration
+                context.read<PomodoroBloc>().add(
+                      ContinuePomodoroEvent(
+                        Duration(minutes: finalMinutes),
+                      ),
+                    );
+                Navigator.pop(dialogContext);
+              },
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('START'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
