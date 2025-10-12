@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../core/theme/theme_colors.dart';
 import '../features/settings/presentation/pages/ai_settings_tab.dart';
 import '../features/settings/presentation/pages/prompts_tab.dart';
 import '../features/settings/presentation/pages/themes_tab.dart';

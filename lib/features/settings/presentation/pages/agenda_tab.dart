@@ -706,3 +706,47 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
   /// Zobrazit emoji picker v bottom sheet
   void _showEmojiPickerBottomSheet(BuildContext context, ThemeData theme) {
     showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.appColors.bg,
+      builder: (context) => SizedBox(
+        height: 400,
+        child: EmojiPicker(
+          onEmojiSelected: (category, emoji) {
+            setState(() {
+              _selectedEmoji = emoji.emoji;
+            });
+            Navigator.pop(context);
+          },
+          config: Config(
+            checkPlatformCompatibility: true,
+            emojiViewConfig: EmojiViewConfig(
+              backgroundColor: theme.appColors.bg,
+              buttonMode: ButtonMode.MATERIAL,
+              recentsLimit: 28,
+              replaceEmojiOnLimitExceed: false,
+              noRecents: Text(
+                'Žádné nedávné emoji',
+                style: TextStyle(fontSize: 14, color: theme.appColors.base5),
+                textAlign: TextAlign.center,
+              ),
+              loadingIndicator: const SizedBox.shrink(),
+            ),
+            categoryViewConfig: CategoryViewConfig(
+              backgroundColor: theme.appColors.bg,
+              indicatorColor: theme.appColors.cyan,
+              iconColorSelected: theme.appColors.cyan,
+              iconColor: theme.appColors.base5,
+              recentTabBehavior: RecentTabBehavior.RECENT,
+              categoryIcons: const CategoryIcons(),
+            ),
+            skinToneConfig: SkinToneConfig(
+              enabled: true,
+              dialogBackgroundColor: theme.appColors.bgAlt,
+              indicatorColor: theme.appColors.cyan,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
