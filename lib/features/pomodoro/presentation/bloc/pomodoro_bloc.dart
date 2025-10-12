@@ -164,6 +164,9 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
       remainingTime: state.config.workDuration, // Reset na default
       errorMessage: null,
     ));
+
+    // Auto-refresh historie
+    add(const LoadHistoryEvent());
   }
 
   /// Handler: Timer tick (každou sekundu)
@@ -202,6 +205,9 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
 
     // TODO: Play sound (pokud enabled v config)
     // TODO: Show notification "Pomodoro Complete!"
+
+    // Auto-refresh historie
+    add(const LoadHistoryEvent());
 
     // Auto-start break?
     if (state.config.autoStartBreak) {

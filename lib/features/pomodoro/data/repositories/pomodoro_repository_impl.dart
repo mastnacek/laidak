@@ -2,75 +2,64 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/pomodoro_config.dart';
 import '../../domain/entities/pomodoro_session.dart';
 import '../../domain/repositories/pomodoro_repository.dart';
-import '../../../../core/services/database_helper.dart';
+import '../datasources/pomodoro_local_datasource.dart';
 
 /// Implementace PomodoroRepository s SQLite + SharedPreferences
 class PomodoroRepositoryImpl implements PomodoroRepository {
-  final DatabaseHelper databaseHelper;
+  final PomodoroLocalDataSource _dataSource;
 
-  PomodoroRepositoryImpl({required this.databaseHelper});
+  PomodoroRepositoryImpl({PomodoroLocalDataSource? dataSource})
+      : _dataSource = dataSource ?? PomodoroLocalDataSource();
 
   @override
   Future<PomodoroSession> createSession(PomodoroSession session) async {
-    // TODO: Implement when DB migration is done (MILESTONE 2)
-    // Pro V1: Vrátit fake session s ID (timer funguje bez DB)
-    return session.copyWith(id: 1);
+    return await _dataSource.createSession(session);
   }
 
   @override
   Future<void> updateSession(PomodoroSession session) async {
-    // TODO: Implement when DB migration is done (MILESTONE 2)
-    // Pro V1: No-op (timer funguje bez persistence)
-    return;
+    return await _dataSource.updateSession(session);
   }
 
   @override
   Future<void> deleteSession(int id) async {
-    // TODO: Implement when DB migration is done (MILESTONE 2)
-    // Pro V1: No-op
-    return;
+    return await _dataSource.deleteSession(id);
   }
 
   @override
   Future<PomodoroSession?> getSessionById(int id) async {
-    // TODO: Implement when DB migration is done
-    return null;
+    return await _dataSource.getSessionById(id);
   }
 
   @override
   Future<List<PomodoroSession>> getSessionsByTask(int taskId) async {
-    // TODO: Implement when DB migration is done
-    return [];
+    return await _dataSource.getSessionsByTask(taskId);
   }
 
   @override
   Future<List<PomodoroSession>> getAllSessions() async {
-    // TODO: Implement when DB migration is done
-    return [];
+    return await _dataSource.getAllSessions();
   }
 
   @override
   Future<List<PomodoroSession>> getTodaySessions() async {
-    // TODO: Implement when DB migration is done
-    return [];
+    return await _dataSource.getTodaySessions();
   }
 
   @override
   Future<int> getCompletedSessionCount(int taskId) async {
-    // TODO: Implement when DB migration is done
-    return 0;
+    return await _dataSource.getCompletedSessionCount(taskId);
   }
 
   @override
   Future<Duration> getTotalTimeForTask(int taskId) async {
-    // TODO: Implement when DB migration is done
-    return Duration.zero;
+    final seconds = await _dataSource.getTotalTimeForTask(taskId);
+    return Duration(seconds: seconds);
   }
 
   @override
   Future<int> getTodaySessionCount() async {
-    // TODO: Implement when DB migration is done
-    return 0;
+    return await _dataSource.getTodaySessionCount();
   }
 
   @override
