@@ -1984,3 +1984,98 @@ void _onTimerComplete(...) async {
 ---
 
 🍅 **Happy Pomodoro Coding!** 🍅
+
+---
+
+## 📝 IMPLEMENTATION PROGRESS - MILESTONE 1: Core Timer Logic
+
+### **MILESTONE 1.1: Domain Entities** ✅ HOTOVO (2025-01-12)
+- ✅ `pomodoro_session.dart` - Immutable entity s toMap/fromMap
+- ✅ `timer_state.dart` - Enum (idle, running, paused, break)
+- ✅ `pomodoro_config.dart` - Config entity s toJson/fromJson
+
+**Commited**: `be51e38 ✨ feat: Pomodoro Domain Entities (MILESTONE 1.1)`
+
+---
+
+### **MILESTONE 1.2: Repository Interface** ✅ HOTOVO (2025-01-12)
+- ✅ `pomodoro_repository.dart` - Abstract interface v domain layer
+- ✅ CRUD metody: createSession, updateSession, getSessionsByTask, getAllSessions
+- ✅ Config persistence: saveConfig, loadConfig
+- ✅ Stats metody: getCompletedSessionCount, getTotalTimeForTask, getTodaySessionCount
+
+**Změny**:
+```
+lib/features/pomodoro/domain/repositories/
+└── pomodoro_repository.dart  (NOVÝ - 15 metod)
+```
+
+**Pending commit**: `✨ feat: Pomodoro Repository Interface (MILESTONE 1.2)`
+
+---
+
+### **MILESTONE 1.3: PomodoroTimerService** ⏳ PENDING
+- [ ] Isolate-based timer service
+- [ ] Start/Pause/Resume/Stop operace
+- [ ] Stream<Duration> pro tick events
+- [ ] Přesnost ~50ms (separátní thread)
+
+---
+
+### **MILESTONE 1.4: PomodoroBloc** ⏳ PENDING
+- [ ] Events (StartPomodoro, Pause, Resume, Stop, TimerTick, etc.)
+- [ ] States (PomodoroState s Equatable)
+- [ ] Event handlers (Fail Fast validace)
+- [ ] Integration s PomodoroTimerService
+
+---
+
+### **MILESTONE 1.5: Unit Tests** ⏳ PENDING
+- [ ] PomodoroBloc test suite
+- [ ] PomodoroTimerService tests
+- [ ] State transitions tests
+
+---
+
+## 📝 PROGRESS LOG
+
+### 2025-01-12 (MILESTONE 1.1 - Domain Entities)
+- ✅ Vytvořeny 3 domain entities (PomodoroSession, TimerState, PomodoroConfig)
+- ✅ Immutable design s Equatable
+- ✅ Serialization metody (toMap/fromMap pro SQLite, toJson/fromJson pro SharedPrefs)
+- ✅ Helper metody (formattedDuration, statusIcon, isActive, etc.)
+- **Commited**: `be51e38 ✨ feat: Pomodoro Domain Entities (MILESTONE 1.1)`
+
+### 2025-01-12 (MILESTONE 1.2 - Repository Interface)
+- ✅ Vytvořen `PomodoroRepository` abstract interface
+- ✅ 15 metod pokrývá CRUD, config persistence, statistiky
+- ✅ Dependency Inversion Principle - BLoC bude záviset na interface, ne implementaci
+- ✅ Detailní dokumentace každé metody (SQL queries, use cases, error handling)
+- **Čeká na commit**: `✨ feat: Pomodoro Repository Interface (MILESTONE 1.2)`
+
+---
+
+## 🔄 NEXT STEPS
+
+### Aktuální krok: MILESTONE 1.2 → Commit
+**Co udělat**:
+1. ✅ Vytvořen `pomodoro_repository.dart`
+2. ⏳ Commit změn
+3. ⏳ Pokračovat na MILESTONE 1.3 (PomodoroTimerService)
+
+### Následující: MILESTONE 1.3 - PomodoroTimerService
+**Odhad**: 1-2 hodiny
+**Kroky**:
+- Implementovat Isolate-based timer
+- SendPort/ReceivePort komunikace
+- Pause/Resume logika
+- Stream controller pro ticks
+
+---
+
+## ⚠️ POZNÁMKY
+
+- **Token usage**: Zbývá ~128k tokens (z 200k) - vše OK ✅
+- **Git branch**: `bloc` (aktuální)
+- **Snapshot commity**: Před každým milestone!
+- **Testing**: Unit testy až po dokončení BLoC (MILESTONE 1.5)
