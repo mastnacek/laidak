@@ -42,10 +42,7 @@ class _AISettingsTabState extends State<AISettingsTab> {
 
   // Doporučené modely podle účelu
   final List<String> _motivationModels = [
-    'mistralai/mistral-medium',
-    'mistralai/mistral-large',
-    'anthropic/claude-3-opus',
-    'openai/gpt-4o',
+    'mistralai/mistral-medium-3.1',
   ];
 
   final List<String> _taskModels = [
@@ -347,7 +344,7 @@ class _AISettingsTabState extends State<AISettingsTab> {
         enabled: _isEnabled,
 
         // Motivation
-        aiMotivationModel: _selectedMotivationModel?.trim() ?? 'mistralai/mistral-medium',
+        aiMotivationModel: _selectedMotivationModel?.trim() ?? 'mistralai/mistral-medium-3.1',
         aiMotivationTemperature: double.tryParse(_motivationTempController.text) ?? 0.9,
         aiMotivationMaxTokens: int.tryParse(_motivationTokensController.text) ?? 200,
 
@@ -609,7 +606,7 @@ class _AISettingsTabState extends State<AISettingsTab> {
         _buildRecommendationBox(
           '💡 Doporučení pro motivaci',
           [
-            'Model: mistralai/mistral-medium (uncensored)',
+            'Model: mistralai/mistral-medium-3.1 (uncensored)',
             'Temperature: 0.9 (kreativní)',
             'Max tokens: 200 (krátké zprávy)',
           ],
@@ -1153,11 +1150,8 @@ class _AISettingsTabState extends State<AISettingsTab> {
 
   String _getModelTooltip(String model) {
     // Motivace modely
-    if (model == 'mistralai/mistral-medium') {
-      return '💬 Uncensored, skvělý pro kreativní motivaci';
-    }
-    if (model == 'mistralai/mistral-large') {
-      return '💬 Uncensored, větší model s lepším reasoningem';
+    if (model == 'mistralai/mistral-medium-3.1') {
+      return '💬 Uncensored, nejnovější verze pro kreativní motivaci';
     }
 
     // Task modely

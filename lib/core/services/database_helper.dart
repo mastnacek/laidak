@@ -78,7 +78,7 @@ class DatabaseHelper {
         show_upcoming INTEGER NOT NULL DEFAULT 0,
         show_overdue INTEGER NOT NULL DEFAULT 1,
         openrouter_api_key TEXT,
-        ai_motivation_model TEXT NOT NULL DEFAULT 'mistralai/mistral-medium',
+        ai_motivation_model TEXT NOT NULL DEFAULT 'mistralai/mistral-medium-3.1',
         ai_motivation_temperature REAL NOT NULL DEFAULT 0.9,
         ai_motivation_max_tokens INTEGER NOT NULL DEFAULT 200,
         ai_task_model TEXT NOT NULL DEFAULT 'anthropic/claude-3.5-sonnet',
@@ -390,7 +390,7 @@ class DatabaseHelper {
     if (oldVersion < 14) {
       // AI Settings: Přidat sloupce pro Motivation + Task models
       await db.execute('ALTER TABLE settings ADD COLUMN openrouter_api_key TEXT');
-      await db.execute('ALTER TABLE settings ADD COLUMN ai_motivation_model TEXT NOT NULL DEFAULT \'mistralai/mistral-medium\'');
+      await db.execute('ALTER TABLE settings ADD COLUMN ai_motivation_model TEXT NOT NULL DEFAULT \'mistralai/mistral-medium-3.1\'');
       await db.execute('ALTER TABLE settings ADD COLUMN ai_motivation_temperature REAL NOT NULL DEFAULT 0.9');
       await db.execute('ALTER TABLE settings ADD COLUMN ai_motivation_max_tokens INTEGER NOT NULL DEFAULT 200');
       await db.execute('ALTER TABLE settings ADD COLUMN ai_task_model TEXT NOT NULL DEFAULT \'anthropic/claude-3.5-sonnet\'');
@@ -419,7 +419,7 @@ class DatabaseHelper {
       'show_overdue': 1,
       // AI Settings
       'openrouter_api_key': null,
-      'ai_motivation_model': 'mistralai/mistral-medium',
+      'ai_motivation_model': 'mistralai/mistral-medium-3.1',
       'ai_motivation_temperature': 0.9,
       'ai_motivation_max_tokens': 200,
       'ai_task_model': 'anthropic/claude-3.5-sonnet',
