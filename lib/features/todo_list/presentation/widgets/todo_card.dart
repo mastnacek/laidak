@@ -836,7 +836,8 @@ class TodoCard extends StatelessWidget {
     // Zavřít klávesnici
     FocusScope.of(context).unfocus();
 
-    int selectedMinutes = 25; // Default 25 minut
+    int? selectedMinutes; // null = vlastní hodnota
+    final customController = TextEditingController();
 
     final result = await showDialog<int>(
       context: context,
@@ -906,22 +907,77 @@ class TodoCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Dropdown s minutami
-                DropdownButton<int>(
-                  value: selectedMinutes,
-                  isExpanded: true,
-                  dropdownColor: theme.appColors.bgAlt,
-                  style: TextStyle(color: theme.appColors.fg, fontSize: 16),
-                  items: [15, 25, 30, 45, 60].map((minutes) {
-                    return DropdownMenuItem(
-                      value: minutes,
-                      child: Text('$minutes minut'),
+                // Rychlé volby (tlačítka)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [1, 5, 15, 25, 30, 45, 60].map((minutes) {
+                    final isSelected = selectedMinutes == minutes;
+                    return OutlinedButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedMinutes = minutes;
+                          customController.clear();
+                        });
+                      },
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: isSelected
+                            ? Colors.orange.withValues(alpha: 0.2)
+                            : null,
+                        side: BorderSide(
+                          color: isSelected ? Colors.orange : theme.appColors.base5,
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Text(
+                        '$minutes min',
+                        style: TextStyle(
+                          color: isSelected ? Colors.orange : theme.appColors.fg,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
                     );
                   }).toList(),
+                ),
+                const SizedBox(height: 16),
+
+                // Vlastní zadání (TextField)
+                Text(
+                  'Nebo zadej vlastní:',
+                  style: TextStyle(
+                    color: theme.appColors.fg,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: customController,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: theme.appColors.fg, fontSize: 16),
+                  decoration: InputDecoration(
+                    hintText: 'Zadej minuty (1-180)',
+                    hintStyle: TextStyle(color: theme.appColors.base5),
+                    suffixText: 'min',
+                    suffixStyle: TextStyle(color: theme.appColors.base5),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: theme.appColors.base3),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: theme.appColors.base3),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.orange, width: 2),
+                    ),
+                  ),
                   onChanged: (value) {
-                    if (value != null) {
+                    // Pokud user píše, zrušit vybranou rychlou volbu
+                    if (value.isNotEmpty) {
                       setState(() {
-                        selectedMinutes = value;
+                        selectedMinutes = null;
                       });
                     }
                   },
@@ -942,7 +998,26 @@ class TodoCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.of(dialogContext).pop(selectedMinutes);
+                        // Určit finální počet minut
+                        int? finalMinutes;
+                        if (selectedMinutes != null) {
+                          finalMinutes = selectedMinutes;
+                        } else if (customController.text.isNotEmpty) {
+                          finalMinutes = int.tryParse(customController.text);
+                        }
+
+                        // Validace
+                        if (finalMinutes == null || finalMinutes < 1 || finalMinutes > 180) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('⚠️ Zadej platný počet minut (1-180)'),
+                              backgroundColor: theme.appColors.yellow,
+                            ),
+                          );
+                          return;
+                        }
+
+                        Navigator.of(dialogContext).pop(finalMinutes);
                       },
                       icon: const Icon(Icons.play_arrow),
                       label: const Text('START'),
