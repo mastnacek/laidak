@@ -244,17 +244,8 @@ class TodoCard extends StatelessWidget {
                 ),
               ),
 
-              // Tlačítka (Pomodoro + Motivate + AI Chat v jednom řádku)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildPomodoroButton(context),
-                  const SizedBox(width: 4),
-                  _buildMotivateButton(context),
-                  const SizedBox(width: 4),
-                  _buildAiChatButton(context),
-                ],
-              ),
+              // Tlačítko pro rozšiřující funkce (AI Chat, Pomodoro, Motivace)
+              _buildActionsMenuButton(context),
             ],
           ),
         ),
@@ -272,6 +263,82 @@ class TodoCard extends StatelessWidget {
       // Aktivní úkoly = pěkná decentní cyan/modrá (Doom One styl)
       return theme.appColors.cyan.withValues(alpha: 0.4);
     }
+  }
+
+  /// Vytvořit rozbalovací menu s akcemi (AI Chat, Pomodoro, Motivace)
+  Widget _buildActionsMenuButton(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return PopupMenuButton<String>(
+      icon: Icon(
+        Icons.auto_awesome,
+        color: theme.appColors.magenta,
+        size: 20,
+      ),
+      tooltip: 'Rozšiřující funkce',
+      color: theme.appColors.bg,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: theme.appColors.magenta, width: 1),
+      ),
+      itemBuilder: (context) => [
+        // AI Chat
+        PopupMenuItem<String>(
+          value: 'ai_chat',
+          child: Row(
+            children: [
+              const Text('🤖', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 12),
+              Text(
+                'Chat s AI',
+                style: TextStyle(color: theme.appColors.fg),
+              ),
+            ],
+          ),
+        ),
+        // Pomodoro
+        PopupMenuItem<String>(
+          value: 'pomodoro',
+          child: Row(
+            children: [
+              const Text('🍅', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 12),
+              Text(
+                'Spustit Pomodoro',
+                style: TextStyle(color: theme.appColors.fg),
+              ),
+            ],
+          ),
+        ),
+        // Motivace
+        PopupMenuItem<String>(
+          value: 'motivation',
+          child: Row(
+            children: [
+              const Text('✨', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 12),
+              Text(
+                'AI Motivace',
+                style: TextStyle(color: theme.appColors.fg),
+              ),
+            ],
+          ),
+        ),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case 'ai_chat':
+            _openAiChat(context);
+            break;
+          case 'pomodoro':
+            _showPomodoroQuickStart(context);
+            break;
+          case 'motivation':
+            _motivateTask(context);
+            break;
+        }
+      },
+    );
   }
 
   /// Získat barvu pro prioritu
@@ -423,53 +490,6 @@ class TodoCard extends StatelessWidget {
     }
   }
 
-  /// Vytvořit motivate tlačítko s moderním emoji (clean, bez glow)
-  Widget _buildMotivateButton(BuildContext context) {
-    return IconButton(
-      icon: const Text(
-        '✨',
-        style: TextStyle(
-          fontSize: 16,
-        ),
-      ),
-      onPressed: () => _motivateTask(context),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      tooltip: 'AI Motivace',
-    );
-  }
-
-  /// Vytvořit Pomodoro tlačítko (rajčete emoji)
-  Widget _buildPomodoroButton(BuildContext context) {
-    return IconButton(
-      icon: const Text(
-        '🍅',
-        style: TextStyle(
-          fontSize: 16,
-        ),
-      ),
-      onPressed: () => _showPomodoroQuickStart(context),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      tooltip: 'Spustit Pomodoro',
-    );
-  }
-
-  /// Vytvořit AI Chat tlačítko
-  Widget _buildAiChatButton(BuildContext context) {
-    return IconButton(
-      icon: const Text(
-        '🤖',
-        style: TextStyle(
-          fontSize: 16,
-        ),
-      ),
-      onPressed: () => _openAiChat(context),
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      tooltip: 'Chat s AI',
-    );
-  }
 
   /// Získat AI motivaci pro úkol
   Future<void> _motivateTask(BuildContext context) async {
