@@ -34,85 +34,76 @@ class _HistoryListState extends State<HistoryList> {
           );
         }
 
+        // Pokud je historie prázdná, zobraz sbalený panel s hláškou
         if (state.history.isEmpty) {
           return Card(
             elevation: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                children: const [
-                  Icon(
-                    Icons.history,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Zadna historie',
+            child: ExpansionTile(
+              leading: const Icon(Icons.history, color: Colors.grey),
+              title: const Text(
+                'Historie (dnes)',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              subtitle: const Text('Žádné sessions'),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Text(
+                    'Spusťte své první Pomodoro!',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       color: Colors.grey,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Spustte sve prvni Pomodoro!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }
 
+        // Historie s daty - sbalitelný ExpansionTile
         return Card(
           elevation: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Historie (dnes)',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Divider(),
-
-                // Session list
-                ...state.history.map((session) {
-                  final timeFormat = DateFormat.Hm();
-                  final startTime = timeFormat.format(session.startedAt);
-                  final duration = session.actualDuration ?? session.duration;
-                  final durationMin = duration.inMinutes;
-                  final icon = session.completed ? 'OK' : 'PAUSE';
-                  final typeIcon = session.isBreak ? 'COFFEE' : 'WORK';
-
-                  return ListTile(
-                    leading: Text(
-                      typeIcon,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                    ),
-                    title: Text(
-                      '$startTime - $durationMin min',
-                      style: const TextStyle(fontWeight: FontWeight.w500),
-                    ),
-                    subtitle: Text('Ukol #${session.taskId}'),
-                    trailing: Text(
-                      icon,
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                  );
-                }).toList(),
-              ],
+          child: ExpansionTile(
+            leading: const Icon(Icons.history),
+            title: const Text(
+              'Historie (dnes)',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
+            subtitle: Text('${state.history.length} sessions'),
+            initiallyExpanded: false, // Výchozí stav: sbaleno
+            children: state.history.map((session) {
+              final timeFormat = DateFormat.Hm();
+              final startTime = timeFormat.format(session.startedAt);
+              final duration = session.actualDuration ?? session.duration;
+              final durationMin = duration.inMinutes;
+              final statusIcon = session.completed ? '✅' : '⏸️';
+              final typeIcon = session.isBreak ? '☕' : '🍅';
+
+              return ListTile(
+                dense: true,
+                leading: Text(
+                  typeIcon,
+                  style: const TextStyle(fontSize: 20),
+                ),
+                title: Text(
+                  '$startTime - $durationMin min',
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
+                subtitle: Text('Úkol #${session.taskId}'),
+                trailing: Text(
+                  statusIcon,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              );
+            }).toList(),
           ),
         );
       },
