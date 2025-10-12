@@ -663,6 +663,94 @@ lib/features/settings/
 
 ---
 
+## 🤖 AI Chat - Konverzace s AI asistentem nad úkolem
+
+### 📋 Kompletní guide: [ai-chat.md](ai-chat.md)
+
+**Funkce**: Chat interface pro diskuzi s AI asistentem v kontextu konkrétního TODO úkolu
+
+**Kdy použít**: Implementace nové feature `lib/features/ai_chat/`
+
+**Postup**:
+1. Přečti si kompletní plán v [ai-chat.md](ai-chat.md)
+2. Následuj **8 kroků** implementace (Feature-First + BLoC architektura)
+3. Dodržuj SCÉNÁŘ 1 z [mapa-bloc.md](mapa-bloc.md) - Přidání nové feature
+
+**Klíčové komponenty**:
+- 💬 **AiChatPage** - Fullscreen chat UI (message bubbles, input bar)
+- 📋 **ContextSummaryCard** - Kompaktní přehled úkolu (expandable)
+- 🧠 **AiChatBloc** - State management (Events + States)
+- 🗄️ **OpenRouterChatDataSource** - Chat Completion API client
+- 🤖 **Entry Point** - 🤖 ikona v TodoCard → otevře chat
+
+**Architektura**:
+```
+lib/features/ai_chat/
+├── presentation/
+│   ├── pages/ai_chat_page.dart          # Fullscreen chat
+│   ├── widgets/
+│   │   ├── chat_message_bubble.dart     # Message UI
+│   │   ├── chat_input.dart              # Input + Send
+│   │   ├── typing_indicator.dart        # AI typing animation
+│   │   └── context_summary_card.dart    # Task context
+│   └── bloc/
+│       ├── ai_chat_bloc.dart
+│       ├── ai_chat_event.dart
+│       └── ai_chat_state.dart
+├── domain/
+│   ├── entities/
+│   │   ├── chat_message.dart            # Message entity
+│   │   ├── task_context.dart            # Context builder
+│   │   └── chat_session.dart            # Session (optional)
+│   └── repositories/ai_chat_repository.dart
+└── data/
+    ├── datasources/openrouter_chat_datasource.dart
+    └── repositories/ai_chat_repository_impl.dart
+```
+
+**Kontext úkolu (co AI vidí)**:
+- ✅ Celý obsah úkolu (task, priority, deadline, tags)
+- ✅ Všechny podúkoly (subtasks) včetně completion stavu
+- ✅ AI recommendations (z předchozího AI Split)
+- ✅ AI deadline analysis
+- ✅ Historie Pomodoro sessions (kolik času stráveno)
+- ✅ Metadata (created_at, updated_at, completion status)
+
+**Use Cases**:
+- 💡 Poradit se s AI jak úkol rozdělit jinak
+- 📝 Požádat o detailní rozpis konkrétního podúkolu
+- ⏰ Konzultovat deadline a prioritizaci
+- 🧠 Brainstorming nad řešením problému
+- 📊 Analýza progresu (kolik Pomodoro sessions, co zbývá)
+
+**API Integration**:
+- 🌐 **OpenRouter Chat Completion API**: https://openrouter.ai/docs/api-reference/chat-completion
+- 🧠 **Model**: Používá Task model z nastavení (claude-3.5-sonnet - inteligentní)
+- 📝 **Messages format**: System prompt (context) + User/Assistant messages
+- 💾 **Persistence**: V1.0 session-based (chat v paměti), v2.0 DB persistence
+
+**Implementační kroky**:
+1. **Krok 1**: Domain Layer (30 min) - ChatMessage, TaskContext, Repository
+2. **Krok 2**: Data Layer (1.5h) - OpenRouter datasource, Repository impl
+3. **Krok 3**: Presentation Layer (1h) - BLoC events/states/handlers
+4. **Krok 4**: UI Implementation (2-3h) - Page + Widgets (bubbles, input, typing)
+5. **Krok 5**: Integration (20 min) - 🤖 ikona v TodoCard
+6. **Krok 6**: Testing (30 min) - Unit + Widget testy
+7. **Krok 7**: Polish (30 min) - Copy to clipboard, markdown support
+8. **Krok 8**: Git Commit
+
+**Tracking postupu realizace**:
+- ✅ Markuj dokončené kroky v [ai-chat.md](ai-chat.md) (checkboxy)
+- 📝 Zaznamenej UX findings a AI response quality
+- 🐛 Dokumentuj API edge cases (rate limits, errors)
+- 🔄 Update TODO list v Claude Code UI
+
+**Priorita**: ⭐⭐⭐ Vysoká (game-changer pro user experience - AI asistent na jednom místě)
+
+**Poznámka**: Session-based chat (v1.0) - KISS princip, DB persistence až v2.0
+
+---
+
 ## 🍅 Pomodoro Timer - Implementační Plán
 
 ### 📋 Kompletní guide: [pomodoro.md](pomodoro.md)
@@ -975,11 +1063,13 @@ Companion dokumenty:
 - sqlite.md - SQLite database audit (problémy + návrhy řešení)
 - sqlite-columns-analysis.md - Analýza sloupců + SQLite limity
 - sqlite-final.md - SQLite refactoring implementační plán (step-by-step guide)
+- ai-chat.md - AI Chat feature implementační plán (konverzace s AI nad úkolem)
+- pomodoro.md - Pomodoro Timer implementační plán
 - CLAUDE.md - Univerzální instrukce (pro všechny projekty)
 
-Verze: 1.7
+Verze: 1.8
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-01-10 (přidán Settings Refactoring - God Object Elimination)
+Aktualizováno: 2025-10-12 (přidán AI Chat - konverzace s AI nad úkolem)
 Autor: Claude Code (AI asistent)
 
 ---
