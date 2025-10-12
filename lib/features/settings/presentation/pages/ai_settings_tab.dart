@@ -738,26 +738,31 @@ class _AISettingsTabState extends State<AISettingsTab> {
           runSpacing: 8,
           children: recommendedModels.map((model) {
             final isSelected = selectedModel == model;
-            return InkWell(
-              onTap: () => onChanged(model),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? theme.appColors.cyan.withValues(alpha: 0.2)
-                      : theme.appColors.base2,
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
-                    width: 1,
+            final tooltip = _getModelTooltip(model);
+
+            return Tooltip(
+              message: tooltip,
+              child: InkWell(
+                onTap: () => onChanged(model),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? theme.appColors.cyan.withValues(alpha: 0.2)
+                        : theme.appColors.base2,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
+                      width: 1,
+                    ),
                   ),
-                ),
-                child: Text(
-                  model.split('/').last,
-                  style: TextStyle(
-                    color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                  child: Text(
+                    model.split('/').last,
+                    style: TextStyle(
+                      color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -1144,5 +1149,34 @@ class _AISettingsTabState extends State<AISettingsTab> {
     if (temp < 1.3) return 'Střední';
     if (temp < 1.7) return 'Vysoká';
     return 'Maximální';
+  }
+
+  String _getModelTooltip(String model) {
+    // Motivace modely
+    if (model == 'mistralai/mistral-medium') {
+      return '💬 Uncensored, skvělý pro kreativní motivaci';
+    }
+    if (model == 'mistralai/mistral-large') {
+      return '💬 Uncensored, větší model s lepším reasoningem';
+    }
+
+    // Task modely
+    if (model == 'anthropic/claude-3.5-sonnet') {
+      return '🧠 JSON expert, přesný a spolehlivý pro task split';
+    }
+
+    if (model == 'anthropic/claude-3-opus') {
+      return '🚀 Nejsilnější model, nejlepší reasoning (drahý)';
+    }
+
+    if (model == 'openai/gpt-4o') {
+      return '⚡ Rychlý a levný, dobrá volba pro oba účely';
+    }
+
+    if (model == 'google/gemini-pro-1.5') {
+      return '📚 Velký context window (2M tokens), dobrý pro task split';
+    }
+
+    return 'Populární model pro AI úkoly';
   }
 }
