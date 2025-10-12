@@ -2108,43 +2108,64 @@ lib/features/pomodoro/presentation/bloc/
 - ✅ Proper cleanup v close() metodě
 - **Commited**: `477e408 ✨ feat: Pomodoro BLoC - Events, States, Handlers (MILESTONE 1.4)`
 
+### 2025-01-12 (MILESTONE 3 - Basic UI) ✅ HOTOVO
+- ✅ Vytvořena `PomodoroPage` - základní layout s AppBar
+- ✅ Vytvořen `TimerDisplay` widget - velký circular timer s progress indicator
+- ✅ Vytvořen `TimerControls` widget - dynamické buttony (START/PAUSE/RESUME/STOP/BREAK/CONTINUE)
+- ✅ Vytvořen `SettingsPanel` widget - konfigurace work/break duration + switches
+- ✅ Vytvořen `HistoryList` widget - zobrazení dnešních sessions s ikonami
+- **Struktura**:
+```
+lib/features/pomodoro/presentation/
+├── pages/pomodoro_page.dart          (118 řádků)
+└── widgets/
+    ├── timer_display.dart            (86 řádků)
+    ├── timer_controls.dart           (253 řádků)
+    ├── settings_panel.dart           (90 řádků)
+    └── history_list.dart             (119 řádků)
+```
+- **Features UI**:
+  - ✅ CircularProgressIndicator s progress animací
+  - ✅ Formátovaný čas MM:SS
+  - ✅ Quick Start Dialog (Task ID + Duration picker)
+  - ✅ Stop Confirmation Dialog
+  - ✅ Dynamické buttony podle timer state
+  - ✅ Empty state pro historii
+  - ✅ BlocBuilder s buildWhen optimalizací
+- **Pending commit**: `🎨 feat: Pomodoro Basic UI (MILESTONE 3)`
+
 ---
 
 ## 🔄 NEXT STEPS
 
-### ✅ Dokončeno: MILESTONE 1.4 (PomodoroBloc)
+### ✅ Dokončeno: MILESTONE 3 (Basic UI)
 **Status**: ✅ COMPLETE
 **Co bylo uděláno**:
-1. ✅ Vytvořeny Events (10 typů)
-2. ✅ Vytvořen State (immutable + helpers)
-3. ✅ Implementován PomodoroBloc (10 handlerů)
-4. ✅ Commit: `477e408`
+1. ✅ Vytvořena PomodoroPage (základní layout)
+2. ✅ Implementovány 4 widgety (TimerDisplay, TimerControls, SettingsPanel, HistoryList)
+3. ✅ Quick Start Dialog + Stop Confirmation Dialog
+4. ✅ Responsive UI s BlocBuilder optimalizacemi
 
-### Následující: MILESTONE 1.5 - Unit Tests (OPTIONAL)
-**Odhad**: 2-3 hodiny
+### Následující: Commit MILESTONE 3
 **Kroky**:
-- [ ] PomodoroBloc test suite
-- [ ] PomodoroTimerService tests
-- [ ] State transitions tests
-- [ ] **NEBO**: Skip na MILESTONE 2 (Database Integration)
+- [ ] Git add + commit
+- [ ] Update pomodoro.md s commit hashem
 
-**Doporučení**: ⚠️ **SKIP Unit Tests pro teď** → Pokračuj na **MILESTONE 2 (Database)** pro rychlejší MVP!
-
-### Následující: MILESTONE 2 - Database Integration
+### Následující: MILESTONE 4 - Android Notifications (OPTIONAL)
 **Odhad**: 2-3 hodiny
-**Priorita**: 🔴 CRITICAL
+**Priorita**: 🟢 MEDIUM
 **Kroky**:
-- [ ] Přidej `pomodoro_sessions` tabulku do database_helper.dart
-- [ ] Vytvoř migration (version 12)
-- [ ] Implementuj PomodoroRepositoryImpl
-- [ ] Testing - DB CRUD operations
+- [ ] Přidej dependencies (flutter_local_notifications)
+- [ ] Implementuj PomodoroNotificationService
+- [ ] Android foreground service setup
+- [ ] Handle notification actions
 
 ---
 
 ## ⚠️ POZNÁMKY
 
-- **Token usage**: Zbývá ~121k tokens (z 200k) - vše OK ✅
+- **Token usage**: Zbývá ~105k tokens (z 200k) - vše OK ✅
 - **Git branch**: `bloc` (aktuální)
 - **Snapshot commity**: Po každém milestone!
-- **MILESTONE 1.4**: ✅ HOTOVO (Core Timer Logic dokončeno!)
-- **Next**: Database Integration (MILESTONE 2)
+- **MILESTONE 3**: ✅ HOTOVO (Basic UI dokončeno!)
+- **Next**: Commit + MILESTONE 4 (Android Notifications - OPTIONAL)
