@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/pomodoro_config.dart';
 import '../../domain/entities/pomodoro_session.dart';
 import '../../domain/repositories/pomodoro_repository.dart';
-import '../../../../core/database/database_helper.dart';
+import '../../../../core/services/database_helper.dart';
 
 /// Implementace PomodoroRepository s SQLite + SharedPreferences
 class PomodoroRepositoryImpl implements PomodoroRepository {

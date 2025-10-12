@@ -9,7 +9,7 @@ import '../widgets/settings_panel.dart';
 import '../widgets/history_list.dart';
 import '../../domain/services/pomodoro_timer_service.dart';
 import '../../data/repositories/pomodoro_repository_impl.dart';
-import '../../../../core/database/database_helper.dart';
+import '../../../../core/services/database_helper.dart';
 
 /// Stránka Pomodoro Timer
 ///
@@ -26,7 +26,7 @@ class PomodoroPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => PomodoroBloc(
         repository: PomodoroRepositoryImpl(
-          databaseHelper: DatabaseHelper.instance,
+          databaseHelper: DatabaseHelper(),
         ),
         timerService: PomodoroTimerService(),
       )..add(const LoadHistoryEvent()),
