@@ -240,12 +240,13 @@ class TodoCard extends StatelessWidget {
                 ),
               ),
 
-              // Tlačítka (Motivate + Pomodoro)
-              Column(
+              // Tlačítka (Pomodoro + Motivate v jednom řádku)
+              Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildMotivateButton(context),
-                  const SizedBox(height: 4),
                   _buildPomodoroButton(context),
+                  const SizedBox(width: 4),
+                  _buildMotivateButton(context),
                 ],
               ),
             ],
