@@ -3,6 +3,9 @@ import '../../domain/entities/pomodoro_config.dart';
 import '../../domain/entities/pomodoro_session.dart';
 import '../../domain/entities/timer_state.dart';
 
+// Private sentinel value pro nullable handling v copyWith
+const _undefined = Object();
+
 /// Immutable state pro Pomodoro feature
 class PomodoroState extends Equatable {
   /// Aktuální stav timeru (idle/running/paused/break)
@@ -65,27 +68,33 @@ class PomodoroState extends Equatable {
   /// Immutable copyWith pro state updates
   PomodoroState copyWith({
     TimerState? timerState,
-    int? currentTaskId,
+    Object? currentTaskId = _undefined,
     Duration? remainingTime,
     Duration? totalDuration,
     int? sessionCount,
-    PomodoroSession? currentSession,
+    Object? currentSession = _undefined,
     List<PomodoroSession>? history,
     PomodoroConfig? config,
     bool? isLoading,
-    String? errorMessage,
+    Object? errorMessage = _undefined,
   }) {
     return PomodoroState(
       timerState: timerState ?? this.timerState,
-      currentTaskId: currentTaskId ?? this.currentTaskId,
+      currentTaskId: currentTaskId == _undefined
+          ? this.currentTaskId
+          : currentTaskId as int?,
       remainingTime: remainingTime ?? this.remainingTime,
       totalDuration: totalDuration ?? this.totalDuration,
       sessionCount: sessionCount ?? this.sessionCount,
-      currentSession: currentSession ?? this.currentSession,
+      currentSession: currentSession == _undefined
+          ? this.currentSession
+          : currentSession as PomodoroSession?,
       history: history ?? this.history,
       config: config ?? this.config,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
+      errorMessage: errorMessage == _undefined
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 
