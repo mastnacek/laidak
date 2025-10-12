@@ -379,7 +379,6 @@ class _AISettingsTabState extends State<AISettingsTab> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -458,399 +457,615 @@ class _AISettingsTabState extends State<AISettingsTab> {
 
   Widget _buildEnableSwitch() {
     return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.appColors.bgAlt,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.appColors.base3),
-            ),
-            child: Row(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.appColors.bgAlt,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.appColors.base3),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            _isEnabled ? Icons.check_circle : Icons.cancel,
+            color: _isEnabled ? theme.appColors.green : theme.appColors.red,
+            size: 28,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  _isEnabled ? Icons.check_circle : Icons.cancel,
-                  color: _isEnabled ? theme.appColors.green : theme.appColors.red,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'AI Motivace',
-                        style: TextStyle(
-                          color: theme.appColors.fg,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _isEnabled ? 'Zapnuto' : 'Vypnuto',
-                        style: TextStyle(
-                          color: theme.appColors.base5,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Switch(
-                  value: _isEnabled,
-                  onChanged: (value) {
-                    setState(() => _isEnabled = value);
-                  },
-                  activeThumbColor: theme.appColors.green,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // API Key
-          _buildSectionTitle('🔑 API Klíč'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _apiKeyController,
-            obscureText: _obscureApiKey,
-            style: TextStyle(
-              color: theme.appColors.fg,
-              fontFamily: 'monospace',
-            ),
-            decoration: InputDecoration(
-              hintText: 'sk-or-v1-xxxxxxxxxxxxxxxx',
-              hintStyle: TextStyle(color: theme.appColors.base5),
-              filled: true,
-              fillColor: theme.appColors.base2,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.base4),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.base4),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureApiKey ? Icons.visibility : Icons.visibility_off,
-                  color: theme.appColors.base5,
-                ),
-                onPressed: () {
-                  setState(() => _obscureApiKey = !_obscureApiKey);
-                },
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Model - Dropdown s možností vlastního textu
-          _buildSectionTitle('🤖 AI Model'),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(
-              color: theme.appColors.base2,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.appColors.base4),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: _availableModels.any((m) => m.id == _selectedModel) ? _selectedModel : null,
-                      isExpanded: true,
-                      dropdownColor: theme.appColors.base2,
-                      style: TextStyle(
-                        color: theme.appColors.fg,
-                        fontFamily: 'monospace',
-                        fontSize: 14,
-                      ),
-                      hint: Text(
-                        _selectedModel ?? 'mistralai/mistral-medium-3.1',
-                        style: TextStyle(
-                          color: theme.appColors.fg,
-                          fontFamily: 'monospace',
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      items: _buildModelDropdownItems(),
-                      onChanged: (value) {
-                        if (value == null) {
-                          // Zobrazit dialog pro vlastní model
-                          _showCustomModelDialog();
-                        } else if (!value.startsWith('__')) {
-                          // Ignorovat header rows (začínají '__')
-                          setState(() {
-                            _selectedModel = value;
-                          });
-                        }
-                      },
-                    ),
-                  ),
-                ),
-                // Refresh button vedle dropdownu
-                if (_isLoadingModels)
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                else
-                  IconButton(
-                    icon: const Icon(Icons.refresh, size: 20),
-                    tooltip: 'Načíst modely z OpenRouter API',
-                    onPressed: _fetchModels,
-                    padding: const EdgeInsets.all(8),
-                    constraints: const BoxConstraints(),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Quick select populární modely
-          Text(
-            'Rychlý výběr:',
-            style: TextStyle(
-              color: theme.appColors.base5,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _popularModels.map((model) {
-              final isSelected = _selectedModel == model;
-              return InkWell(
-                onTap: () {
-                  setState(() => _selectedModel = model);
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? theme.appColors.cyan.withValues(alpha: 0.2)
-                        : theme.appColors.base2,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    model.split('/').last,
-                    style: TextStyle(
-                      color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-
-          // Temperature
-          _buildSectionTitle('🌡️ Temperature (Kreativita)'),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _temperatureController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  style: TextStyle(color: theme.appColors.fg),
-                  decoration: InputDecoration(
-                    hintText: '0.0 - 2.0',
-                    hintStyle: TextStyle(color: theme.appColors.base5),
-                    filled: true,
-                    fillColor: theme.appColors.base2,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: theme.appColors.base4),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: theme.appColors.base4),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: theme.appColors.yellow.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: theme.appColors.yellow),
-                ),
-                child: Text(
-                  _getTemperatureLabel(),
+                Text(
+                  'AI Funkce',
                   style: TextStyle(
-                    color: theme.appColors.yellow,
-                    fontSize: 12,
+                    color: theme.appColors.fg,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Max Tokens
-          _buildSectionTitle('📏 Max Tokens (Délka odpovědi)'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _maxTokensController,
-            keyboardType: TextInputType.number,
-            style: TextStyle(color: theme.appColors.fg),
-            decoration: InputDecoration(
-              hintText: '100 - 4000',
-              hintStyle: TextStyle(color: theme.appColors.base5),
-              filled: true,
-              fillColor: theme.appColors.base2,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.base4),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.base4),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
-              ),
-              suffixIcon: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  'tokens',
+                Text(
+                  _isEnabled ? 'Zapnuto' : 'Vypnuto',
                   style: TextStyle(
                     color: theme.appColors.base5,
                     fontSize: 12,
                   ),
                 ),
-              ),
+              ],
             ),
           ),
-          const SizedBox(height: 32),
+          Switch(
+            value: _isEnabled,
+            onChanged: (value) {
+              setState(() => _isEnabled = value);
+            },
+            activeThumbColor: theme.appColors.green,
+          ),
+        ],
+      ),
+    );
+  }
 
-          // Debug sekce (DATABASE INFO)
-          _buildSectionTitle('🔧 DEBUG - Informace o databázi'),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.appColors.yellow.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.appColors.yellow, width: 1),
-            ),
+  Widget _buildApiKeyField() {
+    return TextField(
+      controller: _apiKeyController,
+      obscureText: _obscureApiKey,
+      style: TextStyle(
+        color: theme.appColors.fg,
+        fontFamily: 'monospace',
+      ),
+      decoration: InputDecoration(
+        hintText: 'sk-or-v1-xxxxxxxxxxxxxxxx',
+        hintStyle: TextStyle(color: theme.appColors.base5),
+        filled: true,
+        fillColor: theme.appColors.base2,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: theme.appColors.base4),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: theme.appColors.base4),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscureApiKey ? Icons.visibility : Icons.visibility_off,
+            color: theme.appColors.base5,
+          ),
+          onPressed: () {
+            setState(() => _obscureApiKey = !_obscureApiKey);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider(String title, String subtitle) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.appColors.cyan.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.appColors.cyan, width: 2),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.settings, color: theme.appColors.cyan, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.warning, color: theme.appColors.yellow, size: 24),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Debug nástroje pro diagnostiku databáze',
-                        style: TextStyle(
-                          color: theme.appColors.yellow,
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                        ),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: theme.appColors.cyan,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: theme.appColors.base5,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMotivationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('🤖 Model'),
+        const SizedBox(height: 8),
+        _buildModelDropdown(
+          selectedModel: _selectedMotivationModel,
+          onChanged: (value) => setState(() => _selectedMotivationModel = value),
+          recommendedModels: _motivationModels,
+        ),
+        const SizedBox(height: 16),
+
+        _buildSectionTitle('🌡️ Temperature (Kreativita)'),
+        const SizedBox(height: 8),
+        _buildTemperatureField(_motivationTempController),
+        const SizedBox(height: 16),
+
+        _buildSectionTitle('📏 Max Tokens'),
+        const SizedBox(height: 8),
+        _buildTokensField(_motivationTokensController),
+        const SizedBox(height: 16),
+
+        // Doporučení
+        _buildRecommendationBox(
+          '💡 Doporučení pro motivaci',
+          [
+            'Model: mistralai/mistral-medium (uncensored)',
+            'Temperature: 0.9 (kreativní)',
+            'Max tokens: 200 (krátké zprávy)',
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTaskSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('🤖 Model'),
+        const SizedBox(height: 8),
+        _buildModelDropdown(
+          selectedModel: _selectedTaskModel,
+          onChanged: (value) => setState(() => _selectedTaskModel = value),
+          recommendedModels: _taskModels,
+        ),
+        const SizedBox(height: 16),
+
+        _buildSectionTitle('🌡️ Temperature (Přesnost)'),
+        const SizedBox(height: 8),
+        _buildTemperatureField(_taskTempController),
+        const SizedBox(height: 16),
+
+        _buildSectionTitle('📏 Max Tokens'),
+        const SizedBox(height: 8),
+        _buildTokensField(_taskTokensController),
+        const SizedBox(height: 16),
+
+        // Doporučení
+        _buildRecommendationBox(
+          '💡 Doporučení pro rozdělení úkolů',
+          [
+            'Model: anthropic/claude-3.5-sonnet (JSON expert)',
+            'Temperature: 0.3 (přesný)',
+            'Max tokens: 1000 (delší odpovědi)',
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModelDropdown({
+    required String? selectedModel,
+    required ValueChanged<String?> onChanged,
+    required List<String> recommendedModels,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: theme.appColors.base2,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: theme.appColors.base4),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _availableModels.any((m) => m.id == selectedModel) ? selectedModel : null,
+                    isExpanded: true,
+                    dropdownColor: theme.appColors.base2,
+                    style: TextStyle(
+                      color: theme.appColors.fg,
+                      fontFamily: 'monospace',
+                      fontSize: 14,
+                    ),
+                    hint: Text(
+                      selectedModel ?? 'Vyber model',
+                      style: TextStyle(
+                        color: theme.appColors.fg,
+                        fontFamily: 'monospace',
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    items: _buildModelDropdownItems(),
+                    onChanged: (value) {
+                      if (value == null) {
+                        _showCustomModelDialog(onChanged);
+                      } else if (!value.startsWith('__')) {
+                        onChanged(value);
+                      }
+                    },
+                  ),
+                ),
+              ),
+              if (_isLoadingModels)
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              else
+                IconButton(
+                  icon: const Icon(Icons.refresh, size: 20),
+                  tooltip: 'Načíst modely z OpenRouter API',
+                  onPressed: _fetchModels,
+                  padding: const EdgeInsets.all(8),
+                  constraints: const BoxConstraints(),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Quick select
+        Text(
+          'Rychlý výběr:',
+          style: TextStyle(
+            color: theme.appColors.base5,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: recommendedModels.map((model) {
+            final isSelected = selectedModel == model;
+            return InkWell(
+              onTap: () => onChanged(model),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.appColors.cyan.withValues(alpha: 0.2)
+                      : theme.appColors.base2,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isSelected ? theme.appColors.cyan : theme.appColors.base4,
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  model.split('/').last,
+                  style: TextStyle(
+                    color: isSelected ? theme.appColors.cyan : theme.appColors.base5,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTemperatureField(TextEditingController controller) {
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: TextStyle(color: theme.appColors.fg),
+            decoration: InputDecoration(
+              hintText: '0.0 - 2.0',
+              hintStyle: TextStyle(color: theme.appColors.base5),
+              filled: true,
+              fillColor: theme.appColors.base2,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.appColors.base4),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.appColors.base4),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.appColors.yellow.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: theme.appColors.yellow),
+          ),
+          child: Text(
+            _getTemperatureLabel(controller),
+            style: TextStyle(
+              color: theme.appColors.yellow,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTokensField(TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      style: TextStyle(color: theme.appColors.fg),
+      decoration: InputDecoration(
+        hintText: '100 - 4000',
+        hintStyle: TextStyle(color: theme.appColors.base5),
+        filled: true,
+        fillColor: theme.appColors.base2,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: theme.appColors.base4),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: theme.appColors.base4),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: theme.appColors.cyan, width: 2),
+        ),
+        suffixIcon: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            'tokens',
+            style: TextStyle(
+              color: theme.appColors.base5,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecommendationBox(String title, List<String> points) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.appColors.blue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.appColors.blue, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: theme.appColors.blue,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...points.map((point) => Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: theme.appColors.blue, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    point,
+                    style: TextStyle(
+                      color: theme.appColors.fg,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDebugSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle('🔧 DEBUG - Informace o databázi'),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.appColors.yellow.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: theme.appColors.yellow, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.warning, color: theme.appColors.yellow, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Debug nástroje pro diagnostiku databáze',
+                      style: TextStyle(
+                        color: theme.appColors.yellow,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    final info = await DatabaseDebugUtils.getDatabaseInfo();
+                    final isValid = await DatabaseDebugUtils.validateDatabaseStructure();
+
+                    if (mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          backgroundColor: theme.appColors.bg,
+                          title: Text(
+                            'Databáze Info',
+                            style: TextStyle(color: theme.appColors.cyan),
+                          ),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Verze: ${info['version']}',
+                                  style: TextStyle(
+                                    color: theme.appColors.fg,
+                                    fontFamily: 'monospace',
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tabulky: ${(info['tables'] as List).join(', ')}',
+                                  style: TextStyle(
+                                    color: theme.appColors.fg,
+                                    fontFamily: 'monospace',
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Sloupce v todos: ${(info['todos_columns'] as List).join(', ')}',
+                                  style: TextStyle(
+                                    color: theme.appColors.fg,
+                                    fontFamily: 'monospace',
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: isValid
+                                        ? theme.appColors.green.withValues(alpha: 0.2)
+                                        : theme.appColors.red.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    isValid ? '✅ Databáze je validní' : '❌ Databáze má chybnou strukturu',
+                                    style: TextStyle(
+                                      color: isValid ? theme.appColors.green : theme.appColors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: Text('Zavřít', style: TextStyle(color: theme.appColors.cyan)),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('❌ Chyba: $e'),
+                          backgroundColor: theme.appColors.red,
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.info, size: 18),
+                label: const Text('ZOBRAZIT INFO DATABÁZE'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.appColors.cyan,
+                  foregroundColor: theme.appColors.bg,
                 ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  onPressed: () async {
+              ),
+              const SizedBox(height: 8),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: theme.appColors.bg,
+                      title: Text(
+                        '⚠️ POZOR',
+                        style: TextStyle(color: theme.appColors.red),
+                      ),
+                      content: Text(
+                        'Opravdu chceš resetovat databázi?\n\n'
+                        'Tato akce SMAŽE všechna data (TODO úkoly, nastavení, prompty) a vytvoří čistou databázi.\n\n'
+                        'Toto nelze vrátit zpět!',
+                        style: TextStyle(color: theme.appColors.fg),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
+                        ),
+                        ElevatedButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.appColors.red,
+                            foregroundColor: theme.appColors.bg,
+                          ),
+                          child: const Text('SMAZAT VŠE'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true) {
                     try {
-                      final info = await DatabaseDebugUtils.getDatabaseInfo();
-                      final isValid = await DatabaseDebugUtils.validateDatabaseStructure();
+                      await DatabaseDebugUtils.resetDatabase();
 
                       if (mounted) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: theme.appColors.bg,
-                            title: Text(
-                              'Databáze Info',
-                              style: TextStyle(color: theme.appColors.cyan),
-                            ),
-                            content: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Verze: ${info['version']}',
-                                    style: TextStyle(
-                                      color: theme.appColors.fg,
-                                      fontFamily: 'monospace',
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Tabulky: ${(info['tables'] as List).join(', ')}',
-                                    style: TextStyle(
-                                      color: theme.appColors.fg,
-                                      fontFamily: 'monospace',
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Sloupce v todos: ${(info['todos_columns'] as List).join(', ')}',
-                                    style: TextStyle(
-                                      color: theme.appColors.fg,
-                                      fontFamily: 'monospace',
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: isValid
-                                          ? theme.appColors.green.withValues(alpha: 0.2)
-                                          : theme.appColors.red.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      isValid ? '✅ Databáze je validní' : '❌ Databáze má chybnou strukturu',
-                                      style: TextStyle(
-                                        color: isValid ? theme.appColors.green : theme.appColors.red,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: Text('Zavřít', style: TextStyle(color: theme.appColors.cyan)),
-                              ),
-                            ],
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text('✅ Databáze byla resetována. Restartuj aplikaci.'),
+                            backgroundColor: theme.appColors.green,
+                            duration: const Duration(seconds: 5),
                           ),
                         );
                       }
@@ -858,123 +1073,55 @@ class _AISettingsTabState extends State<AISettingsTab> {
                       if (mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('❌ Chyba: $e'),
+                            content: Text('❌ Chyba při resetování: $e'),
                             backgroundColor: theme.appColors.red,
                           ),
                         );
                       }
                     }
-                  },
-                  icon: const Icon(Icons.info, size: 18),
-                  label: const Text('ZOBRAZIT INFO DATABÁZE'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.appColors.cyan,
-                    foregroundColor: theme.appColors.bg,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    // Potvrzující dialog
-                    final confirm = await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        backgroundColor: theme.appColors.bg,
-                        title: Text(
-                          '⚠️ POZOR',
-                          style: TextStyle(color: theme.appColors.red),
-                        ),
-                        content: Text(
-                          'Opravdu chceš resetovat databázi?\n\n'
-                          'Tato akce SMAŽE všechna data (TODO úkoly, nastavení, prompty) a vytvoří čistou databázi.\n\n'
-                          'Toto nelze vrátit zpět!',
-                          style: TextStyle(color: theme.appColors.fg),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
-                            child: Text('Zrušit', style: TextStyle(color: theme.appColors.base5)),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => Navigator.of(context).pop(true),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.appColors.red,
-                              foregroundColor: theme.appColors.bg,
-                            ),
-                            child: const Text('SMAZAT VŠE'),
-                          ),
-                        ],
-                      ),
-                    );
-
-                    if (confirm == true) {
-                      try {
-                        await DatabaseDebugUtils.resetDatabase();
-
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('✅ Databáze byla resetována. Restartuj aplikaci.'),
-                              backgroundColor: theme.appColors.green,
-                              duration: const Duration(seconds: 5),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('❌ Chyba při resetování: $e'),
-                              backgroundColor: theme.appColors.red,
-                            ),
-                          );
-                        }
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.delete_forever, size: 18),
-                  label: const Text('RESETOVAT DATABÁZI'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.appColors.red,
-                    foregroundColor: theme.appColors.bg,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-
-          // Save button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _saveSettings,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.appColors.green,
-                foregroundColor: theme.appColors.bg,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  }
+                },
+                icon: const Icon(Icons.delete_forever, size: 18),
+                label: const Text('RESETOVAT DATABÁZI'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.appColors.red,
+                  foregroundColor: theme.appColors.bg,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.save, size: 20),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'ULOŽIT NASTAVENÍ',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _saveSettings,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: theme.appColors.green,
+          foregroundColor: theme.appColors.bg,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.save, size: 20),
+            const SizedBox(width: 8),
+            const Text(
+              'ULOŽIT NASTAVENÍ',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -990,8 +1137,8 @@ class _AISettingsTabState extends State<AISettingsTab> {
     );
   }
 
-  String _getTemperatureLabel() {
-    final temp = double.tryParse(_temperatureController.text) ?? 1.0;
+  String _getTemperatureLabel(TextEditingController controller) {
+    final temp = double.tryParse(controller.text) ?? 1.0;
     if (temp < 0.3) return 'Minimální';
     if (temp < 0.7) return 'Nízká';
     if (temp < 1.3) return 'Střední';
