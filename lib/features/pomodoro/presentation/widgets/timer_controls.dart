@@ -83,7 +83,7 @@ class TimerControls extends StatelessWidget {
                 ),
               ),
 
-            // STOP button (pokud b~í nebo paused)
+            // STOP button (pokud bezi nebo paused)
             if (state.timerState != TimerState.idle)
               ElevatedButton.icon(
                 onPressed: () {
@@ -104,7 +104,7 @@ class TimerControls extends StatelessWidget {
                 ),
               ),
 
-            // BREAK button (pokud idle a má session count)
+            // BREAK button (pokud idle a ma session count)
             if (state.timerState == TimerState.idle && state.sessionCount > 0)
               ElevatedButton.icon(
                 onPressed: () {
@@ -125,7 +125,7 @@ class TimerControls extends StatelessWidget {
                 ),
               ),
 
-            // CONTINUE button (pokud idle a má current task)
+            // CONTINUE button (pokud idle a ma current task)
             if (state.timerState == TimerState.idle &&
                 state.currentTaskId != null)
               ElevatedButton.icon(
@@ -152,7 +152,7 @@ class TimerControls extends StatelessWidget {
     );
   }
 
-  /// Dialog pro Quick Start (výbr task ID a délky)
+  /// Dialog pro Quick Start (vyber task ID a delky)
   void _showQuickStartDialog(BuildContext context) {
     int taskId = 1; // Default task ID
     Duration customDuration = const Duration(minutes: 25); // Default duration
@@ -160,7 +160,7 @@ class TimerControls extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('<E Spustit Pomodoro'),
+        title: const Text('Spustit Pomodoro'),
         content: StatefulBuilder(
           builder: (context, setState) {
             return Column(
@@ -184,7 +184,7 @@ class TimerControls extends StatelessWidget {
                 DropdownButtonFormField<int>(
                   value: customDuration.inMinutes,
                   decoration: const InputDecoration(
-                    labelText: 'Délka',
+                    labelText: 'Delka',
                     border: OutlineInputBorder(),
                   ),
                   items: [15, 25, 30, 45, 60].map((minutes) {
@@ -206,7 +206,7 @@ class TimerControls extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Zruait'),
+            child: const Text('Zrusit'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -226,15 +226,15 @@ class TimerControls extends StatelessWidget {
     );
   }
 
-  /// Potvrzovací dialog pro Stop
+  /// Potvrzovaci dialog pro Stop
   void _showStopConfirmDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('ù Zastavit Pomodoro?'),
+        title: const Text('Zastavit Pomodoro?'),
         content: const Text(
-          'Opravdu chcete zastavit b~ící Pomodoro? '
-          'Session bude ulo~ena jako pYeruaená.',
+          'Opravdu chcete zastavit bezici Pomodoro? '
+          'Session bude ulozena jako prerusena.',
         ),
         actions: [
           TextButton(
