@@ -662,4 +662,80 @@ Po dokončení bude:
 
 ---
 
-**Připraveno pro implementaci v nové session! 🚀**
+## 📊 PROGRESS LOG (Session 2025-01-12)
+
+### ✅ Dokončeno (commit `952f7fe`):
+
+**KROK 1.1-1.3**: State variables + načítání settings
+- ✅ Přidány controllery pro Motivation: `_motivationTempController`, `_motivationTokensController`, `_selectedMotivationModel`
+- ✅ Přidány controllery pro Task: `_taskTempController`, `_taskTokensController`, `_selectedTaskModel`
+- ✅ Listy `_motivationModels` a `_taskModels` s doporučenými modely
+- ✅ Update `dispose()` - všech 6 controllerů
+- ✅ Update `_loadSettings()` - načítání z `openrouter_api_key`, `ai_motivation_*`, `ai_task_*`
+
+**KROK 1.4**: Update _saveSettings()
+- ✅ Ukládání do správných DB sloupců (motivation + task separate)
+- ✅ Správné defaults (motivation: temp 0.9, 200 tokens; task: temp 0.3, 1000 tokens)
+
+**Doplňkové opravy**:
+- ✅ Fix `_showCustomModelDialog()` - přijímá callback jako parametr
+- ✅ Fix `_fetchModels()` - fallback používá sloučení `_motivationModels` + `_taskModels`
+
+### ⚠️ Rozpracováno:
+
+**KROK 1.5-1.8**: Refaktoring build() - **NEDOKONČENO**
+- ✅ Build() metoda má novou strukturu (volá helper metody)
+- ❌ Helper metody **NEJSOU dokončeny** - soubor obsahuje starý linter kód
+- ❌ Soubor má ~520 řádků starého kódu používajícího neexistující proměnné:
+  - `_selectedModel` (neexistuje, mělo by být `_selectedMotivationModel` / `_selectedTaskModel`)
+  - `_temperatureController` (neexistuje, mělo by být `_motivationTempController` / `_taskTempController`)
+  - `_maxTokensController` (neexistuje, mělo by být `_motivationTokensController` / `_taskTokensController`)
+  - `_popularModels` (neexistuje, mělo by být `_motivationModels` / `_taskModels`)
+
+**Současný stav souboru `ai_settings_tab.dart`**:
+- Řádky 1-379: ✅ OK (nové state variables, fixed metody)
+- Řádky 380-428: ✅ OK (nová build() struktura)
+- Řádky 429-519: ❌ PROBLÉM - starý linter kód (používá neexistující proměnné)
+- Potřeba: Kompletně smazat řádky 459-961 a nahradit novými helper metodami
+
+### 🔴 CO ZBÝVÁ V NOVÉ SESSION:
+
+**Priorita 1: Dokončit KROK 1.5-1.8** (~2-3 hodiny)
+1. Smazat celý starý kód od řádku 459 do konce souboru
+2. Implementovat helper metody podle plánu v aii.md:
+   - `_buildEnableSwitch()`
+   - `_buildApiKeyField()`
+   - `_buildDivider(String title, String subtitle)`
+   - `_buildMotivationSection()`
+   - `_buildTaskSection()`
+   - `_buildModelDropdown({required selectedModel, required onChanged, required recommendedModels})`
+   - `_buildTemperatureField(TextEditingController controller)`
+   - `_buildTokensField(TextEditingController controller)`
+   - `_buildRecommendationBox(String title, List<String> points)`
+   - `_buildDebugSection()`
+   - `_buildSaveButton()`
+   - `_buildSectionTitle(String title)` - **už existuje, nech**
+   - `_getTemperatureLabel()` - **potřeba 2 verze** (motivation + task)
+
+**Priorita 2: KROK 2** (~15 min)
+- Update `AiSplitCubit` - použít `aiTaskModel` místo `aiMotivationModel`
+
+**Priorita 3: KROK 3** (~30 min)
+- Přidat tooltips s doporučenými modely
+
+**Priorita 4: KROK 4** (~30 min)
+- Manuální testing
+
+**Očekávaný celkový čas**: 3-4 hodiny
+
+### 📝 Poznámky pro další session:
+
+1. **Soubor je v broken stavu** - build() volá helper metody které neexistují nebo jsou broken
+2. **Nelze spustit** - compiler errors kvůli neexistujícím proměnným
+3. **Strategie**: Nejprve smazat všechen broken kód (řádky 459-961), pak postupně přidat nové helper metody
+4. **Tokeny**: Zbývalo ~70k, což stačí na dokončení
+5. **Testing**: Po dokončení KROK 1.5-1.8 udělat commit a manuálně otestovat v emulatoru
+
+---
+
+**Připraveno pro pokračování v nové session! 🚀**

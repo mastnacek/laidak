@@ -389,35 +389,75 @@ class _AISettingsTabState extends State<AISettingsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Info panel
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: theme.appColors.blue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.appColors.blue, width: 1),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: theme.appColors.blue, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Konfigurace AI modelu pro motivační zprávy.\nAPI klíč můžeš získat na openrouter.ai',
-                    style: TextStyle(
-                      color: theme.appColors.fg,
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // ===== INFO PANEL =====
+          _buildInfoPanel(),
           const SizedBox(height: 24),
 
-          // Enable/Disable switch
-          Container(
+          // ===== ENABLE/DISABLE SWITCH =====
+          _buildEnableSwitch(),
+          const SizedBox(height: 24),
+
+          // ===== API KEY (SHARED) =====
+          _buildSectionTitle('🔑 OpenRouter API Klíč (společný pro oba modely)'),
+          const SizedBox(height: 8),
+          _buildApiKeyField(),
+          const SizedBox(height: 32),
+
+          // ===== SEKCE 1: MOTIVACE =====
+          _buildDivider('💬 MODEL PRO MOTIVACI', 'Uncensored, kreativní'),
+          const SizedBox(height: 16),
+          _buildMotivationSection(),
+          const SizedBox(height: 32),
+
+          // ===== SEKCE 2: TASK SPLIT =====
+          _buildDivider('🧠 MODEL PRO ROZDĚLENÍ ÚKOLŮ', 'Seriózní práce, JSON-ready'),
+          const SizedBox(height: 16),
+          _buildTaskSection(),
+          const SizedBox(height: 32),
+
+          // ===== DEBUG (optional) =====
+          _buildDebugSection(),
+          const SizedBox(height: 32),
+
+          // ===== SAVE BUTTON =====
+          _buildSaveButton(),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  // ===== HELPER METODY =====
+
+  Widget _buildInfoPanel() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.appColors.blue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.appColors.blue, width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.info_outline, color: theme.appColors.blue, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Konfigurace AI modelů pro motivaci a rozdělení úkolů.\nAPI klíč můžeš získat na openrouter.ai',
+              style: TextStyle(
+                color: theme.appColors.fg,
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEnableSwitch() {
+    return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: theme.appColors.bgAlt,
