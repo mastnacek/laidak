@@ -22,9 +22,10 @@ class AiSplitRepositoryImpl implements AiSplitRepository {
   Future<AiSplitResponse> splitTask(AiSplitRequest request) async {
     // Načíst settings z DB
     final settings = await db.getSettings();
-    final apiKey = settings['api_key'] as String?;
-    final model = settings['model'] as String;
-    final temperature = settings['temperature'] as double;
+    final apiKey = settings['openrouter_api_key'] as String?;
+    final model = settings['ai_task_model'] as String;
+    final temperature = settings['ai_task_temperature'] as double;
+    final maxTokens = settings['ai_task_max_tokens'] as int;
 
     // Fail Fast: validace API klíče
     if (apiKey == null || apiKey.isEmpty) {
@@ -37,7 +38,7 @@ class AiSplitRepositoryImpl implements AiSplitRepository {
       apiKey: apiKey,
       model: model,
       temperature: temperature,
-      maxTokens: 800,
+      maxTokens: maxTokens,
     );
 
     // Parsovat odpověď
