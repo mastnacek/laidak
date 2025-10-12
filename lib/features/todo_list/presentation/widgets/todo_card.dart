@@ -3,11 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/sound_manager.dart';
+import '../../../../core/services/database_helper.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import '../../../../features/ai_split/presentation/widgets/ai_split_button.dart';
 import '../../../../features/ai_split/presentation/cubit/ai_split_cubit.dart';
+import '../../../../features/ai_split/data/models/subtask_model.dart';
 import '../../../../features/pomodoro/presentation/pages/pomodoro_page.dart';
+import '../../../../features/pomodoro/domain/entities/pomodoro_session.dart';
+import '../../../../features/ai_chat/presentation/pages/ai_chat_page.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/typewriter_text.dart';
 import '../../../../widgets/highlighted_text_field.dart';
@@ -240,13 +244,15 @@ class TodoCard extends StatelessWidget {
                 ),
               ),
 
-              // Tlačítka (Pomodoro + Motivate v jednom řádku)
+              // Tlačítka (Pomodoro + Motivate + AI Chat v jednom řádku)
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildPomodoroButton(context),
                   const SizedBox(width: 4),
                   _buildMotivateButton(context),
+                  const SizedBox(width: 4),
+                  _buildAiChatButton(context),
                 ],
               ),
             ],
@@ -446,6 +452,22 @@ class TodoCard extends StatelessWidget {
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
       tooltip: 'Spustit Pomodoro',
+    );
+  }
+
+  /// Vytvořit AI Chat tlačítko
+  Widget _buildAiChatButton(BuildContext context) {
+    return IconButton(
+      icon: const Text(
+        '🤖',
+        style: TextStyle(
+          fontSize: 16,
+        ),
+      ),
+      onPressed: () => _openAiChat(context),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      tooltip: 'Chat s AI',
     );
   }
 
@@ -1180,5 +1202,45 @@ class TodoCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Otevřít AI Chat
+  Future<void> _openAiChat(BuildContext context) async {
+    // Zavřít klávesnici
+    FocusScope.of(context).unfocus();
+
+    // Načíst subtasks
+    final subtasks = await _loadSubtasks(todo.id!);
+
+    // Načíst pomodoro sessions
+    final sessions = await _loadPomodoroSessions(todo.id!);
+
+    // Otevřít AI Chat page
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AiChatPage(
+            todo: todo,
+            subtasks: subtasks,
+            pomodoroSessions: sessions,
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Načíst subtasks z databáze
+  Future<List<SubtaskModel>> _loadSubtasks(int todoId) async {
+    final db = DatabaseHelper();
+    final maps = await db.getSubtasksByTodoId(todoId);
+    return maps.map((m) => SubtaskModel.fromMap(m)).toList();
+  }
+
+  /// Načíst pomodoro sessions z databáze
+  Future<List<PomodoroSession>> _loadPomodoroSessions(int todoId) async {
+    final db = DatabaseHelper();
+    final maps = await db.getPomodoroSessionsByTodoId(todoId);
+    return maps.map((m) => PomodoroSession.fromMap(m)).toList();
   }
 }

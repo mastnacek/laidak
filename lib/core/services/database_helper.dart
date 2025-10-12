@@ -1426,6 +1426,19 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_pomodoro_date ON pomodoro_sessions(started_at)');
   }
 
+  // ==================== POMODORO SESSIONS CRUD ====================
+
+  /// Získat Pomodoro sessions pro konkrétní TODO úkol
+  Future<List<Map<String, dynamic>>> getPomodoroSessionsByTodoId(int todoId) async {
+    final db = await database;
+    return await db.query(
+      'pomodoro_sessions',
+      where: 'task_id = ?',
+      whereArgs: [todoId],
+      orderBy: 'started_at DESC',
+    );
+  }
+
   // ==================== PERFORMANCE & MAINTENANCE ====================
 
   /// Optimalizovat query planner (pravidelně spouštět)
