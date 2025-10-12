@@ -4,6 +4,7 @@ import '../../domain/entities/pomodoro_session.dart';
 import '../../domain/entities/timer_state.dart';
 import '../../domain/repositories/pomodoro_repository.dart';
 import '../../domain/services/pomodoro_timer_service.dart';
+import '../../domain/services/notification_service.dart';
 import 'pomodoro_event.dart';
 import 'pomodoro_state.dart';
 
@@ -17,6 +18,7 @@ import 'pomodoro_state.dart';
 class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
   final PomodoroRepository _repository;
   final PomodoroTimerService _timerService;
+  final NotificationService _notificationService;
 
   /// Subscription na timer tick events
   StreamSubscription<Duration>? _timerSubscription;
@@ -24,8 +26,10 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
   PomodoroBloc({
     required PomodoroRepository repository,
     required PomodoroTimerService timerService,
+    NotificationService? notificationService,
   })  : _repository = repository,
         _timerService = timerService,
+        _notificationService = notificationService ?? NotificationService(),
         super(const PomodoroState()) {
     // Registrovat event handlery
     on<StartPomodoroEvent>(_onStartPomodoro);
@@ -203,8 +207,10 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
 
     final newCount = state.sessionCount + 1;
 
-    // TODO: Play sound (pokud enabled v config)
-    // TODO: Show notification "Pomodoro Complete!"
+    // Přehrát zvuk + vibrace
+    await _notificationService.playCompletionNotification(
+      soundEnabled: state.config.soundEnabled,
+    );
 
     // Auto-refresh historie
     add(const LoadHistoryEvent());
@@ -252,12 +258,15 @@ class PomodoroBloc extends Bloc<PomodoroEvent, PomodoroState> {
   }
 
   /// Break dokončen (privátní helper)
-  void _onBreakComplete(Emitter<PomodoroState> emit) {
+  Future<void> _onBreakComplete(Emitter<PomodoroState> emit) async {
     _timerService.stop();
     _timerSubscription?.cancel();
     _timerSubscription = null;
 
-    // TODO: Play sound
+    // Přehrát zvuk + vibrace
+    await _notificationService.playCompletionNotification(
+      soundEnabled: state.config.soundEnabled,
+    );
 
     emit(state.copyWith(
       timerState: TimerState.idle,

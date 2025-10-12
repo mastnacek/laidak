@@ -70,6 +70,9 @@ dependencies:
   # Emoji picker pro custom agenda views
   emoji_picker_flutter: ^3.1.0
 
+  # Vibrace pro Pomodoro notifikace
+  vibration: ^2.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -110,6 +113,7 @@ flutter:
   assets:
     - assets/sounds/typing_long.wav
     - assets/sounds/subtle_long_type.wav
+    - assets/sounds/pomodoro_complete.wav
 
   # To add assets to your application, add an assets section, like this:
   # assets:
