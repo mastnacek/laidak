@@ -86,14 +86,21 @@ class SettingsCubit extends Cubit<SettingsState> {
       return;
     }
 
+    // ✅ Fail Fast: zkontrolovat že máme current state
+    final currentState = state;
+    if (currentState is! SettingsLoaded) {
+      emit(const SettingsError('Nelze změnit téma - nastavení nejsou načtena'));
+      return;
+    }
+
     try {
       // Uložit do databáze
       await _db.updateSettings(selectedTheme: themeId);
 
-      // Aktualizovat state
+      // Aktualizovat state pomocí copyWith (zachová agendaConfig + AI settings)
       final theme = _getThemeDataById(themeId);
 
-      emit(SettingsLoaded(
+      emit(currentState.copyWith(
         selectedThemeId: themeId,
         currentTheme: theme,
       ));
