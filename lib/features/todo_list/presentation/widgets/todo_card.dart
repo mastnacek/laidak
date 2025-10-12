@@ -964,10 +964,7 @@ class TodoCard extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PomodoroPage(
-            taskId: todo.id,
-            initialDuration: Duration(minutes: result),
-          ),
+          builder: (context) => const PomodoroPage(),
         ),
       );
     }

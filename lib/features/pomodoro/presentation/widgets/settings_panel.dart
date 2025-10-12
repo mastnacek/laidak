@@ -4,7 +4,7 @@ import '../bloc/pomodoro_bloc.dart';
 import '../bloc/pomodoro_event.dart';
 import '../bloc/pomodoro_state.dart';
 
-/// Panel s nastavením Pomodoro (work duration, break duration, atd.)
+/// Panel s nastavenim Pomodoro (work duration, break duration, atd.)
 class SettingsPanel extends StatelessWidget {
   const SettingsPanel({super.key});
 
@@ -21,7 +21,7 @@ class SettingsPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '™ Nastavení',
+                  'Nastaveni',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -32,7 +32,7 @@ class SettingsPanel extends StatelessWidget {
                 // Work Duration
                 ListTile(
                   leading: const Icon(Icons.work, color: Colors.blue),
-                  title: const Text('Délka práce'),
+                  title: const Text('Delka prace'),
                   trailing: Text(
                     '${state.config.workDuration.inMinutes} min',
                     style: const TextStyle(
@@ -46,7 +46,7 @@ class SettingsPanel extends StatelessWidget {
                 // Break Duration
                 ListTile(
                   leading: const Icon(Icons.coffee, color: Colors.green),
-                  title: const Text('Délka pauzy'),
+                  title: const Text('Delka pauzy'),
                   trailing: Text(
                     '${state.config.breakDuration.inMinutes} min',
                     style: const TextStyle(
@@ -60,8 +60,8 @@ class SettingsPanel extends StatelessWidget {
                 // Auto-start break
                 SwitchListTile(
                   secondary: const Icon(Icons.auto_awesome, color: Colors.orange),
-                  title: const Text('Auto-start pYestávky'),
-                  subtitle: const Text('Automaticky spustit pYestávku po dokonení'),
+                  title: const Text('Auto-start prestavky'),
+                  subtitle: const Text('Automaticky spustit prestavku po dokonceni'),
                   value: state.config.autoStartBreak,
                   onChanged: (value) {
                     final newConfig = state.config.copyWith(autoStartBreak: value);
@@ -73,8 +73,8 @@ class SettingsPanel extends StatelessWidget {
                 // Sound
                 SwitchListTile(
                   secondary: const Icon(Icons.volume_up, color: Colors.purple),
-                  title: const Text('Zvuk pYi dokonení'),
-                  subtitle: const Text('PYehrát zvukový signál'),
+                  title: const Text('Zvuk pri dokonceni'),
+                  subtitle: const Text('Prehrat zvukovy signal'),
                   value: state.config.soundEnabled,
                   onChanged: (value) {
                     final newConfig = state.config.copyWith(soundEnabled: value);

@@ -5,7 +5,7 @@ import '../bloc/pomodoro_bloc.dart';
 import '../bloc/pomodoro_event.dart';
 import '../bloc/pomodoro_state.dart';
 
-/// Widget zobrazující historii Pomodoro sessions
+/// Widget zobrazujici historii Pomodoro sessions
 class HistoryList extends StatefulWidget {
   const HistoryList({super.key});
 
@@ -17,7 +17,7 @@ class _HistoryListState extends State<HistoryList> {
   @override
   void initState() {
     super.initState();
-    // Naíst historii pYi inicializaci
+    // Nacist historii pri inicializaci
     context.read<PomodoroBloc>().add(const LoadHistoryEvent());
   }
 
@@ -48,7 +48,7 @@ class _HistoryListState extends State<HistoryList> {
                   ),
                   SizedBox(height: 16),
                   Text(
-                    '}ádná historie',
+                    'Zadna historie',
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey,
@@ -57,7 +57,7 @@ class _HistoryListState extends State<HistoryList> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Spusete své první Pomodoro!',
+                    'Spustte sve prvni Pomodoro!',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey,
@@ -77,7 +77,7 @@ class _HistoryListState extends State<HistoryList> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '=Ê Historie (dnes)',
+                  'Historie (dnes)',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -92,22 +92,22 @@ class _HistoryListState extends State<HistoryList> {
                   final startTime = timeFormat.format(session.startedAt);
                   final duration = session.actualDuration ?? session.duration;
                   final durationMin = duration.inMinutes;
-                  final icon = session.completed ? '' : 'ø';
-                  final typeIcon = session.isBreak ? '' : '<E';
+                  final icon = session.completed ? 'OK' : 'PAUSE';
+                  final typeIcon = session.isBreak ? 'COFFEE' : 'WORK';
 
                   return ListTile(
                     leading: Text(
                       typeIcon,
-                      style: const TextStyle(fontSize: 28),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                     ),
                     title: Text(
                       '$startTime - $durationMin min',
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    subtitle: Text('Úkol #${session.taskId}'),
+                    subtitle: Text('Ukol #${session.taskId}'),
                     trailing: Text(
                       icon,
-                      style: const TextStyle(fontSize: 24),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                     ),
                   );
                 }).toList(),
