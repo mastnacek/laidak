@@ -12,20 +12,23 @@ class PomodoroRepositoryImpl implements PomodoroRepository {
 
   @override
   Future<PomodoroSession> createSession(PomodoroSession session) async {
-    // TODO: Implement when DB migration is done
-    throw UnimplementedError('Database migration for pomodoro_sessions not yet implemented');
+    // TODO: Implement when DB migration is done (MILESTONE 2)
+    // Pro V1: Vrátit fake session s ID (timer funguje bez DB)
+    return session.copyWith(id: 1);
   }
 
   @override
   Future<void> updateSession(PomodoroSession session) async {
-    // TODO: Implement when DB migration is done
-    throw UnimplementedError('Database migration for pomodoro_sessions not yet implemented');
+    // TODO: Implement when DB migration is done (MILESTONE 2)
+    // Pro V1: No-op (timer funguje bez persistence)
+    return;
   }
 
   @override
   Future<void> deleteSession(int id) async {
-    // TODO: Implement when DB migration is done
-    throw UnimplementedError('Database migration for pomodoro_sessions not yet implemented');
+    // TODO: Implement when DB migration is done (MILESTONE 2)
+    // Pro V1: No-op
+    return;
   }
 
   @override
