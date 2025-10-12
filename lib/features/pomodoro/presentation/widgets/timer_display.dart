@@ -27,18 +27,18 @@ class TimerDisplay extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Circular progress indicator
+              // Circular progress indicator (mensi velikost)
               SizedBox(
-                width: 250,
-                height: 250,
+                width: 180,
+                height: 180,
                 child: CircularProgressIndicator(
                   value: state.progress,
-                  strokeWidth: 8,
+                  strokeWidth: 6,
                   backgroundColor: color.withOpacity(0.2),
                   valueColor: AlwaysStoppedAnimation<Color>(color),
                 ),
               ),
-              
+
               // Timer text
               Column(
                 mainAxisSize: MainAxisSize.min,
@@ -46,20 +46,20 @@ class TimerDisplay extends StatelessWidget {
                   Text(
                     timeText,
                     style: TextStyle(
-                      fontSize: 64,
+                      fontSize: 48,
                       fontWeight: FontWeight.bold,
                       color: color,
                       fontFamily: 'monospace',
-                      letterSpacing: 2,
+                      letterSpacing: 1,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  
-                  // Label (Práce / Přestávka)
+                  const SizedBox(height: 4),
+
+                  // Label (Prace / Prestavka) - kompaktni
                   Text(
-                    state.isBreak ? '☕ Přestávka' : '🍅 Práce',
+                    state.isBreak ? 'Prestavka' : 'Prace',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       color: color.withOpacity(0.7),
                       fontWeight: FontWeight.w500,
                     ),

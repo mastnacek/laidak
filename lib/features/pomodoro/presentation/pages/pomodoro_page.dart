@@ -52,13 +52,15 @@ class PomodoroPage extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Timer Display (velký časovač)
+              const SizedBox(height: 16),
+
+              // Timer Display (kompaktni casovac)
               const TimerDisplay(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // Task Info
               const _TaskInfo(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Controls (Start/Pause/Stop buttons)
               const TimerControls(),
