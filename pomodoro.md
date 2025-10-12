@@ -2038,11 +2038,29 @@ lib/features/pomodoro/domain/services/
 
 ---
 
-### **MILESTONE 1.4: PomodoroBloc** ⏳ PENDING
-- [ ] Events (StartPomodoro, Pause, Resume, Stop, TimerTick, etc.)
-- [ ] States (PomodoroState s Equatable)
-- [ ] Event handlers (Fail Fast validace)
-- [ ] Integration s PomodoroTimerService
+### **MILESTONE 1.4: PomodoroBloc** ✅ HOTOVO (2025-01-12)
+- ✅ Events (10 typů: Start, Pause, Resume, Stop, Tick, Complete, Break, Continue, LoadHistory, UpdateConfig)
+- ✅ States (PomodoroState s Equatable + helper getters)
+- ✅ Event handlers s Fail Fast validací
+- ✅ Integration s PomodoroTimerService (stream subscription)
+
+**Změny**:
+```
+lib/features/pomodoro/presentation/bloc/
+├── pomodoro_event.dart   (NOVÝ - 10 event typů)
+├── pomodoro_state.dart   (NOVÝ - immutable state + helpers)
+└── pomodoro_bloc.dart    (NOVÝ - 10 event handlerů)
+```
+
+**Features**:
+- ✅ Sealed class Events (type safety)
+- ✅ Immutable State s copyWith
+- ✅ Fail Fast validace (timer už běží)
+- ✅ DB persistence integration
+- ✅ Auto-start break support
+- ✅ Proper cleanup (close() method)
+
+**Commited**: `477e408 ✨ feat: Pomodoro BLoC - Events, States, Handlers (MILESTONE 1.4)`
 
 ---
 
@@ -2077,31 +2095,56 @@ lib/features/pomodoro/domain/services/
 - ✅ Broadcast Stream<Duration> pro multiple listeners
 - ✅ Closure helper funkce `startPeriodicTimer()` pro state access
 - ✅ Proper resource cleanup v stop() metodě
-- **Čeká na commit**: `✨ feat: Pomodoro Timer Service (MILESTONE 1.3)`
+- **Commited**: `0bc9208 ✨ feat: Pomodoro Timer Service - Isolate-based Timer (MILESTONE 1.3)`
+
+### 2025-01-12 (MILESTONE 1.4 - PomodoroBloc)
+- ✅ Vytvořeny 3 soubory: pomodoro_event.dart, pomodoro_state.dart, pomodoro_bloc.dart
+- ✅ 10 event typů (sealed class): Start, Pause, Resume, Stop, Tick, Complete, Break, Continue, LoadHistory, UpdateConfig
+- ✅ Immutable PomodoroState s Equatable + helper getters (formattedRemainingTime, progress, isBreak)
+- ✅ 10 event handlerů v PomodoroBloc s Fail Fast validací
+- ✅ Stream subscription na PomodoroTimerService
+- ✅ DB persistence integration (createSession, updateSession)
+- ✅ Auto-start break support
+- ✅ Proper cleanup v close() metodě
+- **Commited**: `477e408 ✨ feat: Pomodoro BLoC - Events, States, Handlers (MILESTONE 1.4)`
 
 ---
 
 ## 🔄 NEXT STEPS
 
-### Aktuální krok: MILESTONE 1.3 → Commit
-**Co udělat**:
-1. ✅ Vytvořen `pomodoro_timer_service.dart` (315 řádků)
-2. ⏳ Commit změn
-3. ⏳ Pokračovat na MILESTONE 1.4 (PomodoroBloc)
+### ✅ Dokončeno: MILESTONE 1.4 (PomodoroBloc)
+**Status**: ✅ COMPLETE
+**Co bylo uděláno**:
+1. ✅ Vytvořeny Events (10 typů)
+2. ✅ Vytvořen State (immutable + helpers)
+3. ✅ Implementován PomodoroBloc (10 handlerů)
+4. ✅ Commit: `477e408`
 
-### Následující: MILESTONE 1.4 - PomodoroBloc
+### Následující: MILESTONE 1.5 - Unit Tests (OPTIONAL)
 **Odhad**: 2-3 hodiny
 **Kroky**:
-- Vytvořit Events (StartPomodoro, Pause, Resume, Stop, TimerTick, etc.)
-- Vytvořit States (PomodoroState s Equatable)
-- Implementovat event handlers s Fail Fast validací
-- Integrovat s PomodoroTimerService (stream subscription)
+- [ ] PomodoroBloc test suite
+- [ ] PomodoroTimerService tests
+- [ ] State transitions tests
+- [ ] **NEBO**: Skip na MILESTONE 2 (Database Integration)
+
+**Doporučení**: ⚠️ **SKIP Unit Tests pro teď** → Pokračuj na **MILESTONE 2 (Database)** pro rychlejší MVP!
+
+### Následující: MILESTONE 2 - Database Integration
+**Odhad**: 2-3 hodiny
+**Priorita**: 🔴 CRITICAL
+**Kroky**:
+- [ ] Přidej `pomodoro_sessions` tabulku do database_helper.dart
+- [ ] Vytvoř migration (version 12)
+- [ ] Implementuj PomodoroRepositoryImpl
+- [ ] Testing - DB CRUD operations
 
 ---
 
 ## ⚠️ POZNÁMKY
 
-- **Token usage**: Zbývá ~128k tokens (z 200k) - vše OK ✅
+- **Token usage**: Zbývá ~121k tokens (z 200k) - vše OK ✅
 - **Git branch**: `bloc` (aktuální)
-- **Snapshot commity**: Před každým milestone!
-- **Testing**: Unit testy až po dokončení BLoC (MILESTONE 1.5)
+- **Snapshot commity**: Po každém milestone!
+- **MILESTONE 1.4**: ✅ HOTOVO (Core Timer Logic dokončeno!)
+- **Next**: Database Integration (MILESTONE 2)
