@@ -10,7 +10,7 @@ import 'features/settings/presentation/cubit/settings_cubit.dart';
 import 'features/settings/presentation/cubit/settings_state.dart';
 import 'features/todo_list/presentation/bloc/todo_list_bloc.dart';
 import 'features/todo_list/presentation/bloc/todo_list_event.dart';
-import 'features/todo_list/presentation/pages/todo_list_page.dart';
+import 'pages/main_page.dart';
 import 'features/todo_list/data/repositories/todo_repository_impl.dart';
 import 'features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import 'features/ai_motivation/data/repositories/motivation_repository_impl.dart';
@@ -93,7 +93,7 @@ class TodoApp extends StatelessWidget {
         return MaterialApp(
           title: 'TODO Doom',
           theme: theme,
-          home: const TodoListPage(),
+          home: const MainPage(),
         );
       },
     );

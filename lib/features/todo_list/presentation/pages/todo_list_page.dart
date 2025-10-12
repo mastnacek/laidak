@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../../pages/settings_page.dart';
-import '../../../help/presentation/pages/help_page.dart';
 import '../../../settings/presentation/cubit/settings_cubit.dart';
 import '../../../settings/presentation/cubit/settings_state.dart';
 import '../../domain/enums/view_mode.dart';
@@ -13,7 +11,6 @@ import '../widgets/todo_card.dart';
 import '../widgets/input_bar.dart';
 import '../widgets/view_bar.dart';
 import '../widgets/sort_bar.dart';
-import '../widgets/stats_row.dart';
 
 /// TodoListPage - Hlavní stránka s TODO seznamem (Mobile-First redesign)
 ///
@@ -97,43 +94,9 @@ class _TodoListPageState extends State<TodoListPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      // Automatický posun při otevření klávesnice
-      resizeToAvoidBottomInset: true,
-
-      // AppBar s Stats dashboard, Help a Settings
-      appBar: AppBar(
-        // Help button VLEVO (vedle hamburger menu pozice)
-        leading: IconButton(
-          icon: Icon(Icons.help_outline, color: theme.appColors.cyan),
-          tooltip: 'Nápověda',
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) =>
-                    const HelpPage(), // Import přidáme na začátek souboru
-              ),
-            );
-          },
-        ),
-        // Stats uprostřed
-        title: const StatsRow(),
-        // Settings VPRAVO
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Nastavení',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-          ),
-        ],
-      ),
-
-      // TODO List + Bottom Controls (keyboard aware!)
-      body: BlocListener<SettingsCubit, SettingsState>(
+    // TodoListPage už NENÍ Scaffold - je child widgetem MainPage PageView!
+    // AppBar je v MainPage, zde pouze body content
+    return BlocListener<SettingsCubit, SettingsState>(
         listener: (context, settingsState) {
           // Auto-switch na "All" když vypnu aktivní custom view
           if (settingsState is SettingsLoaded) {
@@ -276,8 +239,7 @@ class _TodoListPageState extends State<TodoListPage> {
           );
         },
         ),
-      ),
-    );
+      );
   }
 
   /// Sestavit seznam úkolů (Loaded state)
