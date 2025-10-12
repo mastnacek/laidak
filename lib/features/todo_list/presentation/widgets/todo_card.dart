@@ -7,6 +7,7 @@ import '../../../../core/utils/app_logger.dart';
 import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import '../../../../features/ai_split/presentation/widgets/ai_split_button.dart';
 import '../../../../features/ai_split/presentation/cubit/ai_split_cubit.dart';
+import '../../../../features/pomodoro/presentation/pages/pomodoro_page.dart';
 import '../../../../services/tag_parser.dart';
 import '../../../../widgets/typewriter_text.dart';
 import '../../../../widgets/highlighted_text_field.dart';
@@ -239,8 +240,14 @@ class TodoCard extends StatelessWidget {
                 ),
               ),
 
-              // Tlačítko motivate
-              _buildMotivateButton(context),
+              // Tlačítka (Motivate + Pomodoro)
+              Column(
+                children: [
+                  _buildMotivateButton(context),
+                  const SizedBox(height: 4),
+                  _buildPomodoroButton(context),
+                ],
+              ),
             ],
           ),
         ),
@@ -422,6 +429,22 @@ class TodoCard extends StatelessWidget {
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(),
       tooltip: 'AI Motivace',
+    );
+  }
+
+  /// Vytvořit Pomodoro tlačítko (rajčete emoji)
+  Widget _buildPomodoroButton(BuildContext context) {
+    return IconButton(
+      icon: const Text(
+        '🍅',
+        style: TextStyle(
+          fontSize: 16,
+        ),
+      ),
+      onPressed: () => _showPomodoroQuickStart(context),
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
+      tooltip: 'Spustit Pomodoro',
     );
   }
 
@@ -802,6 +825,151 @@ class TodoCard extends StatelessWidget {
           ),
         );
       }
+    }
+  }
+
+  /// Zobrazit Quick Start dialog pro Pomodoro
+  Future<void> _showPomodoroQuickStart(BuildContext context) async {
+    final theme = Theme.of(context);
+
+    // Zavřít klávesnici
+    FocusScope.of(context).unfocus();
+
+    int selectedMinutes = 25; // Default 25 minut
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setState) => Dialog(
+          backgroundColor: theme.appColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: Colors.orange, width: 2),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    const Icon(Icons.timer, color: Colors.orange, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        '🍅 SPUSTIT POMODORO',
+                        style: TextStyle(
+                          color: Colors.orange,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: theme.appColors.base5),
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                    ),
+                  ],
+                ),
+                Divider(color: theme.appColors.base3, height: 24),
+
+                // Úkol preview
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.appColors.bgAlt,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: theme.appColors.base3),
+                  ),
+                  child: Text(
+                    '📋 ${todo.task}',
+                    style: TextStyle(
+                      color: theme.appColors.fg,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Výběr délky
+                Text(
+                  'Délka Pomodoro:',
+                  style: TextStyle(
+                    color: theme.appColors.fg,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Dropdown s minutami
+                DropdownButton<int>(
+                  value: selectedMinutes,
+                  isExpanded: true,
+                  dropdownColor: theme.appColors.bgAlt,
+                  style: TextStyle(color: theme.appColors.fg, fontSize: 16),
+                  items: [15, 25, 30, 45, 60].map((minutes) {
+                    return DropdownMenuItem(
+                      value: minutes,
+                      child: Text('$minutes minut'),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        selectedMinutes = value;
+                      });
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+
+                // Tlačítka
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: Text(
+                        'Zrušit',
+                        style: TextStyle(color: theme.appColors.base5),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(dialogContext).pop(selectedMinutes);
+                      },
+                      icon: const Icon(Icons.play_arrow),
+                      label: const Text('START'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: theme.appColors.bg,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Pokud user klikl START, přejít na Pomodoro Page
+    if (result != null && context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PomodoroPage(
+            taskId: todo.id,
+            initialDuration: Duration(minutes: result),
+          ),
+        ),
+      );
     }
   }
 
