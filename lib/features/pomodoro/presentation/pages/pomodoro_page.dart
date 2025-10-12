@@ -18,24 +18,25 @@ import '../../../../core/services/database_helper.dart';
 /// - Control buttons (Start/Pause/Stop)
 /// - Nastavení (work/break duration)
 /// - Historie sessions
+///
+/// Parametr [showAppBar]:
+/// - false: Používá se v PageView (MainPage má společný AppBar)
+/// - true: Používá se jako samostatný route (např. z TODO Card)
 class PomodoroPage extends StatelessWidget {
-  const PomodoroPage({super.key});
+  final bool showAppBar;
+
+  const PomodoroPage({super.key, this.showAppBar = false});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
+    final content = BlocProvider(
       create: (context) => PomodoroBloc(
         repository: PomodoroRepositoryImpl(
           databaseHelper: DatabaseHelper(),
         ),
         timerService: PomodoroTimerService(),
       )..add(const LoadHistoryEvent()),
-      child: Scaffold(
-      appBar: AppBar(
-        title: const Text('🍅 Pomodoro Timer'),
-        centerTitle: true,
-      ),
-      body: BlocListener<PomodoroBloc, PomodoroState>(
+      child: BlocListener<PomodoroBloc, PomodoroState>(
         listener: (context, state) {
           // Zobrazit error message jako SnackBar
           if (state.errorMessage != null) {
@@ -76,8 +77,21 @@ class PomodoroPage extends StatelessWidget {
           ),
         ),
       ),
-      ),
     );
+
+    // Pokud showAppBar = true, obal do Scaffold s AppBar
+    if (showAppBar) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('🍅 Pomodoro Timer'),
+          centerTitle: true,
+        ),
+        body: content,
+      );
+    }
+
+    // Jinak vrať pouze content (pro PageView v MainPage)
+    return content;
   }
 }
 

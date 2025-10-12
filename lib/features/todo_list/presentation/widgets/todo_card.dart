@@ -959,12 +959,12 @@ class TodoCard extends StatelessWidget {
       ),
     );
 
-    // Pokud user klikl START, přejít na Pomodoro Page
+    // Pokud user klikl START, přejít na Pomodoro Page (s vlastním AppBar)
     if (result != null && context.mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const PomodoroPage(),
+          builder: (context) => const PomodoroPage(showAppBar: true),
         ),
       );
     }
