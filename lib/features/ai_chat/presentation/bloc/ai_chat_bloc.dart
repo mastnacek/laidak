@@ -8,7 +8,7 @@ import 'ai_chat_state.dart';
 /// BLoC pro AI chat
 class AiChatBloc extends Bloc<AiChatEvent, AiChatState> {
   final AiChatRepository repository;
-  final TaskContext taskContext;
+  final TaskContext? taskContext;
 
   AiChatBloc({
     required this.repository,
@@ -68,8 +68,13 @@ class AiChatBloc extends Bloc<AiChatEvent, AiChatState> {
     LoadChatHistoryEvent event,
     Emitter<AiChatState> emit,
   ) async {
+    // Nelze načíst historii bez task contextu
+    if (taskContext == null) {
+      return;
+    }
+
     try {
-      final messages = await repository.loadChatHistory(taskContext.todo.id!);
+      final messages = await repository.loadChatHistory(taskContext!.todo.id!);
       if (messages.isNotEmpty) {
         emit(AiChatLoaded(messages: messages));
       }

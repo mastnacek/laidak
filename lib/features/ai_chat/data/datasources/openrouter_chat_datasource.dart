@@ -20,13 +20,13 @@ class OpenRouterChatDataSource {
   ///
   /// [apiKey] - OpenRouter API key
   /// [model] - Model ID (např. 'anthropic/claude-3.5-sonnet')
-  /// [taskContext] - Kontext úkolu
+  /// [taskContext] - Kontext úkolu (pokud null, standalone chat)
   /// [messages] - Historie konverzace
   /// [userMessage] - Aktuální user message
   Future<String> sendMessage({
     required String apiKey,
     required String model,
-    required TaskContext taskContext,
+    required TaskContext? taskContext,
     required List<ChatMessage> messages,
     required String userMessage,
   }) async {
@@ -86,16 +86,16 @@ class OpenRouterChatDataSource {
   ///   {"role": "user", "content": "Aktuální otázka"}
   /// ]
   List<Map<String, String>> _buildMessagesArray({
-    required TaskContext taskContext,
+    required TaskContext? taskContext,
     required List<ChatMessage> messages,
     required String userMessage,
   }) {
     final apiMessages = <Map<String, String>>[];
 
-    // 1. System prompt (kontext úkolu)
+    // 1. System prompt (kontext úkolu nebo standalone)
     apiMessages.add({
       'role': 'system',
-      'content': taskContext.toSystemPrompt(),
+      'content': taskContext?.toSystemPrompt() ?? _getStandaloneSystemPrompt(),
     });
 
     // 2. Historie konverzace
@@ -114,5 +114,15 @@ class OpenRouterChatDataSource {
 
     AppLogger.debug('📝 Messages array: ${apiMessages.length} messages');
     return apiMessages;
+  }
+
+  /// Získat standalone system prompt (bez task kontextu)
+  String _getStandaloneSystemPrompt() {
+    return '''
+Jsi AI asistent pro produktivitu a time management.
+Pomáháš uživatelům s plánováním, organizací práce, motivací a efektivitou.
+
+Buď konstruktivní, praktický a konkrétní. Odpovídej v češtině.
+''';
   }
 }

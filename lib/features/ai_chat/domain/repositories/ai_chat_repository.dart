@@ -5,13 +5,13 @@ import '../entities/task_context.dart';
 abstract class AiChatRepository {
   /// Poslat zprávu AI a získat odpověď
   ///
-  /// [taskContext] - kontext úkolu (první message = system prompt)
+  /// [taskContext] - kontext úkolu (pokud null, jde o standalone chat)
   /// [messages] - historie konverzace
   /// [userMessage] - aktuální user message
   ///
   /// Returns: AI odpověď
   Future<ChatMessage> sendMessage({
-    required TaskContext taskContext,
+    required TaskContext? taskContext,
     required List<ChatMessage> messages,
     required String userMessage,
   });

@@ -17,7 +17,7 @@ class AiChatRepositoryImpl implements AiChatRepository {
 
   @override
   Future<ChatMessage> sendMessage({
-    required TaskContext taskContext,
+    required TaskContext? taskContext,
     required List<ChatMessage> messages,
     required String userMessage,
   }) async {

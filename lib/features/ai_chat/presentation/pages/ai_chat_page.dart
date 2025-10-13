@@ -15,27 +15,34 @@ import '../widgets/chat_message_bubble.dart';
 import '../widgets/typing_indicator.dart';
 import '../widgets/chat_input.dart';
 
-/// AI Chat Page - konverzace s AI asistentem nad úkolem
+/// AI Chat Page - konverzace s AI asistentem
+///
+/// Dva režimy:
+/// 1. Standalone mode: obecný chat bez kontextu úkolu (taskContext = null)
+/// 2. Task-specific mode: chat s kontextem konkrétního úkolu (taskContext != null)
 class AiChatPage extends StatelessWidget {
-  final Todo todo;
-  final List<Subtask> subtasks;
-  final List<PomodoroSession> pomodoroSessions;
+  /// Task context (optional) - pokud null, jde o standalone chat
+  final TaskContext? taskContext;
 
-  const AiChatPage({
+  /// Constructor pro task-specific chat
+  AiChatPage.withTask({
     super.key,
-    required this.todo,
-    this.subtasks = const [],
-    this.pomodoroSessions = const [],
-  });
+    required Todo todo,
+    List<Subtask> subtasks = const [],
+    List<PomodoroSession> pomodoroSessions = const [],
+  }) : taskContext = TaskContext(
+          todo: todo,
+          subtasks: subtasks,
+          pomodoroSessions: pomodoroSessions,
+        );
+
+  /// Constructor pro standalone chat
+  const AiChatPage.standalone({super.key}) : taskContext = null;
 
   @override
   Widget build(BuildContext context) {
-    // Vytvořit task context
-    final taskContext = TaskContext(
-      todo: todo,
-      subtasks: subtasks,
-      pomodoroSessions: pomodoroSessions,
-    );
+    // Použít task context pokud existuje, jinak null
+    final effectiveTaskContext = taskContext;
 
     // Vytvořit repository
     final repository = AiChatRepositoryImpl(
@@ -46,16 +53,16 @@ class AiChatPage extends StatelessWidget {
     return BlocProvider(
       create: (_) => AiChatBloc(
         repository: repository,
-        taskContext: taskContext,
+        taskContext: effectiveTaskContext,
       ),
-      child: _AiChatPageView(taskContext: taskContext),
+      child: _AiChatPageView(taskContext: effectiveTaskContext),
     );
   }
 }
 
 /// Internal view widget
 class _AiChatPageView extends StatefulWidget {
-  final TaskContext taskContext;
+  final TaskContext? taskContext;
 
   const _AiChatPageView({required this.taskContext});
 
@@ -91,7 +98,11 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('🤖 AI Chat: ${widget.taskContext.todo.task}'),
+        title: Text(
+          widget.taskContext != null
+              ? '🤖 AI Chat: ${widget.taskContext!.todo.task}'
+              : '🤖 AI Chat',
+        ),
         actions: [
           // Clear chat button
           IconButton(
@@ -113,10 +124,11 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
       ),
       body: Column(
         children: [
-          // Context Summary Card (top)
-          ContextSummaryCard(taskContext: widget.taskContext),
-
-          const Divider(height: 1),
+          // Context Summary Card (top) - pouze pokud je task context
+          if (widget.taskContext != null) ...[
+            ContextSummaryCard(taskContext: widget.taskContext!),
+            const Divider(height: 1),
+          ],
 
           // Chat Messages (scrollable)
           Expanded(
@@ -160,6 +172,8 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
 
   /// Empty state - první návštěva chatu
   Widget _buildEmptyState() {
+    final isTaskMode = widget.taskContext != null;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -169,13 +183,17 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
             Icon(Icons.smart_toy, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              '💬 Jak ti můžu pomoct s tímto úkolem?',
+              isTaskMode
+                  ? '💬 Jak ti můžu pomoct s tímto úkolem?'
+                  : '💬 Ahoj! Jak ti můžu pomoct?',
               style: TextStyle(fontSize: 18, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
-              'Zeptej se na cokoliv - plánování, rozdělení úkolu, tipy na efektivitu...',
+              isTaskMode
+                  ? 'Zeptej se na cokoliv - plánování, rozdělení úkolu, tipy na efektivitu...'
+                  : 'Zeptej se na cokoliv - můžu ti pomoct s produktivitou, time managementem, nebo čímkoliv jiným...',
               style: TextStyle(fontSize: 14, color: Colors.grey[500]),
               textAlign: TextAlign.center,
             ),

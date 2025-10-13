@@ -3,20 +3,23 @@ import '../core/theme/theme_colors.dart';
 import '../features/help/presentation/pages/help_page.dart';
 import '../features/todo_list/presentation/pages/todo_list_page.dart';
 import '../features/pomodoro/presentation/pages/pomodoro_page.dart';
+import '../features/ai_chat/presentation/pages/ai_chat_page.dart';
 import '../features/todo_list/presentation/widgets/stats_row.dart';
 import 'settings_page.dart';
 
-/// MainPage - Hlavní stránka s PageView pro swipeable TODO List a Pomodoro
+/// MainPage - Hlavní stránka s PageView pro swipeable obrazovky
 ///
 /// Layout:
-/// - AppBar (Help + Stats + Settings) - sdílený pro obě stránky
-/// - PageView s 2 stránkami:
-///   1. TodoListPage (index 0)
-///   2. PomodoroPage (index 1)
+/// - AppBar (Help + Stats/Title + Settings) - sdílený pro všechny stránky
+/// - PageView s 3 stránkami:
+///   0. AiChatPage (standalone mode) - vlevo
+///   1. TodoListPage (střed, initial)
+///   2. PomodoroPage - vpravo
 ///
 /// Gesture:
-/// - Swipe doleva → přejdi na Pomodoro
-/// - Swipe doprava → vrať se na TODO List
+/// - Swipe doprava → AI Chat
+/// - Swipe doleva → Pomodoro
+/// - Initial page: TodoListPage (index 1)
 ///
 /// AppBar je fixní a nescrolluje se s obsahem.
 class MainPage extends StatefulWidget {
@@ -28,10 +31,11 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   // PageController pro správu PageView
-  final PageController _pageController = PageController(initialPage: 0);
+  // initialPage: 1 = TodoListPage (střed)
+  final PageController _pageController = PageController(initialPage: 1);
 
-  // Aktuální index stránky (0 = TODO List, 1 = Pomodoro)
-  int _currentPageIndex = 0;
+  // Aktuální index stránky (0 = AI Chat, 1 = TODO List, 2 = Pomodoro)
+  int _currentPageIndex = 1;
 
   @override
   void dispose() {
@@ -65,11 +69,9 @@ class _MainPageState extends State<MainPage> {
             );
           },
         ),
-        // Stats uprostřed (zobrazí se pouze na TODO List stránce)
-        title: _currentPageIndex == 0
-            ? const StatsRow() // TODO List stats
-            : const Text('🍅 Pomodoro Timer'), // Pomodoro title
-        centerTitle: _currentPageIndex == 1, // Center only for Pomodoro
+        // Title závisí na aktuální stránce
+        title: _buildAppBarTitle(),
+        centerTitle: _currentPageIndex != 1, // Center pro AI Chat a Pomodoro
         // Settings VPRAVO
         actions: [
           IconButton(
@@ -84,18 +86,35 @@ class _MainPageState extends State<MainPage> {
         ],
       ),
 
-      // PageView s 2 stránkami (swipeable)
+      // PageView s 3 stránkami (swipeable)
       body: PageView(
         controller: _pageController,
         onPageChanged: _onPageChanged,
         children: const [
-          // Stránka 0: TODO List
+          // Stránka 0: AI Chat (standalone mode)
+          AiChatPage.standalone(),
+
+          // Stránka 1: TODO List (střed, initial)
           TodoListPage(),
 
-          // Stránka 1: Pomodoro Timer
+          // Stránka 2: Pomodoro Timer
           PomodoroPage(),
         ],
       ),
     );
+  }
+
+  /// AppBar title podle aktuální stránky
+  Widget _buildAppBarTitle() {
+    switch (_currentPageIndex) {
+      case 0:
+        return const Text('🤖 AI Chat');
+      case 1:
+        return const StatsRow(); // TODO List stats
+      case 2:
+        return const Text('🍅 Pomodoro Timer');
+      default:
+        return const Text('TODO');
+    }
   }
 }

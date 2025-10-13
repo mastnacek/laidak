@@ -1261,12 +1261,12 @@ class TodoCard extends StatelessWidget {
     // Načíst pomodoro sessions
     final sessions = await _loadPomodoroSessions(todo.id!);
 
-    // Otevřít AI Chat page
+    // Otevřít AI Chat page s task kontextem
     if (context.mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => AiChatPage(
+          builder: (_) => AiChatPage.withTask(
             todo: todo,
             subtasks: subtasks,
             pomodoroSessions: sessions,
