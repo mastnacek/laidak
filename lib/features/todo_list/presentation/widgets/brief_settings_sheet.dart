@@ -85,10 +85,11 @@ class _BriefSettingsSheetState extends State<BriefSettingsSheet> {
         color: theme.scaffoldBackgroundColor,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           // Header
           Row(
             children: [
@@ -322,6 +323,7 @@ class _BriefSettingsSheetState extends State<BriefSettingsSheet> {
           // Safe area padding pro bottom notch
           SizedBox(height: MediaQuery.of(context).padding.bottom),
         ],
+        ),
       ),
     );
   }
