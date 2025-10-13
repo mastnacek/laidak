@@ -47,8 +47,8 @@ dependencies:
   http: ^1.1.0
 
   # Audio přehrávač
-  just_audio: ^0.10.5  # Android/iOS
-  audioplayers: ^6.1.0  # Windows (stabilnější než just_audio_windows)
+  just_audio: ^0.10.5
+  just_audio_media_kit: ^2.0.8  # Windows support přes media_kit
 
   # State management pro dynamické změny tématu
   provider: ^6.1.0

@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  audioplayers_linux
   clipboard_watcher
   emoji_picker_flutter
   url_launcher_linux
