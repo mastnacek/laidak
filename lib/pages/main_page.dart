@@ -8,21 +8,22 @@ import '../features/ai_chat/presentation/pages/ai_chat_page.dart';
 import '../features/ai_chat/presentation/bloc/ai_chat_bloc.dart';
 import '../features/ai_chat/presentation/bloc/ai_chat_event.dart';
 import '../features/todo_list/presentation/widgets/stats_row.dart';
-import '../features/notes/presentation/pages/notes_page.dart';
+import '../features/notes/presentation/pages/notes_list_page.dart';
 import 'settings_page.dart';
 
 /// MainPage - Hlavní stránka s PageView pro swipeable obrazovky
 ///
 /// Layout:
 /// - AppBar (Help + Stats/Title + Settings) - sdílený pro všechny stránky
-/// - PageView s 3 stránkami:
+/// - PageView s 4 stránkami:
 ///   0. AiChatPage (standalone mode) - vlevo
 ///   1. TodoListPage (střed, initial)
-///   2. PomodoroPage - vpravo
+///   2. NotesListPage - vpravo
+///   3. PomodoroPage - vpravo
 ///
 /// Gesture:
 /// - Swipe doprava → AI Chat
-/// - Swipe doleva → Pomodoro
+/// - Swipe doleva → Notes → Pomodoro
 /// - Initial page: TodoListPage (index 1)
 ///
 /// AppBar je fixní a nescrolluje se s obsahem.
@@ -54,22 +55,12 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
-  /// Otevřít Notes page jako Modal Bottom Sheet
-  void _openNotesPage() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const NotesPage(),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      // AppBar sdílený pro obě stránky
+      // AppBar sdílený pro všechny stránky
       appBar: AppBar(
         // Help button VLEVO
         leading: IconButton(
@@ -90,29 +81,23 @@ class _MainPageState extends State<MainPage> {
         actions: _buildAppBarActions(),
       ),
 
-      // PageView s 3 stránkami (swipeable)
-      // Obalený GestureDetector pro swipe nahoru → Notes
-      body: GestureDetector(
-        onVerticalDragEnd: (details) {
-          // Swipe nahoru = negativní velocity
-          if (details.primaryVelocity != null && details.primaryVelocity! < -500) {
-            _openNotesPage();
-          }
-        },
-        child: PageView(
-          controller: _pageController,
-          onPageChanged: _onPageChanged,
-          children: const [
-            // Stránka 0: AI Chat (standalone mode)
-            AiChatPage.standalone(),
+      // PageView s 4 stránkami (swipeable)
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: _onPageChanged,
+        children: const [
+          // Stránka 0: AI Chat (standalone mode)
+          AiChatPage.standalone(),
 
-            // Stránka 1: TODO List (střed, initial)
-            TodoListPage(),
+          // Stránka 1: TODO List (střed, initial)
+          TodoListPage(),
 
-            // Stránka 2: Pomodoro Timer
-            PomodoroPage(),
-          ],
-        ),
+          // Stránka 2: Notes
+          NotesListPage(),
+
+          // Stránka 3: Pomodoro Timer
+          PomodoroPage(),
+        ],
       ),
     );
   }
@@ -125,6 +110,8 @@ class _MainPageState extends State<MainPage> {
       case 1:
         return const StatsRow(); // TODO List stats
       case 2:
+        return const Text('📝 Notes');
+      case 3:
         return const Text('🍅 Pomodoro Timer');
       default:
         return const Text('TODO');
@@ -167,7 +154,7 @@ class _MainPageState extends State<MainPage> {
       ];
     }
 
-    // TODO List (index 1) a Pomodoro (index 2): Jen Settings
+    // TODO List (index 1), Notes (index 2), Pomodoro (index 3): Jen Settings
     return [
       IconButton(
         icon: const Icon(Icons.settings),

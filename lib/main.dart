@@ -10,6 +10,8 @@ import 'features/settings/presentation/cubit/settings_cubit.dart';
 import 'features/settings/presentation/cubit/settings_state.dart';
 import 'features/todo_list/presentation/bloc/todo_list_bloc.dart';
 import 'features/todo_list/presentation/bloc/todo_list_event.dart';
+import 'features/notes/presentation/bloc/notes_bloc.dart';
+import 'features/notes/presentation/bloc/notes_event.dart';
 import 'pages/main_page.dart';
 import 'features/todo_list/data/repositories/todo_repository_impl.dart';
 import 'features/ai_motivation/presentation/cubit/motivation_cubit.dart';
@@ -79,6 +81,10 @@ void main() async {
             aiBriefRepository,
             briefSettingsService,
           )..add(const LoadTodosEvent()), // Automaticky načíst todos
+        ),
+        // NotesBloc pro notes management
+        BlocProvider(
+          create: (_) => NotesBloc(db)..add(const LoadNotesEvent()), // Automaticky načíst notes
         ),
         // MotivationCubit pro AI motivaci
         BlocProvider(
