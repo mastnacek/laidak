@@ -4,6 +4,7 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:todo/features/todo_list/domain/entities/todo.dart';
 import 'package:todo/features/todo_list/domain/repositories/todo_repository.dart';
+import 'package:todo/features/ai_brief/domain/repositories/ai_brief_repository.dart';
 import 'package:todo/features/todo_list/domain/enums/view_mode.dart';
 import 'package:todo/features/todo_list/domain/enums/sort_mode.dart';
 import 'package:todo/features/todo_list/presentation/bloc/todo_list_bloc.dart';
@@ -16,10 +17,11 @@ import 'todo_list_bloc_test.mocks.dart';
 ///
 /// Testuje všechny event handlery a edge cases.
 /// Používá bloc_test package a mockito pro repository mocking.
-@GenerateMocks([TodoRepository])
+@GenerateMocks([TodoRepository, AiBriefRepository])
 void main() {
   group('TodoListBloc', () {
     late MockTodoRepository mockRepository;
+    late MockAiBriefRepository mockAiBriefRepository;
 
     // Test data
     final testTodo1 = Todo(
@@ -55,6 +57,7 @@ void main() {
 
     setUp(() {
       mockRepository = MockTodoRepository();
+      mockAiBriefRepository = MockAiBriefRepository();
       // Default stub pro getAllTodos (aby BLoC mohl reloadovat data kdykoliv)
       when(mockRepository.getAllTodos()).thenAnswer((_) async => testTodos);
     });
@@ -62,7 +65,7 @@ void main() {
     // ==================== INITIAL STATE ====================
 
     test('initial state je TodoListInitial', () {
-      final bloc = TodoListBloc(mockRepository);
+      final bloc = TodoListBloc(mockRepository, mockAiBriefRepository);
       expect(bloc.state, equals(const TodoListInitial()));
       bloc.close();
     });
@@ -75,7 +78,7 @@ void main() {
         build: () {
           when(mockRepository.getAllTodos())
               .thenAnswer((_) async => testTodos);
-          return TodoListBloc(mockRepository);
+          return TodoListBloc(mockRepository, mockAiBriefRepository);
         },
         act: (bloc) => bloc.add(const LoadTodosEvent()),
         expect: () => [
@@ -92,7 +95,7 @@ void main() {
         build: () {
           when(mockRepository.getAllTodos())
               .thenThrow(Exception('Database error'));
-          return TodoListBloc(mockRepository);
+          return TodoListBloc(mockRepository, mockAiBriefRepository);
         },
         act: (bloc) => bloc.add(const LoadTodosEvent()),
         expect: () => [
@@ -110,7 +113,7 @@ void main() {
         build: () {
           when(mockRepository.getAllTodos())
               .thenAnswer((_) async => testTodos);
-          return TodoListBloc(mockRepository);
+          return TodoListBloc(mockRepository, mockAiBriefRepository);
         },
         seed: () => TodoListLoaded(
           allTodos: testTodos,
@@ -160,7 +163,7 @@ void main() {
           when(mockRepository.insertTodo(any)).thenAnswer((_) async => {});
           when(mockRepository.getAllTodos())
               .thenAnswer((_) async => testTodos);
-          return TodoListBloc(mockRepository);
+          return TodoListBloc(mockRepository, mockAiBriefRepository);
         },
         act: (bloc) => bloc.add(const AddTodoEvent(
           taskText: 'Nový úkol',
@@ -217,7 +220,7 @@ void main() {
           when(mockRepository.updateTodo(any)).thenAnswer((_) async => {});
           when(mockRepository.getAllTodos())
               .thenAnswer((_) async => testTodos);
-          return TodoListBloc(mockRepository);
+          return TodoListBloc(mockRepository, mockAiBriefRepository);
         },
         act: (bloc) => bloc.add(UpdateTodoEvent(
           testTodo1.copyWith(task: 'Upravený úkol'),
@@ -268,7 +271,7 @@ void main() {
           when(mockRepository.deleteTodo(1)).thenAnswer((_) async => {});
           when(mockRepository.getAllTodos())
               .thenAnswer((_) async => testTodos);
-          return TodoListBloc(mockRepository);
+          return TodoListBloc(mockRepository, mockAiBriefRepository);
         },
         act: (bloc) => bloc.add(const DeleteTodoEvent(1)),
         expect: () => [
@@ -305,7 +308,7 @@ void main() {
               .thenAnswer((_) async => {});
           when(mockRepository.getAllTodos())
               .thenAnswer((_) async => testTodos);
-          return TodoListBloc(mockRepository);
+          return TodoListBloc(mockRepository, mockAiBriefRepository);
         },
         act: (bloc) => bloc.add(const ToggleTodoEvent(id: 1, isCompleted: true)),
         expect: () => [

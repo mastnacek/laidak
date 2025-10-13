@@ -1,5 +1,5 @@
 import 'package:intl/intl.dart';
-import '../../../../models/todo_item.dart';
+import '../../../todo_list/domain/entities/todo.dart';
 
 /// Context Builder pro AI Brief
 ///
@@ -24,7 +24,7 @@ class BriefContextBuilder {
   /// Tags: work, urgent
   /// ...
   /// ```
-  static String buildUserContext(List<TodoItem> tasks) {
+  static String buildUserContext(List<Todo> tasks) {
     final buffer = StringBuffer();
     final now = DateTime.now();
 

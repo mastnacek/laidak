@@ -3,12 +3,19 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:todo/features/todo_list/domain/entities/todo.dart' as _i4;
-import 'package:todo/features/todo_list/domain/repositories/todo_repository.dart'
+import 'package:todo/features/ai_brief/domain/entities/brief_config.dart'
+    as _i8;
+import 'package:todo/features/ai_brief/domain/entities/brief_response.dart'
     as _i2;
+import 'package:todo/features/ai_brief/domain/repositories/ai_brief_repository.dart'
+    as _i6;
+import 'package:todo/features/todo_list/domain/entities/todo.dart' as _i5;
+import 'package:todo/features/todo_list/domain/repositories/todo_repository.dart'
+    as _i3;
+import 'package:todo/models/todo_item.dart' as _i7;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -24,55 +31,91 @@ import 'package:todo/features/todo_list/domain/repositories/todo_repository.dart
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
+class _FakeBriefResponse_0 extends _i1.SmartFake implements _i2.BriefResponse {
+  _FakeBriefResponse_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [TodoRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTodoRepository extends _i1.Mock implements _i2.TodoRepository {
+class MockTodoRepository extends _i1.Mock implements _i3.TodoRepository {
   MockTodoRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<List<_i4.Todo>> getAllTodos() =>
+  _i4.Future<List<_i5.Todo>> getAllTodos() =>
       (super.noSuchMethod(
             Invocation.method(#getAllTodos, []),
-            returnValue: _i3.Future<List<_i4.Todo>>.value(<_i4.Todo>[]),
+            returnValue: _i4.Future<List<_i5.Todo>>.value(<_i5.Todo>[]),
           )
-          as _i3.Future<List<_i4.Todo>>);
+          as _i4.Future<List<_i5.Todo>>);
 
   @override
-  _i3.Future<void> insertTodo(_i4.Todo? todo) =>
+  _i4.Future<void> insertTodo(_i5.Todo? todo) =>
       (super.noSuchMethod(
             Invocation.method(#insertTodo, [todo]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> updateTodo(_i4.Todo? todo) =>
+  _i4.Future<void> updateTodo(_i5.Todo? todo) =>
       (super.noSuchMethod(
             Invocation.method(#updateTodo, [todo]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> deleteTodo(int? id) =>
+  _i4.Future<void> deleteTodo(int? id) =>
       (super.noSuchMethod(
             Invocation.method(#deleteTodo, [id]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<void> toggleTodoStatus(int? id, bool? isCompleted) =>
+  _i4.Future<void> toggleTodoStatus(int? id, bool? isCompleted) =>
       (super.noSuchMethod(
             Invocation.method(#toggleTodoStatus, [id, isCompleted]),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
+}
+
+/// A class which mocks [AiBriefRepository].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockAiBriefRepository extends _i1.Mock implements _i6.AiBriefRepository {
+  MockAiBriefRepository() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i4.Future<_i2.BriefResponse> generateBrief({
+    required List<_i7.TodoItem>? tasks,
+    required _i8.BriefConfig? config,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#generateBrief, [], {
+              #tasks: tasks,
+              #config: config,
+            }),
+            returnValue: _i4.Future<_i2.BriefResponse>.value(
+              _FakeBriefResponse_0(
+                this,
+                Invocation.method(#generateBrief, [], {
+                  #tasks: tasks,
+                  #config: config,
+                }),
+              ),
+            ),
+          )
+          as _i4.Future<_i2.BriefResponse>);
 }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import '../../../../core/services/database_helper.dart';
 import '../../../../core/utils/app_logger.dart';
-import '../../../../models/todo_item.dart';
+import '../../../todo_list/domain/entities/todo.dart';
 import '../../domain/entities/brief_config.dart';
 import '../../domain/entities/brief_response.dart';
 import '../../domain/repositories/ai_brief_repository.dart';
@@ -26,7 +26,7 @@ class AiBriefRepositoryImpl implements AiBriefRepository {
 
   @override
   Future<BriefResponse> generateBrief({
-    required List<TodoItem> tasks,
+    required List<Todo> tasks,
     required BriefConfig config,
   }) async {
     AppLogger.info('🤖 AI Brief - Generuji Brief pro ${tasks.length} úkolů...');

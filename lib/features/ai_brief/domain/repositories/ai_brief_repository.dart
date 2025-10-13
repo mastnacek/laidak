@@ -1,4 +1,4 @@
-import '../../../../models/todo_item.dart';
+import '../../../todo_list/domain/entities/todo.dart';
 import '../entities/brief_config.dart';
 import '../entities/brief_response.dart';
 
@@ -16,7 +16,7 @@ abstract class AiBriefRepository {
   /// Returns: [BriefResponse] s prioritizovanými úkoly a AI komentáři
   /// Throws: [Exception] pokud AI request selže nebo je nevalidní response
   Future<BriefResponse> generateBrief({
-    required List<TodoItem> tasks,
+    required List<Todo> tasks,
     required BriefConfig config,
   });
 }
