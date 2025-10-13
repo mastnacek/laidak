@@ -47,9 +47,9 @@ class _MotivationDemoWidgetState extends State<MotivationDemoWidget> {
   Future<void> _checkApiConfiguration() async {
     final settings = await _db.getSettings();
     setState(() {
-      final apiKey = settings['api_key'] as String?;
+      final apiKey = settings['openrouter_api_key'] as String?;
       _hasApiKey = apiKey != null && apiKey.isNotEmpty;
-      _model = settings['model'] as String?;
+      _model = settings['ai_motivation_model'] as String?;
     });
   }
 

@@ -26,10 +26,10 @@ class MotivationRepositoryImpl implements MotivationRepository {
 
     // Načíst nastavení z databáze
     final settings = await _db.getSettings();
-    final apiKey = settings['api_key'] as String?;
-    final model = settings['model'] as String;
-    final temperature = settings['temperature'] as double;
-    final maxTokens = settings['max_tokens'] as int;
+    final apiKey = settings['openrouter_api_key'] as String?;
+    final model = settings['ai_motivation_model'] as String;
+    final temperature = settings['ai_motivation_temperature'] as double;
+    final maxTokens = settings['ai_motivation_max_tokens'] as int;
 
     // ✅ Fail Fast: kontrola API klíče
     if (apiKey == null || apiKey.isEmpty) {

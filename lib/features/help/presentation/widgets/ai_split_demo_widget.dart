@@ -49,9 +49,9 @@ class _AiSplitDemoWidgetState extends State<AiSplitDemoWidget> {
   Future<void> _checkApiConfiguration() async {
     final settings = await _db.getSettings();
     setState(() {
-      final apiKey = settings['api_key'] as String?;
+      final apiKey = settings['openrouter_api_key'] as String?;
       _hasApiKey = apiKey != null && apiKey.isNotEmpty;
-      _model = settings['model'] as String?;
+      _model = settings['ai_task_model'] as String?;
     });
   }
 
@@ -81,10 +81,10 @@ class _AiSplitDemoWidgetState extends State<AiSplitDemoWidget> {
     try {
       // Načíst settings z databáze
       final settings = await _db.getSettings();
-      final apiKey = settings['api_key'] as String;
-      final model = settings['model'] as String;
-      final temperature = settings['temperature'] as double;
-      final maxTokens = settings['max_tokens'] as int;
+      final apiKey = settings['openrouter_api_key'] as String;
+      final model = settings['ai_task_model'] as String;
+      final temperature = settings['ai_task_temperature'] as double;
+      final maxTokens = settings['ai_task_max_tokens'] as int;
 
       // Vytvořit request
       final request = AiSplitRequest(
