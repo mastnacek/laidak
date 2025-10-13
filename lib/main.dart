@@ -21,6 +21,8 @@ import 'features/ai_brief/data/repositories/ai_brief_repository_impl.dart';
 import 'features/ai_brief/data/datasources/brief_ai_datasource.dart';
 import 'features/ai_brief/data/services/brief_settings_service.dart';
 import 'core/services/database_helper.dart';
+import 'core/services/clipboard_monitor_service.dart';
+import 'core/widgets/smart_clipboard_dialog.dart';
 import 'services/tag_service.dart';
 
 void main() async {
@@ -92,8 +94,42 @@ void main() async {
   );
 }
 
-class TodoApp extends StatelessWidget {
+class TodoApp extends StatefulWidget {
   const TodoApp({super.key});
+
+  @override
+  State<TodoApp> createState() => _TodoAppState();
+}
+
+class _TodoAppState extends State<TodoApp> {
+  late final ClipboardMonitorService _clipboardMonitor;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Inicializovat clipboard monitor
+    _clipboardMonitor = ClipboardMonitorService();
+    _clipboardMonitor.onActionableContentDetected = (detected) {
+      // Získat context z navigátoru
+      final context = _navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        // Zobrazit Smart Clipboard Dialog
+        showSmartClipboardDialog(context, detected);
+      }
+    };
+
+    // Spustit monitoring
+    _clipboardMonitor.start();
+    AppLogger.info('✅ ClipboardMonitor started');
+  }
+
+  @override
+  void dispose() {
+    _clipboardMonitor.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +143,7 @@ class TodoApp extends StatelessWidget {
         return MaterialApp(
           title: 'TODO Doom',
           theme: theme,
+          navigatorKey: _navigatorKey, // Pro přístup k contextu z clipboard monitoru
           home: const MainPage(),
         );
       },
