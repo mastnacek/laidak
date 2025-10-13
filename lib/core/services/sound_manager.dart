@@ -1,3 +1,4 @@
+import 'dart:io' show Platform;
 import 'package:just_audio/just_audio.dart';
 import '../utils/app_logger.dart';
 
@@ -11,8 +12,17 @@ class SoundManager {
   final AudioPlayer _player = AudioPlayer();
   bool _isPlaying = false;
 
+  /// Zkontrolovat jestli je platforma podporována pro zvuky
+  /// DŮVOD: just_audio_windows má bug s threading (crash při load)
+  bool get _isSoundSupported => !Platform.isWindows;
+
   /// Přehrát typing_long zvuk ve smyčce (při načítání AI)
   Future<void> playTypingLong() async {
+    if (!_isSoundSupported) {
+      AppLogger.debug('🔇 SoundManager: Zvuky zakázány na Windows (just_audio bug)');
+      return;
+    }
+
     if (_isPlaying) return;
 
     try {
@@ -31,6 +41,11 @@ class SoundManager {
 
   /// Přehrát subtle typing zvuk ve smyčce (při typewriter efektu)
   Future<void> playSubtleTyping() async {
+    if (!_isSoundSupported) {
+      AppLogger.debug('🔇 SoundManager: Zvuky zakázány na Windows (just_audio bug)');
+      return;
+    }
+
     if (_isPlaying) {
       AppLogger.debug('🔇 SoundManager: Stopping previous sound');
       await stop();
