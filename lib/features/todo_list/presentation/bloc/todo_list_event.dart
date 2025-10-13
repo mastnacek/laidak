@@ -3,6 +3,7 @@ import '../../domain/entities/todo.dart';
 import '../../domain/enums/view_mode.dart';
 import '../../domain/enums/sort_mode.dart';
 import '../../../../features/settings/domain/models/custom_agenda_view.dart';
+import '../../../../features/ai_brief/domain/entities/brief_config.dart';
 
 /// Sealed class pro všechny TodoList events
 ///
@@ -144,4 +145,14 @@ final class ChangeToCustomViewEvent extends TodoListEvent {
 /// Regenerovat AI Brief (ignorovat cache)
 final class RegenerateBriefEvent extends TodoListEvent {
   const RegenerateBriefEvent();
+}
+
+/// Aktualizovat Brief konfiguraci (nastavení)
+final class UpdateBriefConfigEvent extends TodoListEvent {
+  final BriefConfig config;
+
+  const UpdateBriefConfigEvent(this.config);
+
+  @override
+  List<Object?> get props => [config];
 }

@@ -6,6 +6,7 @@ import '../../domain/extensions/todo_filtering.dart';
 import '../../domain/models/brief_section_with_todos.dart';
 import '../../../../features/settings/domain/models/custom_agenda_view.dart';
 import '../../../../features/ai_brief/domain/entities/brief_response.dart';
+import '../../../../features/ai_brief/domain/entities/brief_config.dart';
 
 /// Sealed class pro všechny TodoList states
 ///
@@ -57,6 +58,9 @@ final class TodoListLoaded extends TodoListState {
 
   // ==================== AI BRIEF FIELDS ====================
 
+  /// AI Brief konfigurace (uživatelská nastavení)
+  final BriefConfig briefConfig;
+
   /// AI Brief data (když viewMode == ViewMode.aiBrief)
   final BriefResponse? aiBriefData;
 
@@ -78,10 +82,11 @@ final class TodoListLoaded extends TodoListState {
     this.sortMode,
     this.sortDirection = SortDirection.desc,
     this.currentCustomView,
+    BriefConfig? briefConfig,
     this.aiBriefData,
     this.isGeneratingBrief = false,
     this.briefError,
-  });
+  }) : briefConfig = briefConfig ?? const BriefConfig();
 
   /// Computed property: Brief sections s real Todo objekty
   ///
@@ -166,6 +171,7 @@ final class TodoListLoaded extends TodoListState {
     SortDirection? sortDirection,
     CustomAgendaView? currentCustomView,
     bool clearCustomView = false,
+    BriefConfig? briefConfig,
     BriefResponse? aiBriefData,
     bool clearAiBriefData = false,
     bool? isGeneratingBrief,
@@ -182,6 +188,7 @@ final class TodoListLoaded extends TodoListState {
       sortMode: clearSortMode ? null : (sortMode ?? this.sortMode),
       sortDirection: sortDirection ?? this.sortDirection,
       currentCustomView: clearCustomView ? null : (currentCustomView ?? this.currentCustomView),
+      briefConfig: briefConfig ?? this.briefConfig,
       aiBriefData: clearAiBriefData ? null : (aiBriefData ?? this.aiBriefData),
       isGeneratingBrief: isGeneratingBrief ?? this.isGeneratingBrief,
       briefError: clearBriefError ? null : (briefError ?? this.briefError),
@@ -198,6 +205,7 @@ final class TodoListLoaded extends TodoListState {
         sortMode,
         sortDirection,
         currentCustomView,
+        briefConfig,
         aiBriefData,
         isGeneratingBrief,
         briefError,

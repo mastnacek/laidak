@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'core/theme/doom_one_theme.dart';
 import 'core/observers/simple_bloc_observer.dart';
@@ -19,6 +20,7 @@ import 'features/ai_split/data/repositories/ai_split_repository_impl.dart';
 import 'features/ai_split/data/datasources/openrouter_datasource.dart';
 import 'features/ai_brief/data/repositories/ai_brief_repository_impl.dart';
 import 'features/ai_brief/data/datasources/brief_ai_datasource.dart';
+import 'features/ai_brief/data/services/brief_settings_service.dart';
 import 'core/services/database_helper.dart';
 import 'services/tag_service.dart';
 
@@ -44,6 +46,9 @@ void main() async {
   // Inicializovat databázi
   final db = DatabaseHelper();
 
+  // Inicializovat SharedPreferences pro Brief settings
+  final prefs = await SharedPreferences.getInstance();
+
   // Inicializovat HTTP client pro AI split
   final httpClient = http.Client();
 
@@ -60,6 +65,7 @@ void main() async {
     db: db,
     aiDatasource: briefAiDatasource,
   );
+  final briefSettingsService = BriefSettingsService(prefs);
 
   runApp(
     MultiBlocProvider(
@@ -73,6 +79,7 @@ void main() async {
           create: (_) => TodoListBloc(
             TodoRepositoryImpl(db),
             aiBriefRepository,
+            briefSettingsService,
           )..add(const LoadTodosEvent()), // Automaticky načíst todos
         ),
         // MotivationCubit pro AI motivaci

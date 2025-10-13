@@ -12,6 +12,7 @@ import '../widgets/input_bar.dart';
 import '../widgets/view_bar.dart';
 import '../widgets/sort_bar.dart';
 import '../widgets/brief_section_widget.dart';
+import '../widgets/brief_settings_sheet.dart';
 
 /// TodoListPage - Hlavní stránka s TODO seznamem (Mobile-First redesign)
 ///
@@ -372,18 +373,100 @@ class _TodoListPageState extends State<TodoListPage> {
       );
     }
 
-    // Brief sections s TodoCards
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
-      itemCount: state.briefSections!.length,
-      itemBuilder: (context, index) {
-        final sectionData = state.briefSections![index];
-        return BriefSectionWidget(
-          section: sectionData.section,
-          todos: sectionData.todos,
-          expandedTodoId: state.expandedTodoId,
-        );
-      },
+    // Brief sections s TodoCards + Header (gear + refresh)
+    return Column(
+      children: [
+        // Header s gear + refresh tlačítky
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: theme.appColors.bgAlt.withOpacity(0.5),
+            border: Border(
+              bottom: BorderSide(
+                color: theme.appColors.base3.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              // Brief title
+              Icon(
+                Icons.auto_awesome,
+                color: theme.appColors.cyan,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'AI Brief',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: theme.appColors.fg,
+                ),
+              ),
+              const Spacer(),
+
+              // Settings icon
+              IconButton(
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const BriefSettingsSheet(),
+                  );
+                },
+                icon: Icon(
+                  Icons.settings,
+                  color: theme.appColors.base5,
+                  size: 20,
+                ),
+                tooltip: 'Nastavení Briefu',
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+              ),
+
+              // Refresh icon
+              IconButton(
+                onPressed: () {
+                  context.read<TodoListBloc>().add(const RegenerateBriefEvent());
+                },
+                icon: Icon(
+                  Icons.refresh,
+                  color: theme.appColors.base5,
+                  size: 20,
+                ),
+                tooltip: 'Regenerovat Brief',
+                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Brief sections
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(8),
+            itemCount: state.briefSections!.length,
+            itemBuilder: (context, index) {
+              final sectionData = state.briefSections![index];
+              return BriefSectionWidget(
+                section: sectionData.section,
+                todos: sectionData.todos,
+                expandedTodoId: state.expandedTodoId,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

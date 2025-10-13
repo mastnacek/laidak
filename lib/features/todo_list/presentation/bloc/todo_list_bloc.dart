@@ -5,6 +5,7 @@ import '../../domain/enums/view_mode.dart';
 import '../../../ai_brief/domain/repositories/ai_brief_repository.dart';
 import '../../../ai_brief/domain/entities/brief_response.dart';
 import '../../../ai_brief/domain/entities/brief_config.dart';
+import '../../../ai_brief/data/services/brief_settings_service.dart';
 import 'todo_list_event.dart';
 import 'todo_list_state.dart';
 
@@ -19,6 +20,7 @@ import 'todo_list_state.dart';
 class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
   final TodoRepository _repository;
   final AiBriefRepository _aiBriefRepository;
+  final BriefSettingsService _briefSettingsService;
 
   // Cache pro AI Brief (1h validity)
   BriefResponse? _aiBriefCache;
@@ -26,6 +28,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
   TodoListBloc(
     this._repository,
     this._aiBriefRepository,
+    this._briefSettingsService,
   ) : super(const TodoListInitial()) {
     // Registrace event handlerů
     on<LoadTodosEvent>(_onLoadTodos);
@@ -46,6 +49,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
 
     // AI Brief handlers
     on<RegenerateBriefEvent>(_onRegenerateBrief);
+    on<UpdateBriefConfigEvent>(_onUpdateBriefConfig);
   }
 
   /// Handler: Načíst všechny todos
@@ -63,9 +67,14 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
 
     try {
       final todos = await _repository.getAllTodos();
+
+      // Načíst Brief config ze storage
+      final briefConfig = _briefSettingsService.loadConfig();
+
       emit(TodoListLoaded(
         allTodos: todos,
         expandedTodoId: expandedTodoId, // Zachovat expanded state
+        briefConfig: briefConfig, // Načíst uložený config
       ));
     } catch (e) {
       emit(TodoListError('Chyba při načítání úkolů: $e'));
@@ -262,7 +271,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
           tasks: currentState.allTodos
               .where((t) => !t.isCompleted)
               .toList(),
-          config: BriefConfig.defaultConfig(),
+          config: currentState.briefConfig, // Použij aktuální config ze state
         );
 
         // Uložit cache
@@ -363,7 +372,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
         tasks: currentState.allTodos
             .where((t) => !t.isCompleted)
             .toList(),
-        config: BriefConfig.defaultConfig(),
+        config: currentState.briefConfig, // Použij aktuální config ze state
       );
 
       // Update cache
@@ -378,6 +387,34 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
       emit(currentState.copyWith(
         isGeneratingBrief: false,
         briefError: e.toString(),
+      ));
+    }
+  }
+
+  /// Handler: Aktualizovat Brief konfiguraci (nastavení)
+  Future<void> _onUpdateBriefConfig(
+    UpdateBriefConfigEvent event,
+    Emitter<TodoListState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    try {
+      // Uložit config do storage
+      await _briefSettingsService.saveConfig(event.config);
+
+      // Invalidovat cache (config se změnil)
+      _aiBriefCache = null;
+
+      // Update state s novým configem
+      emit(currentState.copyWith(
+        briefConfig: event.config,
+        clearAiBriefData: true, // Clear starý Brief
+      ));
+    } catch (e) {
+      // Error při ukládání do storage - ignore (fallback na default)
+      emit(currentState.copyWith(
+        briefError: 'Chyba při ukládání nastavení: $e',
       ));
     }
   }

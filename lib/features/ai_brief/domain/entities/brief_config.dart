@@ -46,6 +46,26 @@ class BriefConfig extends Equatable {
     return const BriefConfig();
   }
 
+  /// Vytvoří BriefConfig z JSON (pro načtení ze storage)
+  factory BriefConfig.fromJson(Map<String, dynamic> json) {
+    return BriefConfig(
+      includeSubtasks: json['includeSubtasks'] as bool? ?? true,
+      includePomodoroStats: json['includePomodoroStats'] as bool? ?? true,
+      temperature: (json['temperature'] as num?)?.toDouble() ?? 0.3,
+      maxTokens: json['maxTokens'] as int? ?? 500,
+    );
+  }
+
+  /// Převede BriefConfig do JSON (pro uložení do storage)
+  Map<String, dynamic> toJson() {
+    return {
+      'includeSubtasks': includeSubtasks,
+      'includePomodoroStats': includePomodoroStats,
+      'temperature': temperature,
+      'maxTokens': maxTokens,
+    };
+  }
+
   @override
   List<Object?> get props => [
         includeSubtasks,
