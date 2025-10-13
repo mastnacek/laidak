@@ -85,7 +85,7 @@ class _MainPageState extends State<MainPage> {
         ),
         // Title závisí na aktuální stránce
         title: _buildAppBarTitle(),
-        centerTitle: _currentPageIndex != 1, // Center pro AI Chat a Pomodoro
+        centerTitle: true, // Vždy centrovaný title
         // Actions VPRAVO (dynamické podle stránky)
         actions: _buildAppBarActions(),
       ),
