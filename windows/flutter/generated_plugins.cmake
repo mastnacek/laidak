@@ -3,9 +3,9 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  audioplayers_windows
   clipboard_watcher
   emoji_picker_flutter
-  just_audio_windows
   url_launcher_windows
 )
 

@@ -46,9 +46,9 @@ dependencies:
   # HTTP pro API calls
   http: ^1.1.0
 
-  # Audio přehrávač (just_audio funguje lépe na Windows)
-  just_audio: ^0.10.5
-  just_audio_windows: ^0.2.0  # Windows implementace pro just_audio
+  # Audio přehrávač
+  just_audio: ^0.10.5  # Android/iOS
+  audioplayers: ^6.1.0  # Windows (stabilnější než just_audio_windows)
 
   # State management pro dynamické změny tématu
   provider: ^6.1.0
