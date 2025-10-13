@@ -60,6 +60,9 @@ class ViewBar extends StatelessWidget {
             visibleViews.add(_ViewItem.builtIn(ViewMode.overdue));
           }
 
+          // AI Brief view (VŽDY dostupný - není v AgendaViewConfig)
+          visibleViews.add(_ViewItem.builtIn(ViewMode.aiBrief));
+
           // Custom views (pouze enabled)
           for (final customView in agendaConfig.customViews) {
             if (customView.isEnabled) {
@@ -257,6 +260,8 @@ class ViewBar extends StatelessWidget {
         'Zobrazí všechny úkoly s termínem v budoucnosti (od zítřka dál). Pro dlouhodobé plánování.',
       ViewMode.overdue =>
         'Zobrazí úkoly po termínu - ty, které jsi nestihl včas. Prioritizuj je jako první!',
+      ViewMode.aiBrief =>
+        'AI inteligentně prioritizuje tvoje úkoly do 3 sekcí: FOCUS NOW (top 3 úkoly), KEY INSIGHTS (dependencies, quick wins), MOTIVATION (progress, povzbuzení). Cache 1h.',
       ViewMode.custom =>
         'Vlastní pohled',
     };
@@ -289,6 +294,11 @@ class ViewBar extends StatelessWidget {
           '⚠️ Včera mělo být hotovo!',
           '⚠️ 3 dny po termínu',
           '⚠️ Nesplněné deadlines',
+        ],
+      ViewMode.aiBrief => [
+          '🎯 FOCUS NOW: Top 3 urgentní úkoly',
+          '📊 KEY INSIGHTS: Závislosti, quick wins',
+          '💪 MOTIVATION: Pokrok + povzbuzení',
         ],
       ViewMode.custom => [],
     };

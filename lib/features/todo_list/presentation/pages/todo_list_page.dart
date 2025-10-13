@@ -11,6 +11,7 @@ import '../widgets/todo_card.dart';
 import '../widgets/input_bar.dart';
 import '../widgets/view_bar.dart';
 import '../widgets/sort_bar.dart';
+import '../widgets/brief_section_widget.dart';
 
 /// TodoListPage - Hlavní stránka s TODO seznamem (Mobile-First redesign)
 ///
@@ -245,6 +246,13 @@ class _TodoListPageState extends State<TodoListPage> {
   /// Sestavit seznam úkolů (Loaded state)
   Widget _buildTodoList(BuildContext context, TodoListLoaded state) {
     final theme = Theme.of(context);
+
+    // Pokud viewMode == aiBrief → zobraz Brief view
+    if (state.viewMode == ViewMode.aiBrief) {
+      return _buildBriefView(context, state);
+    }
+
+    // Jinak → normální ListView
     final displayedTodos = state.displayedTodos;
 
     if (displayedTodos.isEmpty) {
@@ -269,6 +277,111 @@ class _TodoListPageState extends State<TodoListPage> {
         return TodoCard(
           todo: todo,
           isExpanded: state.expandedTodoId == todo.id,
+        );
+      },
+    );
+  }
+
+  /// Sestavit Brief view (AI prioritizované úkoly)
+  Widget _buildBriefView(BuildContext context, TodoListLoaded state) {
+    final theme = Theme.of(context);
+
+    // Loading state
+    if (state.isGeneratingBrief) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(
+              'Generuji AI Brief...',
+              style: TextStyle(
+                fontSize: 16,
+                color: theme.appColors.fg,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Trvá 3-5 sekund',
+              style: TextStyle(
+                fontSize: 12,
+                color: theme.appColors.base5,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Error state
+    if (state.briefError != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: theme.appColors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Chyba při generování briefu',
+              style: TextStyle(
+                fontSize: 18,
+                color: theme.appColors.fg,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                state.briefError!,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: theme.appColors.base5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => context.read<TodoListBloc>().add(
+                    const RegenerateBriefEvent(),
+                  ),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Zkusit znovu'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.appColors.yellow,
+                foregroundColor: theme.appColors.bg,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // No data yet
+    if (state.briefSections == null || state.briefSections!.isEmpty) {
+      return Center(
+        child: Text(
+          'Načítám Brief...',
+          style: TextStyle(
+            fontSize: 16,
+            color: theme.appColors.base5,
+          ),
+        ),
+      );
+    }
+
+    // Brief sections s TodoCards
+    return ListView.builder(
+      padding: const EdgeInsets.all(8),
+      itemCount: state.briefSections!.length,
+      itemBuilder: (context, index) {
+        final sectionData = state.briefSections![index];
+        return BriefSectionWidget(
+          section: sectionData.section,
+          todos: sectionData.todos,
+          expandedTodoId: state.expandedTodoId,
         );
       },
     );
