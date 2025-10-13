@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../../domain/enums/view_mode.dart';
+import '../../domain/enums/sort_mode.dart';
 import '../../../ai_brief/domain/repositories/ai_brief_repository.dart';
 import '../../../ai_brief/domain/entities/brief_response.dart';
 import '../../../ai_brief/domain/entities/brief_config.dart';
@@ -57,11 +58,32 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     LoadTodosEvent event,
     Emitter<TodoListState> emit,
   ) async {
-    // Zachovat expandedTodoId z předchozího stavu
+    // Zachovat VŠECHNY důležité parametry z předchozího stavu
     final previousState = state;
     final expandedTodoId = previousState is TodoListLoaded
         ? previousState.expandedTodoId
         : null;
+    final viewMode = previousState is TodoListLoaded
+        ? previousState.viewMode
+        : ViewMode.all;
+    final searchQuery = previousState is TodoListLoaded
+        ? previousState.searchQuery
+        : '';
+    final sortMode = previousState is TodoListLoaded
+        ? previousState.sortMode
+        : null;
+    final sortDirection = previousState is TodoListLoaded
+        ? previousState.sortDirection
+        : SortDirection.desc;
+    final currentCustomView = previousState is TodoListLoaded
+        ? previousState.currentCustomView
+        : null;
+    final aiBriefData = previousState is TodoListLoaded
+        ? previousState.aiBriefData
+        : null;
+    final showCompleted = previousState is TodoListLoaded
+        ? previousState.showCompleted
+        : false;
 
     emit(const TodoListLoading());
 
@@ -74,6 +96,13 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
       emit(TodoListLoaded(
         allTodos: todos,
         expandedTodoId: expandedTodoId, // Zachovat expanded state
+        viewMode: viewMode, // ✅ Zachovat view mode (Brief, All, Today, ...)
+        searchQuery: searchQuery, // Zachovat search query
+        sortMode: sortMode, // Zachovat sort mode
+        sortDirection: sortDirection, // Zachovat sort direction
+        currentCustomView: currentCustomView, // Zachovat custom view
+        aiBriefData: aiBriefData, // ✅ Zachovat Brief data
+        showCompleted: showCompleted, // Zachovat showCompleted flag
         briefConfig: briefConfig, // Načíst uložený config
       ));
     } catch (e) {
