@@ -5,6 +5,8 @@ import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/sound_manager.dart';
 import '../../../../core/services/database_helper.dart';
 import '../../../../core/utils/app_logger.dart';
+import '../../../../utils/color_utils.dart';
+import '../../../../services/tag_service.dart';
 import '../../../../features/ai_motivation/presentation/cubit/motivation_cubit.dart';
 import '../../../../features/ai_split/presentation/widgets/ai_split_button.dart';
 import '../../../../features/ai_split/presentation/cubit/ai_split_cubit.dart';
@@ -211,20 +213,37 @@ class TodoCard extends StatelessWidget {
                       spacing: 6,
                       runSpacing: 4,
                       children: [
-                        // Priorita
-                        if (todo.priority != null)
-                          TodoTagChip(
-                            text:
-                                '${TagParser.getPriorityIcon(todo.priority)} ${todo.priority!.toUpperCase()}',
-                            color: _getPriorityColor(context),
-                          ),
+                        // Priorita (s uživatelskou barvou z TagService)
+                        if (todo.priority != null) ...[
+                          () {
+                            final priorityDef = TagService().getDefinition(todo.priority!);
+                            return TodoTagChip(
+                              text:
+                                  '${TagParser.getPriorityIcon(todo.priority)} ${todo.priority!.toUpperCase()}',
+                              color: priorityDef?.color != null
+                                  ? ColorUtils.hexToColor(priorityDef!.color!)
+                                  : _getPriorityColorFallback(context),
+                              glowEnabled: priorityDef?.glowEnabled ?? false,
+                              glowStrength: priorityDef?.glowStrength ?? 0.5,
+                            );
+                          }(),
+                        ],
 
-                        // Datum
-                        if (todo.dueDate != null)
-                          TodoTagChip(
-                            text: '📅 ${TagParser.formatDate(todo.dueDate!)}',
-                            color: theme.appColors.blue,
-                          ),
+                        // Datum (s uživatelskou barvou z TagService)
+                        if (todo.dueDate != null) ...[
+                          () {
+                            final dateText = TagParser.formatDate(todo.dueDate!);
+                            final dateDef = TagService().getDefinition(dateText);
+                            return TodoTagChip(
+                              text: '📅 $dateText',
+                              color: dateDef?.color != null
+                                  ? ColorUtils.hexToColor(dateDef!.color!)
+                                  : theme.appColors.blue,
+                              glowEnabled: dateDef?.glowEnabled ?? false,
+                              glowStrength: dateDef?.glowStrength ?? 0.5,
+                            );
+                          }(),
+                        ],
 
                         // Subtasks počítadlo
                         if (todo.subtasks != null && todo.subtasks!.isNotEmpty)
@@ -233,11 +252,18 @@ class TodoCard extends StatelessWidget {
                             color: theme.appColors.cyan,
                           ),
 
-                        // Obecné tagy
-                        ...todo.tags.map((tag) => TodoTagChip(
-                              text: tag,
-                              color: theme.appColors.cyan,
-                            )),
+                        // Obecné tagy (s uživatelskými barvami z TagService)
+                        ...todo.tags.map((tag) {
+                          final tagDef = TagService().getDefinition(tag);
+                          return TodoTagChip(
+                            text: tag,
+                            color: tagDef?.color != null
+                                ? ColorUtils.hexToColor(tagDef!.color!)
+                                : theme.appColors.cyan,
+                            glowEnabled: tagDef?.glowEnabled ?? false,
+                            glowStrength: tagDef?.glowStrength ?? 0.5,
+                          );
+                        }),
                       ],
                     ),
                   ],
@@ -341,8 +367,8 @@ class TodoCard extends StatelessWidget {
     );
   }
 
-  /// Získat barvu pro prioritu
-  Color _getPriorityColor(BuildContext context) {
+  /// Získat fallback barvu pro prioritu (pokud není definice v TagService)
+  Color _getPriorityColorFallback(BuildContext context) {
     final theme = Theme.of(context);
     switch (todo.priority) {
       case 'a':
