@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:just_audio_media_kit/just_audio_media_kit.dart';
 import 'core/theme/doom_one_theme.dart';
 import 'core/observers/simple_bloc_observer.dart';
 import 'core/utils/app_logger.dart';
@@ -39,12 +38,6 @@ void main() async {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
-  }
-
-  // Inicializovat just_audio_media_kit pro Windows/Linux audio podporu
-  if (Platform.isWindows || Platform.isLinux) {
-    JustAudioMediaKit.ensureInitialized();
-    AppLogger.info('✅ JustAudioMediaKit initialized (Windows/Linux)');
   }
 
   // Inicializovat TagService (načíst definice tagů do cache)
