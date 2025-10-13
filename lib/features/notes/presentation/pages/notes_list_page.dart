@@ -5,6 +5,7 @@ import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
 import '../bloc/notes_state.dart';
 import 'note_editor_page.dart';
+import '../widgets/note_input_bar.dart';
 
 /// NotesListPage - Seznam poznámek (MILESTONE 2)
 ///
@@ -43,94 +44,74 @@ class _NotesListPageState extends State<NotesListPage> {
         }
       },
       builder: (context, state) {
-        return Stack(
+        return Column(
           children: [
-            Column(
-              children: [
-                // Notes List (scrollable) - Expanded = zabere zbytek místa
-                Expanded(
-                  child: switch (state) {
-                    NotesInitial() => const Center(
-                        child: Text('Inicializace poznámek...'),
-                      ),
-                    NotesLoading() => const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    NotesLoaded() => _buildNotesList(context, state),
-                    NotesError() => Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.error_outline,
-                                size: 48, color: theme.appColors.red),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Chyba při načítání poznámek',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: theme.appColors.fg,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              state.message,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: theme.appColors.base5,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 24),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                context.read<NotesBloc>().add(const LoadNotesEvent());
-                              },
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Zkusit znovu'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: theme.appColors.yellow,
-                                foregroundColor: theme.appColors.bg,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    _ => const Center(
-                        child: Text('Neznámý stav'),
-                      ),
-                  },
-                ),
-
-                // Bottom Controls (INPUT BAR) - TODO MILESTONE 2.3
-                // Zatím placeholder
-                Container(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
+            // Notes List (scrollable) - Expanded = zabere zbytek místa
+            Expanded(
+              child: switch (state) {
+                NotesInitial() => const Center(
+                    child: Text('Inicializace poznámek...'),
                   ),
-                  child: _buildPlaceholderInputBar(context),
-                ),
-              ],
+                NotesLoading() => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                NotesLoaded() => _buildNotesList(context, state),
+                NotesError() => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 48, color: theme.appColors.red),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Chyba při načítání poznámek',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: theme.appColors.fg,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.message,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: theme.appColors.base5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            context.read<NotesBloc>().add(const LoadNotesEvent());
+                          },
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Zkusit znovu'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.appColors.yellow,
+                            foregroundColor: theme.appColors.bg,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                _ => const Center(
+                    child: Text('Neznámý stav'),
+                  ),
+              },
             ),
 
-            // FAB - Floating Action Button pro novou poznámku (MILESTONE 3)
-            Positioned(
-              right: 16,
-              bottom: 80, // Nad input bar
-              child: FloatingActionButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BlocProvider.value(
-                        value: context.read<NotesBloc>(),
-                        child: const NoteEditorPage(), // Null = nová poznámka
-                      ),
-                    ),
-                  );
+            // Bottom Controls (INPUT BAR) - MILESTONE 3
+            Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: NoteInputBar(
+                onFocusChanged: (hasFocus) {
+                  setState(() {
+                    _isInputFocused = hasFocus;
+                  });
                 },
-                backgroundColor: theme.appColors.yellow,
-                child: Icon(Icons.add, color: theme.appColors.bg),
               ),
             ),
           ],
@@ -251,38 +232,4 @@ class _NotesListPageState extends State<NotesListPage> {
     );
   }
 
-  /// Placeholder pro input bar (MILESTONE 2.3)
-  Widget _buildPlaceholderInputBar(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.appColors.bgAlt,
-        border: Border(
-          top: BorderSide(
-            color: theme.appColors.base3.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.search, color: theme.appColors.base5),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Nová poznámka... (TODO: MILESTONE 2.3)',
-                hintStyle: TextStyle(color: theme.appColors.base5),
-                border: InputBorder.none,
-              ),
-              style: TextStyle(color: theme.appColors.fg),
-              enabled: false, // Zatím disabled
-            ),
-          ),
-          Icon(Icons.close, color: theme.appColors.base5),
-        ],
-      ),
-    );
-  }
 }
