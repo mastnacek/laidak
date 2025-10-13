@@ -87,8 +87,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
 
     if (_isNewNote) {
       // Vytvořit novou poznámku
-      final newNote = Note(content: content);
-      context.read<NotesBloc>().add(CreateNoteEvent(newNote));
+      context.read<NotesBloc>().add(CreateNoteEvent(content));
     } else {
       // Aktualizovat existující
       final updatedNote = widget.note!.copyWith(
