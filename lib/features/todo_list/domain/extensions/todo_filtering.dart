@@ -55,6 +55,7 @@ extension TodoFiltering on List<Todo> {
       ViewMode.upcoming => _filterUpcoming(today, weekEnd),
       ViewMode.overdue => where((todo) => todo.isOverdue).toList(),
       ViewMode.custom => this, // Custom filtering se dělá v displayedTodos
+      ViewMode.aiBrief => [], // AI Brief filtering se dělá v briefSections getter
     };
   }
 
