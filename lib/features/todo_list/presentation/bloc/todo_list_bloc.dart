@@ -2,6 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../../domain/enums/view_mode.dart';
+import '../../../ai_brief/domain/repositories/ai_brief_repository.dart';
+import '../../../ai_brief/domain/entities/brief_response.dart';
+import '../../../ai_brief/domain/entities/brief_config.dart';
 import 'todo_list_event.dart';
 import 'todo_list_state.dart';
 
@@ -12,10 +15,18 @@ import 'todo_list_state.dart';
 /// - Přidávání, aktualizace, mazání todos
 /// - Filtrování zobrazení (hotové/nehotové)
 /// - Expandování/kolapsování úkolů
+/// - Generování AI Brief (s 1h cache)
 class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
   final TodoRepository _repository;
+  final AiBriefRepository _aiBriefRepository;
 
-  TodoListBloc(this._repository) : super(const TodoListInitial()) {
+  // Cache pro AI Brief (1h validity)
+  BriefResponse? _aiBriefCache;
+
+  TodoListBloc(
+    this._repository,
+    this._aiBriefRepository,
+  ) : super(const TodoListInitial()) {
     // Registrace event handlerů
     on<LoadTodosEvent>(_onLoadTodos);
     on<AddTodoEvent>(_onAddTodo);
@@ -32,6 +43,9 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     on<ChangeToCustomViewEvent>(_onChangeToCustomView);
     on<SortTodosEvent>(_onSortTodos);
     on<ClearSortEvent>(_onClearSort);
+
+    // AI Brief handlers
+    on<RegenerateBriefEvent>(_onRegenerateBrief);
   }
 
   /// Handler: Načíst všechny todos
@@ -215,16 +229,65 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
   }
 
   /// Handler: Změnit view mode
-  void _onChangeViewMode(
+  Future<void> _onChangeViewMode(
     ChangeViewModeEvent event,
     Emitter<TodoListState> emit,
-  ) {
+  ) async {
     final currentState = state;
     if (currentState is! TodoListLoaded) return;
 
-    // Update view mode v state
-    // displayedTodos getter automaticky aplikuje filtr
-    // Pro built-in views vymažeme currentCustomView
+    // Pokud přepínáme NA aiBrief
+    if (event.viewMode == ViewMode.aiBrief) {
+      // ✅ Check cache first (1h validity)
+      if (_aiBriefCache != null && _aiBriefCache!.isCacheValid) {
+        emit(currentState.copyWith(
+          viewMode: ViewMode.aiBrief,
+          aiBriefData: _aiBriefCache,
+          clearCustomView: true,
+        ));
+        return;
+      }
+
+      // ❌ Cache neexistuje nebo je starý → Generate new
+      emit(currentState.copyWith(
+        viewMode: ViewMode.aiBrief,
+        isGeneratingBrief: true, // ← Loading state
+        clearCustomView: true,
+        clearBriefError: true,
+      ));
+
+      try {
+        // Generovat Brief z nehotových úkolů
+        final briefResponse = await _aiBriefRepository.generateBrief(
+          tasks: currentState.allTodos
+              .where((t) => !t.isCompleted)
+              .toList(),
+          config: BriefConfig.defaultConfig(),
+        );
+
+        // Uložit cache
+        _aiBriefCache = briefResponse;
+
+        // Emit success state
+        emit(currentState.copyWith(
+          viewMode: ViewMode.aiBrief,
+          aiBriefData: briefResponse,
+          isGeneratingBrief: false,
+          clearBriefError: true,
+        ));
+      } catch (e) {
+        // Emit error state
+        emit(currentState.copyWith(
+          viewMode: ViewMode.aiBrief,
+          isGeneratingBrief: false,
+          briefError: e.toString(),
+          clearAiBriefData: true,
+        ));
+      }
+      return;
+    }
+
+    // Pro ostatní view modes (není aiBrief)
     emit(currentState.copyWith(
       viewMode: event.viewMode,
       clearCustomView: true,
@@ -277,5 +340,45 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
 
     // Vymazat sort mode (default = createdAt DESC)
     emit(currentState.copyWith(clearSortMode: true));
+  }
+
+  // ==================== AI BRIEF HANDLERS ====================
+
+  /// Handler: Regenerovat AI Brief (force regenerate, ignorovat cache)
+  Future<void> _onRegenerateBrief(
+    RegenerateBriefEvent event,
+    Emitter<TodoListState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Ignorovat cache - vždy generovat nový
+    emit(currentState.copyWith(
+      isGeneratingBrief: true,
+      clearBriefError: true,
+    ));
+
+    try {
+      final briefResponse = await _aiBriefRepository.generateBrief(
+        tasks: currentState.allTodos
+            .where((t) => !t.isCompleted)
+            .toList(),
+        config: BriefConfig.defaultConfig(),
+      );
+
+      // Update cache
+      _aiBriefCache = briefResponse;
+
+      emit(currentState.copyWith(
+        aiBriefData: briefResponse,
+        isGeneratingBrief: false,
+        clearBriefError: true,
+      ));
+    } catch (e) {
+      emit(currentState.copyWith(
+        isGeneratingBrief: false,
+        briefError: e.toString(),
+      ));
+    }
   }
 }
