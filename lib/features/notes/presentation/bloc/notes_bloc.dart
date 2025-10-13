@@ -20,6 +20,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
     on<ChangeFolderEvent>(_onChangeFolder); // MILESTONE 4
+    on<ToggleExpandNoteEvent>(_onToggleExpandNote);
   }
 
   /// Handler: Načíst všechny poznámky
@@ -128,6 +129,24 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     if (state is NotesLoaded) {
       final currentState = state as NotesLoaded;
       emit(currentState.copyWith(currentFolder: event.mode));
+    }
+  }
+
+  /// Handler: Toggle expand poznámky
+  void _onToggleExpandNote(
+    ToggleExpandNoteEvent event,
+    Emitter<NotesState> emit,
+  ) {
+    if (state is NotesLoaded) {
+      final currentState = state as NotesLoaded;
+
+      // Pokud klikneš na stejnou poznámku, collapse
+      // Pokud klikneš na jinou, expand tu novou
+      final newExpandedId = currentState.expandedNoteId == event.noteId
+          ? null
+          : event.noteId;
+
+      emit(currentState.copyWith(expandedNoteId: newExpandedId));
     }
   }
 }

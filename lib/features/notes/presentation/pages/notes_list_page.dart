@@ -170,14 +170,16 @@ class _NotesListPageState extends State<NotesListPage> {
       );
     }
 
-    // ✅ MILESTONE 3.2: NoteCard s tag display
+    // ✅ MILESTONE 3.2: NoteCard s tag display + expand/collapse
     return ListView.builder(
       itemCount: notes.length,
       itemBuilder: (context, index) {
         final note = notes[index];
+        final isExpanded = state.expandedNoteId == note.id;
         return NoteCard(
           key: ValueKey('note_${note.id}'),
           note: note,
+          isExpanded: isExpanded,
         );
       },
     );

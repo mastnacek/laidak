@@ -24,14 +24,16 @@ class NotesLoading extends NotesState {
 class NotesLoaded extends NotesState {
   final List<Note> notes; // Všechny poznámky (unfiltered)
   final FolderMode currentFolder; // Aktuální folder (MILESTONE 4)
+  final int? expandedNoteId; // ID rozbalené poznámky (pro expand/collapse)
 
   const NotesLoaded({
     required this.notes,
     this.currentFolder = FolderMode.all,
+    this.expandedNoteId,
   });
 
   @override
-  List<Object?> get props => [notes, currentFolder];
+  List<Object?> get props => [notes, currentFolder, expandedNoteId];
 
   /// Computed: Filtrované poznámky podle currentFolder
   List<Note> get displayedNotes {
@@ -52,10 +54,12 @@ class NotesLoaded extends NotesState {
   NotesLoaded copyWith({
     List<Note>? notes,
     FolderMode? currentFolder,
+    int? expandedNoteId,
   }) {
     return NotesLoaded(
       notes: notes ?? this.notes,
       currentFolder: currentFolder ?? this.currentFolder,
+      expandedNoteId: expandedNoteId,
     );
   }
 }

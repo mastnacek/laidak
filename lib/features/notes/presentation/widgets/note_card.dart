@@ -13,17 +13,20 @@ import '../pages/note_editor_page.dart';
 /// NoteCard - Karty pro zobrazení poznámek (MILESTONE 3.2)
 ///
 /// Design inspirovaný TodoCard:
-/// - Title (první řádek poznámky)
+/// - [ID] První řádek poznámky
 /// - Tags (parsed z content) s správnými barvami a glow efektem
+/// - Tap = expand/collapse (zobrazí celý obsah)
+/// - Long press = otevře editor
 /// - Swipe doleva = smazat
-/// - Swipe doprava = archivovat (placeholder pro budoucí funkci)
-/// - Tap = otevře NoteEditorPage
+/// - Swipe doprava = archivovat (placeholder)
 class NoteCard extends StatelessWidget {
   final Note note;
+  final bool isExpanded;
 
   const NoteCard({
     super.key,
     required this.note,
+    required this.isExpanded,
   });
 
   @override
@@ -125,20 +128,16 @@ class NoteCard extends StatelessWidget {
           // Zavřít klávesnici při tap
           FocusScope.of(context).unfocus();
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BlocProvider.value(
-                value: context.read<NotesBloc>(),
-                child: NoteEditorPage(note: note),
-              ),
-            ),
-          );
+          // Toggle expand/collapse
+          context
+              .read<NotesBloc>()
+              .add(ToggleExpandNoteEvent(isExpanded ? null : note.id));
         },
         onLongPress: () {
           // Zavřít klávesnici při long press
           FocusScope.of(context).unfocus();
 
+          // Otevřít editor
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -176,16 +175,21 @@ class NoteCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Text poznámky (JEN 1 ŘÁDEK!)
+                  // Text poznámky
                   Expanded(
-                    child: Text(
-                      titleLine,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: theme.appColors.fg,
-                        fontSize: 16,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isExpanded ? note.content : titleLine,
+                          maxLines: isExpanded ? null : 1,
+                          overflow: isExpanded ? null : TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: theme.appColors.fg,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

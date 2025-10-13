@@ -54,3 +54,13 @@ class ChangeFolderEvent extends NotesEvent {
   @override
   List<Object?> get props => [mode];
 }
+
+/// Event: Toggle expand poznámky (zobrazit celý obsah)
+class ToggleExpandNoteEvent extends NotesEvent {
+  final int? noteId; // null = collapse all
+
+  const ToggleExpandNoteEvent(this.noteId);
+
+  @override
+  List<Object?> get props => [noteId];
+}
