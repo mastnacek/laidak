@@ -317,6 +317,229 @@
 
 ---
 
+### 🔜 MILESTONE 9: Unified Input Bar - TODO/Notes Auto-Detection (3-4h)
+**Cíl**: Jeden inteligentní input bar pro TODO i Notes - automatická detekce typu
+
+#### 💡 Koncept:
+
+**User píše text** → Systém detekuje TODO systémové tagy → Rozhodne:
+```
+"Koupit mléko *dnes* *a*"        → TODO (má *dnes*, *a*)
+"Nápad na novou feature"          → Note (žádné TODO tagy)
+"Meeting s klientem *práce*"     → Note (pouze běžný tag)
+```
+
+**TODO systémové tagy:**
+- Priorita: `*a*`, `*b*`, `*c*`
+- Datum: `*dnes*`, `*zítra*`, `*datum[...]*`
+- TODO link: `*#123*`
+
+**Všechno ostatní** = Note
+
+#### 🎨 GUI:
+
+**Indikátor před uložením:**
+```
+┌─────────────────────────────────────┐
+│ [TextField________________]         │
+│ "Koupit mléko *dnes* *a*"           │
+│                                     │
+│ 💾 Uložit jako: [TODO ▼] [✖️]      │ ← Dropdown s override
+└─────────────────────────────────────┘
+
+Options v dropdownu:
+- Auto (doporučeno) ← Default
+- TODO
+- Note
+```
+
+**Auto mode logic:**
+```dart
+InputType detectInputType(String text) {
+  final hasTodoTag = _hasTodoSystemTag(text);
+  return hasTodoTag ? InputType.todo : InputType.note;
+}
+
+bool _hasTodoSystemTag(String text) {
+  // Priority tags
+  if (RegExp(r'\*[abc]\*').hasMatch(text)) return true;
+
+  // Date tags
+  if (RegExp(r'\*(dnes|zítra|datum\[.*?\])\*').hasMatch(text)) return true;
+
+  // TODO link
+  if (RegExp(r'\*#\d+\*').hasMatch(text)) return true;
+
+  return false;
+}
+```
+
+#### 📋 Kroky:
+
+1. [ ] Vytvořit InputTypeDetector service
+   ```dart
+   lib/core/services/input_type_detector.dart
+
+   class InputTypeDetector {
+     InputType detect(String text);
+     bool hasTodoSystemTag(String text);
+   }
+
+   enum InputType { todo, note, auto }
+   ```
+
+2. [ ] Vytvořit UnifiedInputBar widget
+   ```dart
+   lib/core/widgets/unified_input_bar.dart
+
+   Nahrazuje:
+   - TodoInputBar (z TODO feature)
+   - NoteInputBar (z Notes feature)
+
+   Features:
+   - TextField (multiline, expands)
+   - Type dropdown (Auto / TODO / Note)
+   - Save button (✖️)
+   - Live detection indicator
+   ```
+
+3. [ ] Implementovat dropdown selection logic
+   ```dart
+   State:
+   - InputMode _mode = InputMode.auto; // User override
+   - InputType _detectedType = InputType.note; // Auto-detected
+
+   Computed:
+   - InputType get effectiveType =>
+       _mode == InputMode.auto ? _detectedType : _mode.toInputType();
+   ```
+
+4. [ ] Integrovat do TodoListPage a NotesListPage
+   ```dart
+   // Společný input bar na obou stránkách
+
+   UnifiedInputBar(
+     onSave: (text, type) {
+       if (type == InputType.todo) {
+         _todoBloc.add(CreateTodoEvent(text));
+       } else {
+         _notesBloc.add(CreateNoteEvent(text));
+       }
+     },
+   )
+   ```
+
+5. [ ] Feature flag v Settings
+   ```dart
+   lib/features/settings/domain/entities/app_settings.dart
+
+   class AppSettings {
+     ...
+     final bool useUnifiedInputBar; // Default: false (zatím beta)
+   }
+
+   Settings UI:
+   ☐ Inteligentní input bar (beta)
+      "Automaticky rozpozná TODO vs Note podle tagů"
+   ```
+
+6. [ ] A/B testing setup
+   - Metric: % users who prefer unified vs separated
+   - Track: Manual override rate (kolikrát user mění Auto → TODO/Note)
+   - Decision point: Pokud override rate < 20% → make it default
+
+7. [ ] Unit testy
+   ```dart
+   test('detects TODO with priority tag', () {
+     expect(detector.detect('Koupit mléko *a*'), InputType.todo);
+   });
+
+   test('detects Note without system tags', () {
+     expect(detector.detect('Nápad na feature'), InputType.note);
+   });
+
+   test('detects Note with custom tag only', () {
+     expect(detector.detect('Meeting *práce*'), InputType.note);
+   });
+   ```
+
+8. [ ] Widget testy
+   ```dart
+   testWidgets('dropdown allows manual override', (tester) async {
+     // Auto detects Note
+     // User changes to TODO manually
+     // Verify saves as TODO
+   });
+   ```
+
+9. [ ] Commit po dokončení
+
+#### ⚙️ Settings Integration:
+
+**Nová sekce v Settings:**
+```
+Settings → Input & Productivity
+
+☐ Inteligentní input bar (beta)
+   "Jeden input bar pro TODO i poznámky.
+    Automaticky rozpozná typ podle tagů."
+
+   Default: OFF (fallback na oddělené input bary)
+```
+
+**Podmíněné renderování:**
+```dart
+// V TodoListPage / NotesListPage:
+
+Widget _buildInputBar() {
+  final useUnified = context.watch<SettingsBloc>().state.useUnifiedInputBar;
+
+  if (useUnified) {
+    return UnifiedInputBar(
+      onSave: _handleUnifiedSave,
+    );
+  } else {
+    // Separate input bars (original behavior)
+    return _isOnTodoTab
+      ? TodoInputBar(onSave: _handleTodoSave)
+      : NoteInputBar(onSave: _handleNoteSave);
+  }
+}
+```
+
+#### 🎯 UX Benefits:
+
+**Pros:**
+- ✅ Friction-less capture (žádné přepínání TODO/Notes tab)
+- ✅ Konzistentní UX (jeden input bar všude)
+- ✅ Inteligentní (user nemusí rozhodovat)
+- ✅ Flexibilní (manual override pokud AI se splete)
+
+**Cons:**
+- ❌ Složitější implementace
+- ❌ Může zmást uživatele (proč to někdy jde do TODO, někdy do Notes?)
+- ❌ Edge cases (co když user chce Note, ale napsal "dnes" jako běžné slovo?)
+
+#### 📊 Success Metrics:
+
+**Beta testing (3 měsíce):**
+- [ ] 50+ active users testing
+- [ ] Override rate < 20% (AI accuracy > 80%)
+- [ ] User satisfaction > 4.0/5
+- [ ] Bug reports < 5
+
+**Decision:**
+- ✅ Success → make default in Milestone 10
+- ❌ Failure → keep as opt-in feature
+
+**Deliverable**: Beta feature - unified input bar s inteligentní detekcí TODO vs Note.
+
+**Priority**: ⭐⭐ Medium (UX improvement, not critical)
+
+**Effort**: 3-4h implementation + 1-2h testing
+
+---
+
 ## 🎯 GUI Specifikace - Detailní Design
 
 ### 1. Input Bar Design (stejný jako TODO)
