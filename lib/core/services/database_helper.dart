@@ -1708,4 +1708,22 @@ class DatabaseHelper {
 
     return results;
   }
+
+  /// Vyhledat Note tagy (autocomplete během psaní)
+  ///
+  /// Používá prefix matching (začíná na query), vrací unique tagy seřazené podle počtu použití
+  Future<List<String>> searchNoteTags(String query, {int limit = 5}) async {
+    final db = await database;
+
+    final results = await db.rawQuery('''
+      SELECT tag, COUNT(*) as count
+      FROM note_tags
+      WHERE tag LIKE ?
+      GROUP BY tag
+      ORDER BY count DESC
+      LIMIT ?
+    ''', ['${query.toLowerCase()}%', limit]);
+
+    return results.map((row) => row['tag'] as String).toList();
+  }
 }

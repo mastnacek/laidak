@@ -4,6 +4,7 @@ import '../../../../core/theme/theme_colors.dart';
 import '../../../../models/note.dart';
 import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
+import '../widgets/notes_tag_autocomplete_field.dart';
 
 /// NoteEditorPage - Full screen editor pro poznámky (MILESTONE 3)
 ///
@@ -247,28 +248,16 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
                   ),
                 ),
 
-              // Text Editor (full screen)
+              // Text Editor (full screen) - s tag autocomplete
               Expanded(
-                child: TextField(
+                child: NotesTagAutocompleteField(
                   controller: _contentController,
                   focusNode: _focusNode,
                   maxLines: null, // Multiline - expanduje s obsahem
                   expands: true, // Zabere celý Expanded prostor
                   textAlignVertical: TextAlignVertical.top,
                   keyboardType: TextInputType.multiline,
-                  decoration: InputDecoration(
-                    hintText: 'Začni psát poznámku...\n\nPoužij *tag* pro tagy',
-                    hintStyle: TextStyle(
-                      color: theme.appColors.base5.withOpacity(0.6),
-                      fontSize: 16,
-                    ),
-                    border: InputBorder.none,
-                  ),
-                  style: TextStyle(
-                    color: theme.appColors.fg,
-                    fontSize: 16,
-                    height: 1.5, // Line height
-                  ),
+                  hintText: 'Začni psát poznámku...\n\nPoužij *tag* pro tagy',
                 ),
               ),
 
