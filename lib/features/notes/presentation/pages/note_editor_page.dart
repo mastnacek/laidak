@@ -253,7 +253,7 @@ class _NoteEditorPageState extends State<NoteEditorPage> {
                 child: NotesTagAutocompleteField(
                   controller: _contentController,
                   focusNode: _focusNode,
-                  maxLines: null, // Multiline - expanduje s obsahem
+                  // Když expands: true, maxLines musí být null (řešeno ve widgetu)
                   expands: true, // Zabere celý Expanded prostor
                   textAlignVertical: TextAlignVertical.top,
                   keyboardType: TextInputType.multiline,
