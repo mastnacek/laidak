@@ -213,8 +213,8 @@ Tags: work, urgent
     {
       "type": "motivation",
       "title": "💪 MOTIVATION",
-      "commentary": "Skvěle! Dokončil jsi 3/5 včerejších úkolů. Ještě *5* a máš rekord týdne!",
-      "task_ids": []
+      "commentary": "Skvěle! Dokončil jsi 3 úkoly dnes. Ještě *5* a máš rekord týdne!",
+      "task_ids": [3, 7, 11]
     }
   ],
   "generated_at": "2025-10-13T10:30:00Z"
@@ -235,8 +235,9 @@ Tags: work, urgent
 
 ## Motivation (always include)
 - Celebrate progress (completed tasks today/this week)
+- Include task_ids of completed tasks that you mention
 - Encourage next steps
-- NO task_ids (just motivational text)
+- Reference specific completed tasks in commentary
 
 # IMPORTANT
 - Return ONLY valid JSON (no markdown, no extra text)
@@ -333,7 +334,7 @@ String _buildUserContext(List<Todo> tasks) {
       "type": "motivation",
       "title": "💪 MOTIVATION",
       "commentary": "Skvělý progress! Dokončil jsi 3 úkoly dnes. Ještě 5 a máš rekord týdne! 🚀",
-      "task_ids": []
+      "task_ids": [3, 7, 11]
     }
   ],
   "generated_at": "2025-10-13T10:30:00Z"
