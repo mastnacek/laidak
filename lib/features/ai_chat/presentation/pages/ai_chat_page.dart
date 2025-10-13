@@ -94,35 +94,9 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.taskContext != null
-              ? '🤖 AI Chat: ${widget.taskContext!.todo.task}'
-              : '🤖 AI Chat',
-        ),
-        actions: [
-          // Clear chat button
-          IconButton(
-            icon: const Icon(Icons.delete_sweep),
-            tooltip: 'Vymazat chat',
-            onPressed: () {
-              context.read<AiChatBloc>().add(const ClearChatEvent());
-            },
-          ),
-          // Info button (expand context summary)
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip: 'Zobrazit kontext',
-            onPressed: () {
-              // TODO: Scroll to top / expand summary
-            },
-          ),
-        ],
-      ),
-      body: Column(
+    // AiChatPage už NENÍ Scaffold - je child widgetem MainPage PageView!
+    // AppBar je v MainPage, zde pouze body content
+    return Column(
         children: [
           // Context Summary Card (top) - pouze pokud je task context
           if (widget.taskContext != null) ...[
@@ -166,7 +140,6 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
             },
           ),
         ],
-      ),
     );
   }
 

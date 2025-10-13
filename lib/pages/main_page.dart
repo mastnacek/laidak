@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../core/theme/theme_colors.dart';
 import '../features/help/presentation/pages/help_page.dart';
 import '../features/todo_list/presentation/pages/todo_list_page.dart';
 import '../features/pomodoro/presentation/pages/pomodoro_page.dart';
 import '../features/ai_chat/presentation/pages/ai_chat_page.dart';
+import '../features/ai_chat/presentation/bloc/ai_chat_bloc.dart';
+import '../features/ai_chat/presentation/bloc/ai_chat_event.dart';
 import '../features/todo_list/presentation/widgets/stats_row.dart';
 import '../features/notes/presentation/pages/notes_page.dart';
 import 'settings_page.dart';
@@ -83,18 +86,8 @@ class _MainPageState extends State<MainPage> {
         // Title závisí na aktuální stránce
         title: _buildAppBarTitle(),
         centerTitle: _currentPageIndex != 1, // Center pro AI Chat a Pomodoro
-        // Settings VPRAVO
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            tooltip: 'Nastavení',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-          ),
-        ],
+        // Actions VPRAVO (dynamické podle stránky)
+        actions: _buildAppBarActions(),
       ),
 
       // PageView s 3 stránkami (swipeable)
@@ -136,5 +129,55 @@ class _MainPageState extends State<MainPage> {
       default:
         return const Text('TODO');
     }
+  }
+
+  /// AppBar actions podle aktuální stránky
+  List<Widget> _buildAppBarActions() {
+    // AI Chat (index 0): Clear chat + Info + Settings
+    if (_currentPageIndex == 0) {
+      return [
+        // Clear chat button
+        IconButton(
+          icon: const Icon(Icons.delete_sweep),
+          tooltip: 'Vymazat chat',
+          onPressed: () {
+            // Najít AiChatBloc z PageView child widgetu
+            final bloc = context.read<AiChatBloc>();
+            bloc.add(const ClearChatEvent());
+          },
+        ),
+        // Info button (zobrazit kontext)
+        IconButton(
+          icon: const Icon(Icons.info_outline),
+          tooltip: 'Zobrazit kontext',
+          onPressed: () {
+            // TODO: Scroll to top / expand summary
+          },
+        ),
+        // Settings (vždy viditelný)
+        IconButton(
+          icon: const Icon(Icons.settings),
+          tooltip: 'Nastavení',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const SettingsPage()),
+            );
+          },
+        ),
+      ];
+    }
+
+    // TODO List (index 1) a Pomodoro (index 2): Jen Settings
+    return [
+      IconButton(
+        icon: const Icon(Icons.settings),
+        tooltip: 'Nastavení',
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => const SettingsPage()),
+          );
+        },
+      ),
+    ];
   }
 }
