@@ -105,6 +105,9 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
           autocorrect: true,
           enableSuggestions: true,
           onSubmitted: widget.onSubmitted,
+          // Povolit text selection a Android context menu (copy, call, email, WhatsApp)
+          enableInteractiveSelection: true,
+          selectionControls: MaterialTextSelectionControls(),
         ),
       ),
     );
