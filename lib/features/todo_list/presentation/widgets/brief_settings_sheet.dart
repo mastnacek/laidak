@@ -21,6 +21,11 @@ class BriefSettingsSheet extends StatefulWidget {
 class _BriefSettingsSheetState extends State<BriefSettingsSheet> {
   late bool _includeSubtasks;
   late bool _includePomodoroStats;
+  late bool _includeCompletedToday;
+  late bool _includeCompletedWeek;
+  late bool _includeCompletedMonth;
+  late bool _includeCompletedYear;
+  late bool _includeCompletedAll;
 
   @override
   void initState() {
@@ -31,10 +36,20 @@ class _BriefSettingsSheetState extends State<BriefSettingsSheet> {
     if (state is TodoListLoaded) {
       _includeSubtasks = state.briefConfig.includeSubtasks;
       _includePomodoroStats = state.briefConfig.includePomodoroStats;
+      _includeCompletedToday = state.briefConfig.includeCompletedToday;
+      _includeCompletedWeek = state.briefConfig.includeCompletedWeek;
+      _includeCompletedMonth = state.briefConfig.includeCompletedMonth;
+      _includeCompletedYear = state.briefConfig.includeCompletedYear;
+      _includeCompletedAll = state.briefConfig.includeCompletedAll;
     } else {
       // Fallback na default
       _includeSubtasks = true;
       _includePomodoroStats = true;
+      _includeCompletedToday = true;
+      _includeCompletedWeek = true;
+      _includeCompletedMonth = false;
+      _includeCompletedYear = false;
+      _includeCompletedAll = false;
     }
   }
 
@@ -46,6 +61,11 @@ class _BriefSettingsSheetState extends State<BriefSettingsSheet> {
     final newConfig = state.briefConfig.copyWith(
       includeSubtasks: _includeSubtasks,
       includePomodoroStats: _includePomodoroStats,
+      includeCompletedToday: _includeCompletedToday,
+      includeCompletedWeek: _includeCompletedWeek,
+      includeCompletedMonth: _includeCompletedMonth,
+      includeCompletedYear: _includeCompletedYear,
+      includeCompletedAll: _includeCompletedAll,
     );
 
     // Dispatch event pro update
@@ -88,6 +108,16 @@ class _BriefSettingsSheetState extends State<BriefSettingsSheet> {
           ),
           const SizedBox(height: 24),
 
+          // === CONTEXT SECTION ===
+          Text(
+            'Kontext',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 12),
+
           // Include Subtasks toggle
           SwitchListTile(
             value: _includeSubtasks,
@@ -126,6 +156,136 @@ class _BriefSettingsSheetState extends State<BriefSettingsSheet> {
             ),
             subtitle: Text(
               'AI bude znát tvé pracovní vzorce',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            activeColor: theme.colorScheme.primary,
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          const SizedBox(height: 24),
+
+          // === COMPLETED TASKS SECTION ===
+          Text(
+            'Splněné úkoly',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Completed Today toggle
+          SwitchListTile(
+            value: _includeCompletedToday,
+            onChanged: (value) {
+              setState(() {
+                _includeCompletedToday = value;
+              });
+            },
+            title: Text(
+              'Dnes',
+              style: theme.textTheme.bodyLarge,
+            ),
+            subtitle: Text(
+              'Úkoly splněné dnes',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            activeColor: theme.colorScheme.primary,
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          const SizedBox(height: 8),
+
+          // Completed Week toggle
+          SwitchListTile(
+            value: _includeCompletedWeek,
+            onChanged: (value) {
+              setState(() {
+                _includeCompletedWeek = value;
+              });
+            },
+            title: Text(
+              'Tento týden',
+              style: theme.textTheme.bodyLarge,
+            ),
+            subtitle: Text(
+              'Úkoly splněné tento týden',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            activeColor: theme.colorScheme.primary,
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          const SizedBox(height: 8),
+
+          // Completed Month toggle
+          SwitchListTile(
+            value: _includeCompletedMonth,
+            onChanged: (value) {
+              setState(() {
+                _includeCompletedMonth = value;
+              });
+            },
+            title: Text(
+              'Tento měsíc',
+              style: theme.textTheme.bodyLarge,
+            ),
+            subtitle: Text(
+              'Úkoly splněné tento měsíc',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            activeColor: theme.colorScheme.primary,
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          const SizedBox(height: 8),
+
+          // Completed Year toggle
+          SwitchListTile(
+            value: _includeCompletedYear,
+            onChanged: (value) {
+              setState(() {
+                _includeCompletedYear = value;
+              });
+            },
+            title: Text(
+              'Letos',
+              style: theme.textTheme.bodyLarge,
+            ),
+            subtitle: Text(
+              'Úkoly splněné letos',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            activeColor: theme.colorScheme.primary,
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          const SizedBox(height: 8),
+
+          // Completed All toggle
+          SwitchListTile(
+            value: _includeCompletedAll,
+            onChanged: (value) {
+              setState(() {
+                _includeCompletedAll = value;
+              });
+            },
+            title: Text(
+              'Všechny splněné',
+              style: theme.textTheme.bodyLarge,
+            ),
+            subtitle: Text(
+              'Všechny splněné úkoly (ignoruje ostatní timeframes)',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.6),
               ),

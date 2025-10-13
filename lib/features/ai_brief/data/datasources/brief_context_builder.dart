@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import '../../../todo_list/domain/entities/todo.dart';
+import '../../domain/entities/brief_config.dart';
 
 /// Context Builder pro AI Brief
 ///
@@ -13,18 +14,18 @@ class BriefContextBuilder {
   /// CURRENT TIME: 2025-10-13T10:30:00Z
   /// DAY: Pondělí (13.10.2025)
   ///
-  /// --- TASKS ---
+  /// --- ACTIVE TASKS ---
+  /// (nehotové úkoly)
   ///
-  /// TASK_ID: 5
-  /// Text: Dokončit prezentaci
-  /// Priority: a (high)
-  /// Due Date: 2025-10-13 14:00 (in 2 hours)
-  /// Subtasks: 2/5 completed
-  /// Status: active
-  /// Tags: work, urgent
+  /// --- COMPLETED TASKS ---
+  /// (hotové úkoly podle config timeframes)
+  ///
+  /// --- USER STATS ---
+  /// Completed today: X tasks
+  /// Active tasks: Y tasks
   /// ...
   /// ```
-  static String buildUserContext(List<Todo> tasks) {
+  static String buildUserContext(List<Todo> tasks, BriefConfig config) {
     final buffer = StringBuffer();
     final now = DateTime.now();
 
@@ -32,13 +33,17 @@ class BriefContextBuilder {
     buffer.writeln('CURRENT TIME: ${now.toIso8601String()}');
     buffer.writeln('DAY: ${_getDayOfWeek(now)} (${_formatDate(now)})');
     buffer.writeln();
-    buffer.writeln('--- TASKS ---');
-    buffer.writeln();
 
-    // Filtr: jen aktivní úkoly (nehotové)
+    // Filtr: aktivní úkoly (nehotové)
     final activeTasks = tasks.where((t) => !t.isCompleted).toList();
 
-    // Vypsat všechny aktivní úkoly
+    // Filtr: completed úkoly podle config timeframes
+    final completedTasks = _filterCompletedTasks(tasks, config, now);
+
+    // --- ACTIVE TASKS ---
+    buffer.writeln('--- ACTIVE TASKS ---');
+    buffer.writeln();
+
     for (final task in activeTasks) {
       buffer.writeln('TASK_ID: ${task.id}');
       buffer.writeln('Text: ${task.task}');
@@ -52,26 +57,68 @@ class BriefContextBuilder {
         buffer.writeln('Due Date: none');
       }
 
-      // Subtasks (pokud máme data - zatím nemáme v TodoItem, ale můžeme přidat později)
-      // Prozatím skip
-
-      buffer.writeln('Status: ${task.isCompleted ? "completed" : "active"}');
+      buffer.writeln('Status: active');
       buffer.writeln('Tags: ${task.tags.isEmpty ? "none" : task.tags.join(", ")}');
       buffer.writeln();
     }
 
-    // User stats - kolik úkolů dokončil dnes
+    // --- COMPLETED TASKS ---
+    if (completedTasks.isNotEmpty) {
+      buffer.writeln('--- COMPLETED TASKS ---');
+      buffer.writeln();
+
+      for (final task in completedTasks) {
+        buffer.writeln('TASK_ID: ${task.id}');
+        buffer.writeln('Text: ${task.task}');
+        buffer.writeln('Priority: ${task.priority ?? "none"}');
+        buffer.writeln('Completed at: ${task.completedAt != null ? _formatDateTime(task.completedAt!) : "unknown"}');
+        buffer.writeln('Tags: ${task.tags.isEmpty ? "none" : task.tags.join(", ")}');
+        buffer.writeln();
+      }
+    }
+
+    // --- USER STATS ---
     final completedToday = tasks.where((t) =>
       t.isCompleted &&
-      _isToday(t.createdAt) // POZOR: TodoItem nemá completedAt, použiju createdAt jako fallback
+      t.completedAt != null &&
+      _isToday(t.completedAt!)
+    ).length;
+
+    final completedWeek = tasks.where((t) =>
+      t.isCompleted &&
+      t.completedAt != null &&
+      _isThisWeek(t.completedAt!, now)
     ).length;
 
     buffer.writeln('--- USER STATS ---');
     buffer.writeln();
     buffer.writeln('Completed today: $completedToday tasks');
+    buffer.writeln('Completed this week: $completedWeek tasks');
     buffer.writeln('Active tasks: ${activeTasks.length}');
 
     return buffer.toString();
+  }
+
+  /// Filtruje completed úkoly podle BriefConfig timeframes
+  static List<Todo> _filterCompletedTasks(List<Todo> tasks, BriefConfig config, DateTime now) {
+    final completed = tasks.where((t) => t.isCompleted && t.completedAt != null).toList();
+
+    // Pokud includeCompletedAll je true, vrátit všechny
+    if (config.includeCompletedAll) {
+      return completed;
+    }
+
+    // Jinak filtruj podle timeframes
+    return completed.where((t) {
+      final completedAt = t.completedAt!;
+
+      if (config.includeCompletedToday && _isToday(completedAt)) return true;
+      if (config.includeCompletedWeek && _isThisWeek(completedAt, now)) return true;
+      if (config.includeCompletedMonth && _isThisMonth(completedAt, now)) return true;
+      if (config.includeCompletedYear && _isThisYear(completedAt, now)) return true;
+
+      return false;
+    }).toList();
   }
 
   /// Vypočítá urgency popis pro deadline
@@ -148,5 +195,24 @@ class BriefContextBuilder {
     return date.year == now.year &&
         date.month == now.month &&
         date.day == now.day;
+  }
+
+  /// Zkontroluje, zda je datum tento týden
+  static bool _isThisWeek(DateTime date, DateTime now) {
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final endOfWeek = startOfWeek.add(const Duration(days: 7));
+
+    return date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
+           date.isBefore(endOfWeek);
+  }
+
+  /// Zkontroluje, zda je datum tento měsíc
+  static bool _isThisMonth(DateTime date, DateTime now) {
+    return date.year == now.year && date.month == now.month;
+  }
+
+  /// Zkontroluje, zda je datum tento rok
+  static bool _isThisYear(DateTime date, DateTime now) {
+    return date.year == now.year;
   }
 }

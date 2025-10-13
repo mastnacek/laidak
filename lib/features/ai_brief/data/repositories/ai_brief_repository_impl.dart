@@ -44,8 +44,8 @@ class AiBriefRepositoryImpl implements AiBriefRepository {
         );
       }
 
-      // 2. Sestavit user context
-      final userContext = BriefContextBuilder.buildUserContext(tasks);
+      // 2. Sestavit user context (s config pro completed tasks filtering)
+      final userContext = BriefContextBuilder.buildUserContext(tasks, config);
       AppLogger.debug('📝 Context length: ${userContext.length} chars');
 
       // 3. Zavolat AI datasource
