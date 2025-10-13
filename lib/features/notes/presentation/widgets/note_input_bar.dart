@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../widgets/tag_autocomplete_field.dart';
 import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
 
 /// NoteInputBar - Fixed bottom input pro vytváření poznámek
 ///
-/// Inspirováno TODO InputBar, ale jednodušší:
-/// - Bez search mode (search bude v MILESTONE 5)
-/// - Pouze přidání poznámky
+/// Inspirováno TODO InputBar:
+/// - Tag autocomplete (stejně jako v TODO)
+/// - Dynamické oddělovače z nastavení
 /// - Edge-to-edge design
 /// - Icon vlevo: note_add
 /// - Icon vpravo: add (zelený)
-/// - Expanded TextField mezi nimi
+/// - Expanded TagAutocompleteField mezi nimi
 ///
 /// Layout:
 /// ┌─────────────────────────────────────┐
-/// │ [📝] [TextField______________] [➕]  │
+/// │ [📝] [TagAutocomplete_________] [➕]  │
 /// └─────────────────────────────────────┘
 class NoteInputBar extends StatefulWidget {
   /// Callback volaný při změně focus stavu
@@ -119,37 +120,13 @@ class _NoteInputBarState extends State<NoteInputBar> {
                   },
                 ),
 
-                // TextField (EXPANDED = maximální šířka!)
+                // TagAutocompleteField (EXPANDED = maximální šířka!)
                 Expanded(
-                  child: TextField(
+                  child: TagAutocompleteField(
                     controller: _controller,
                     focusNode: _focusNode,
-                    decoration: InputDecoration(
-                      hintText: 'Nová poznámka... *tag*',
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12,
-                        horizontal: 8,
-                      ),
-                      isDense: true,
-                      hintStyle: TextStyle(
-                        color: theme.appColors.base5,
-                        fontSize: 16,
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: theme.appColors.fg,
-                      fontSize: 16,
-                    ),
-                    maxLines: 1,
-                    textInputAction: TextInputAction.done,
+                    hintText: 'Nová poznámka... *tag*',
                     onSubmitted: (_) => _onSubmit(),
-                    // KRITICKÉ: Při tapu VŽDY request focus (Android fix)
-                    onTap: () {
-                      _focusNode.requestFocus();
-                    },
-                    // KRITICKÉ: Force show cursor (Android keyboard fix)
-                    showCursor: true,
                   ),
                 ),
 

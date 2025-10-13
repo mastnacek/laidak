@@ -6,10 +6,10 @@ import '../../../../core/theme/theme_colors.dart';
 ///
 /// Simplified verze TODO TagAutocompleteField:
 /// - BEZ highlighting (jen plain text)
-/// - BEZ emoji/color (Notes nemají custom tags)
+/// - Používá DYNAMICKÉ oddělovače z nastavení (stejně jako TODO)
 /// - Pouze autocomplete dropdown s existujícími tagy
 ///
-/// Detekuje když uživatel píše tag (za *) a zobrazí dropdown s návrhy.
+/// Detekuje když uživatel píše tag (s aktuálními oddělovači) a zobrazí dropdown s návrhy.
 /// Například: "*proj" → zobrazí "projekt", "projekty", ...
 class NotesTagAutocompleteField extends StatefulWidget {
   final TextEditingController controller;
@@ -43,15 +43,35 @@ class _NotesTagAutocompleteFieldState
   final LayerLink _layerLink = LayerLink();
   List<String> _suggestions = [];
   String _currentTagPrefix = '';
-  final String _delimiterStart = '*';
-  final String _delimiterEnd = '*';
+  String _delimiterStart = '*';
+  String _delimiterEnd = '*';
 
   @override
   void initState() {
     super.initState();
 
+    // Načíst oddělovače z DB
+    _loadDelimiters();
+
     // Naslouchat změnám v textfieldu
     widget.controller.addListener(_onTextChanged);
+  }
+
+  /// Načíst delimitery z DB
+  Future<void> _loadDelimiters() async {
+    try {
+      final settings = await _db.getSettings();
+      setState(() {
+        _delimiterStart = settings['tag_delimiter_start'] as String? ?? '*';
+        _delimiterEnd = settings['tag_delimiter_end'] as String? ?? '*';
+      });
+    } catch (e) {
+      // Fallback na default delimitery
+      setState(() {
+        _delimiterStart = '*';
+        _delimiterEnd = '*';
+      });
+    }
   }
 
   @override

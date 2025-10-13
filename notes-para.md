@@ -9,21 +9,25 @@
 ✅ MILESTONE 0: Příprava (DOKONČENO)
 ✅ MILESTONE 1: Databáze + Základní Entity (DOKONČENO - dc5b89a)
 ✅ MILESTONE 2: GUI - BLoC + Page + Navigation (DOKONČENO - 9473b25)
-⏸️ MILESTONE 3: Note Editor + Základní Tagy (ČEKÁ)
-⏸️ MILESTONE 4: Folders - Recent + Favorites (ČEKÁ)
+✅ MILESTONE 3: Note Editor + Základní Tagy (DOKONČENO - 2025-10-13)
+✅ MILESTONE 4: Folders - Recent + Favorites (DOKONČENO - 2025-10-13)
 ⏸️ MILESTONE 5: Fulltext Search (ČEKÁ)
 ⏸️ MILESTONE 6-9: Budoucnost (ČEKÁ)
 ```
 
-**🎯 AKTUÁLNÍ STAV (2025-10-13 večer):**
+**🎯 AKTUÁLNÍ STAV (2025-10-13 23:56 - KONEC DNE):**
 - ✅ Notes databáze funkční (SQL tabulka + CRUD)
-- ✅ NotesBloc implementován (state management)
-- ✅ NotesListPage zobrazuje poznámky
+- ✅ NotesBloc implementován (expand/collapse state management)
+- ✅ NotesListPage zobrazuje poznámky s kartami
 - ✅ Notes integrované jako 4. tab v PageView
-- ⏸️ Input bar je placeholder (disabled)
-- ⏸️ Editor ještě neexistuje
-- ⏸️ Tagy ještě nejsou
-- 📊 Token budget: ~87k zbývá
+- ✅ NoteInputBar funkční (multiline, emoji, tagy)
+- ✅ NoteEditorPage kompletní (full screen editor)
+- ✅ NoteCard s tagy, expand/collapse, swipe actions
+- ✅ Folders Tab Bar (All, Recent, Favorites)
+- ✅ Tag parsing (*tag*, *#123*, *[[Note]]*)
+- ✅ Tag autocomplete s AI-powered suggestions
+- ✅ Produkční build vytvořen (app-release.apk 53.7MB)
+- 📊 Token budget: ~69k zbývá
 
 ---
 

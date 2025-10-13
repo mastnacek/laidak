@@ -33,9 +33,6 @@ class NoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Parse tagy z content
-    final parsedTags = NotesTagParser.parse(note.content);
-
     // První řádek jako title
     final titleLine = note.content.split('\n').first;
 
@@ -196,44 +193,57 @@ class NoteCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              // Tags (pokud existují)
-              if (parsedTags.isNotEmpty)
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: [
-                    // Běžné tagy (s barvami a glow efektem z TagService)
-                    ...parsedTags.tags.map((tag) {
-                      final tagDef = TagService().getDefinition(tag);
-                      return TodoTagChip(
-                        text: tag,
-                        color: tagDef?.color != null
-                            ? ColorUtils.hexToColor(tagDef!.color!)
-                            : theme.appColors.cyan,
-                        glowEnabled: tagDef?.glowEnabled ?? false,
-                        glowStrength: tagDef?.glowStrength ?? 0.5,
-                      );
-                    }),
+              // Tags (pokud existují) - async parsing s FutureBuilder
+              FutureBuilder<ParsedNoteTags>(
+                future: NotesTagParser.parse(note.content),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const SizedBox.shrink();
+                  }
 
-                    // TODO linky
-                    ...parsedTags.todoLinks.map(
-                      (todoId) => TodoTagChip(
-                        text: '🔗 #$todoId',
-                        color: theme.appColors.green,
-                        glowEnabled: false,
-                      ),
-                    ),
+                  final parsedTags = snapshot.data!;
+                  if (parsedTags.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
-                    // Note linky
-                    ...parsedTags.noteLinks.map(
-                      (noteName) => TodoTagChip(
-                        text: '📝 $noteName',
-                        color: theme.appColors.magenta,
-                        glowEnabled: false,
+                  return Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      // Běžné tagy (s barvami a glow efektem z TagService)
+                      ...parsedTags.tags.map((tag) {
+                        final tagDef = TagService().getDefinition(tag);
+                        return TodoTagChip(
+                          text: tag,
+                          color: tagDef?.color != null
+                              ? ColorUtils.hexToColor(tagDef!.color!)
+                              : theme.appColors.cyan,
+                          glowEnabled: tagDef?.glowEnabled ?? false,
+                          glowStrength: tagDef?.glowStrength ?? 0.5,
+                        );
+                      }),
+
+                      // TODO linky
+                      ...parsedTags.todoLinks.map(
+                        (todoId) => TodoTagChip(
+                          text: '🔗 #$todoId',
+                          color: theme.appColors.green,
+                          glowEnabled: false,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+
+                      // Note linky
+                      ...parsedTags.noteLinks.map(
+                        (noteName) => TodoTagChip(
+                          text: '📝 $noteName',
+                          color: theme.appColors.magenta,
+                          glowEnabled: false,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
         ),

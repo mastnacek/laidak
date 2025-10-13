@@ -1,20 +1,54 @@
+import '../../../../core/services/database_helper.dart';
+
 /// NotesTagParser - Service pro parsování tagů z poznámek (MILESTONE 3)
 ///
-/// Podporuje následující patterny:
+/// Podporuje následující patterny (s dynamickými oddělovači z DB):
 /// - *tag* → běžný tag (stejně jako v TODO)
 /// - *#123* → link na TODO úkol (zatím jen parsing, linking později)
 /// - *[[Note]]* → link na jinou poznámku (parsing, linking Phase 2)
 ///
-/// Konzistentní s existujícím TODO tag systémem (TagParser).
+/// KONZISTENTNÍ s TODO TagParser - používá DYNAMICKÉ oddělovače z nastavení!
 class NotesTagParser {
-  /// Regex pro běžné tagy: *tag*
-  static final RegExp _tagPattern = RegExp(r'\*(\w+)\*');
+  static final DatabaseHelper _db = DatabaseHelper();
 
-  /// Regex pro TODO linky: *#123*
-  static final RegExp _todoLinkPattern = RegExp(r'\*#(\d+)\*');
+  /// Získat aktuální nastavení oddělovačů z databáze
+  static Future<Map<String, String>> _getDelimiters() async {
+    final settings = await _db.getSettings();
+    return {
+      'start': settings['tag_delimiter_start'] as String? ?? '*',
+      'end': settings['tag_delimiter_end'] as String? ?? '*',
+    };
+  }
 
-  /// Regex pro Note linky: *[[text]]*
-  static final RegExp _noteLinkPattern = RegExp(r'\*\[\[([^\]]+)\]\]\*');
+  /// Vytvořit RegEx pattern pro běžné tagy s dynamickými oddělovači
+  static Future<RegExp> _buildTagRegex() async {
+    final delimiters = await _getDelimiters();
+    final start = RegExp.escape(delimiters['start']!);
+    final end = RegExp.escape(delimiters['end']!);
+
+    // Pattern: start + word characters + end
+    return RegExp('$start(\\w+)$end');
+  }
+
+  /// Vytvořit RegEx pattern pro TODO linky s dynamickými oddělovači
+  static Future<RegExp> _buildTodoLinkRegex() async {
+    final delimiters = await _getDelimiters();
+    final start = RegExp.escape(delimiters['start']!);
+    final end = RegExp.escape(delimiters['end']!);
+
+    // Pattern: start + #digits + end
+    return RegExp('$start#(\\d+)$end');
+  }
+
+  /// Vytvořit RegEx pattern pro Note linky s dynamickými oddělovači
+  static Future<RegExp> _buildNoteLinkRegex() async {
+    final delimiters = await _getDelimiters();
+    final start = RegExp.escape(delimiters['start']!);
+    final end = RegExp.escape(delimiters['end']!);
+
+    // Pattern: start + [[text]] + end
+    return RegExp('$start\\[\\[([^\\]]+)\\]\\]$end');
+  }
 
   /// Parse všechny tagy z textu poznámky
   ///
@@ -22,29 +56,34 @@ class NotesTagParser {
   /// - tags: běžné tagy (["projekt-x", "nápad"])
   /// - todoLinks: odkazy na TODO úkoly (["123", "456"])
   /// - noteLinks: odkazy na poznámky (["Meeting Notes", "Q4 Roadmap"])
-  static ParsedNoteTags parse(String content) {
+  static Future<ParsedNoteTags> parse(String content) async {
     final tags = <String>[];
     final todoLinks = <String>[];
     final noteLinks = <String>[];
 
+    // Načíst regex patterny s aktuálními oddělovači
+    final tagPattern = await _buildTagRegex();
+    final todoLinkPattern = await _buildTodoLinkRegex();
+    final noteLinkPattern = await _buildNoteLinkRegex();
+
     // 1. Extract běžné tagy (ale ignoruj #123 a [[...]])
-    for (final match in _tagPattern.allMatches(content)) {
+    for (final match in tagPattern.allMatches(content)) {
       final tag = match.group(1)!;
 
       // Skip pokud je to TODO link (#123) nebo Note link
       if (!tag.startsWith('#') && !tag.startsWith('[[')) {
-        tags.add(tag);
+        tags.add(tag.toLowerCase()); // Lowercase pro konzistenci s TODO
       }
     }
 
     // 2. Extract TODO linky
-    for (final match in _todoLinkPattern.allMatches(content)) {
+    for (final match in todoLinkPattern.allMatches(content)) {
       final todoId = match.group(1)!;
       todoLinks.add(todoId);
     }
 
     // 3. Extract Note linky
-    for (final match in _noteLinkPattern.allMatches(content)) {
+    for (final match in noteLinkPattern.allMatches(content)) {
       final noteName = match.group(1)!;
       noteLinks.add(noteName);
     }
@@ -57,25 +96,32 @@ class NotesTagParser {
   }
 
   /// Validovat zda text obsahuje alespoň jeden tag
-  static bool hasAnyTag(String content) {
-    return _tagPattern.hasMatch(content) ||
-        _todoLinkPattern.hasMatch(content) ||
-        _noteLinkPattern.hasMatch(content);
+  static Future<bool> hasAnyTag(String content) async {
+    final tagPattern = await _buildTagRegex();
+    final todoLinkPattern = await _buildTodoLinkRegex();
+    final noteLinkPattern = await _buildNoteLinkRegex();
+
+    return tagPattern.hasMatch(content) ||
+        todoLinkPattern.hasMatch(content) ||
+        noteLinkPattern.hasMatch(content);
   }
 
   /// Extrahovat pouze běžné tagy (bez TODO/Note linků)
-  static List<String> extractTags(String content) {
-    return parse(content).tags;
+  static Future<List<String>> extractTags(String content) async {
+    final result = await parse(content);
+    return result.tags;
   }
 
   /// Extrahovat pouze TODO linky
-  static List<String> extractTodoLinks(String content) {
-    return parse(content).todoLinks;
+  static Future<List<String>> extractTodoLinks(String content) async {
+    final result = await parse(content);
+    return result.todoLinks;
   }
 
   /// Extrahovat pouze Note linky
-  static List<String> extractNoteLinks(String content) {
-    return parse(content).noteLinks;
+  static Future<List<String>> extractNoteLinks(String content) async {
+    final result = await parse(content);
+    return result.noteLinks;
   }
 }
 
