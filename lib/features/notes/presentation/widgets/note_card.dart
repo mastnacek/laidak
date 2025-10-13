@@ -120,84 +120,117 @@ class NoteCard extends StatelessWidget {
           context.read<NotesBloc>().add(DeleteNoteEvent(note.id!));
         }
       },
-      child: Card(
-        margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-        color: theme.appColors.bgAlt,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            // Zavřít klávesnici při otevření editoru
-            FocusScope.of(context).unfocus();
+      child: InkWell(
+        onTap: () {
+          // Zavřít klávesnici při tap
+          FocusScope.of(context).unfocus();
 
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => BlocProvider.value(
-                  value: context.read<NotesBloc>(),
-                  child: NoteEditorPage(note: note),
-                ),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BlocProvider.value(
+                value: context.read<NotesBloc>(),
+                child: NoteEditorPage(note: note),
               ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header: Title pouze (delete button odebrán - funkci má swipe)
-                Text(
-                  titleLine,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: theme.appColors.fg,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+            ),
+          );
+        },
+        onLongPress: () {
+          // Zavřít klávesnici při long press
+          FocusScope.of(context).unfocus();
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => BlocProvider.value(
+                value: context.read<NotesBloc>(),
+                child: NoteEditorPage(note: note),
+              ),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: theme.appColors.bgAlt,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.appColors.cyan.withValues(alpha: 0.4),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // První řádek: ID + text poznámky (STEJNĚ JAKO TODO!)
+              Row(
+                children: [
+                  // ID
+                  Text(
+                    '[${note.id}]',
+                    style: TextStyle(
+                      color: theme.appColors.base5,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'monospace',
+                    ),
                   ),
-                ),
-
-                // Tags (pokud existují)
-                if (parsedTags.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      // Běžné tagy (s barvami a glow efektem z TagService)
-                      ...parsedTags.tags.map((tag) {
-                        final tagDef = TagService().getDefinition(tag);
-                        return TodoTagChip(
-                          text: tag,
-                          color: tagDef?.color != null
-                              ? ColorUtils.hexToColor(tagDef!.color!)
-                              : theme.appColors.cyan,
-                          glowEnabled: tagDef?.glowEnabled ?? false,
-                          glowStrength: tagDef?.glowStrength ?? 0.5,
-                        );
-                      }),
-
-                      // TODO linky
-                      ...parsedTags.todoLinks.map(
-                        (todoId) => TodoTagChip(
-                          text: '🔗 #$todoId',
-                          color: theme.appColors.green,
-                          glowEnabled: false,
-                        ),
+                  const SizedBox(width: 8),
+                  // Text poznámky (JEN 1 ŘÁDEK!)
+                  Expanded(
+                    child: Text(
+                      titleLine,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: theme.appColors.fg,
+                        fontSize: 16,
                       ),
-
-                      // Note linky
-                      ...parsedTags.noteLinks.map(
-                        (noteName) => TodoTagChip(
-                          text: '📝 $noteName',
-                          color: theme.appColors.magenta,
-                          glowEnabled: false,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+
+              // Tags (pokud existují)
+              if (parsedTags.isNotEmpty)
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    // Běžné tagy (s barvami a glow efektem z TagService)
+                    ...parsedTags.tags.map((tag) {
+                      final tagDef = TagService().getDefinition(tag);
+                      return TodoTagChip(
+                        text: tag,
+                        color: tagDef?.color != null
+                            ? ColorUtils.hexToColor(tagDef!.color!)
+                            : theme.appColors.cyan,
+                        glowEnabled: tagDef?.glowEnabled ?? false,
+                        glowStrength: tagDef?.glowStrength ?? 0.5,
+                      );
+                    }),
+
+                    // TODO linky
+                    ...parsedTags.todoLinks.map(
+                      (todoId) => TodoTagChip(
+                        text: '🔗 #$todoId',
+                        color: theme.appColors.green,
+                        glowEnabled: false,
+                      ),
+                    ),
+
+                    // Note linky
+                    ...parsedTags.noteLinks.map(
+                      (noteName) => TodoTagChip(
+                        text: '📝 $noteName',
+                        color: theme.appColors.magenta,
+                        glowEnabled: false,
+                      ),
+                    ),
+                  ],
+                ),
+            ],
           ),
         ),
       ),
