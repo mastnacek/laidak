@@ -6,6 +6,7 @@ import '../bloc/notes_event.dart';
 import '../bloc/notes_state.dart';
 import 'note_editor_page.dart';
 import '../widgets/note_input_bar.dart';
+import '../widgets/note_card.dart';
 
 /// NotesListPage - Seznam poznámek (MILESTONE 2)
 ///
@@ -159,73 +160,14 @@ class _NotesListPageState extends State<NotesListPage> {
       );
     }
 
-    // TODO MILESTONE 2.4: Nahradit za NoteCard widget
+    // ✅ MILESTONE 3.2: NoteCard s tag display
     return ListView.builder(
       itemCount: notes.length,
       itemBuilder: (context, index) {
         final note = notes[index];
-        return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-          color: theme.appColors.bgAlt,
-          child: ListTile(
-            // MILESTONE 3: Tap otevře NoteEditorPage
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => BlocProvider.value(
-                    value: context.read<NotesBloc>(),
-                    child: NoteEditorPage(note: note),
-                  ),
-                ),
-              );
-            },
-            title: Text(
-              note.content.split('\n').first,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: theme.appColors.fg,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            subtitle: Text(
-              '${note.createdAt.day}.${note.createdAt.month}.${note.createdAt.year} ${note.createdAt.hour}:${note.createdAt.minute.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                color: theme.appColors.base5,
-                fontSize: 12,
-              ),
-            ),
-            trailing: IconButton(
-              icon: Icon(Icons.delete, color: theme.appColors.red),
-              onPressed: () {
-                // Potvrzení před smazáním
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Smazat poznámku?'),
-                    content: const Text('Tato akce je nevratná.'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Zrušit'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          context.read<NotesBloc>().add(DeleteNoteEvent(note.id!));
-                        },
-                        child: Text(
-                          'Smazat',
-                          style: TextStyle(color: theme.appColors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+        return NoteCard(
+          key: ValueKey('note_${note.id}'),
+          note: note,
         );
       },
     );
