@@ -5,6 +5,7 @@ import '../features/todo_list/presentation/pages/todo_list_page.dart';
 import '../features/pomodoro/presentation/pages/pomodoro_page.dart';
 import '../features/ai_chat/presentation/pages/ai_chat_page.dart';
 import '../features/todo_list/presentation/widgets/stats_row.dart';
+import '../features/notes/presentation/pages/notes_page.dart';
 import 'settings_page.dart';
 
 /// MainPage - Hlavní stránka s PageView pro swipeable obrazovky
@@ -50,6 +51,16 @@ class _MainPageState extends State<MainPage> {
     });
   }
 
+  /// Otevřít Notes page jako Modal Bottom Sheet
+  void _openNotesPage() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const NotesPage(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -87,19 +98,28 @@ class _MainPageState extends State<MainPage> {
       ),
 
       // PageView s 3 stránkami (swipeable)
-      body: PageView(
-        controller: _pageController,
-        onPageChanged: _onPageChanged,
-        children: const [
-          // Stránka 0: AI Chat (standalone mode)
-          AiChatPage.standalone(),
+      // Obalený GestureDetector pro swipe nahoru → Notes
+      body: GestureDetector(
+        onVerticalDragEnd: (details) {
+          // Swipe nahoru = negativní velocity
+          if (details.primaryVelocity != null && details.primaryVelocity! < -500) {
+            _openNotesPage();
+          }
+        },
+        child: PageView(
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          children: const [
+            // Stránka 0: AI Chat (standalone mode)
+            AiChatPage.standalone(),
 
-          // Stránka 1: TODO List (střed, initial)
-          TodoListPage(),
+            // Stránka 1: TODO List (střed, initial)
+            TodoListPage(),
 
-          // Stránka 2: Pomodoro Timer
-          PomodoroPage(),
-        ],
+            // Stránka 2: Pomodoro Timer
+            PomodoroPage(),
+          ],
+        ),
       ),
     );
   }

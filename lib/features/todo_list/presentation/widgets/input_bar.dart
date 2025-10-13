@@ -145,92 +145,111 @@ class _InputBarState extends State<InputBar> {
       label: 'Panel pro přidání úkolu a vyhledávání',
       container: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: theme.appColors.bgAlt,
-          border: Border(
-            top: BorderSide(
-              color: theme.appColors.base3,
-              width: 1,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 8,
+              offset: const Offset(0, -2),
             ),
-          ),
+          ],
         ),
         child: SafeArea(
-          child: Row(
-                children: [
-                  // Search icon (edge-aligned)
-                  IconButton(
-                    icon: Icon(
-                      _isSearchMode ? Icons.close : Icons.search,
-                      size: 24,
-                    ),
-                    tooltip: _isSearchMode ? 'Zrušit vyhledávání' : 'Vyhledat úkol',
-                    color: _isSearchMode
-                        ? theme.appColors.red
-                        : theme.appColors.base5,
-                    onPressed: _toggleSearchMode,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: theme.appColors.bg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.appColors.base3.withValues(alpha: 0.5),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.appColors.cyan.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                // Search icon (edge-aligned)
+                IconButton(
+                  icon: Icon(
+                    _isSearchMode ? Icons.close : Icons.search,
+                    size: 24,
                   ),
+                  tooltip: _isSearchMode ? 'Zrušit vyhledávání' : 'Vyhledat úkol',
+                  color: _isSearchMode
+                      ? theme.appColors.red
+                      : theme.appColors.base5,
+                  onPressed: _toggleSearchMode,
+                ),
 
-                  // TextField (EXPANDED = maximální šířka!)
-                  Expanded(
-                    child: _isSearchMode
-                        ? TextField(
-                            controller: _controller,
-                            focusNode: _focusNode,
-                            decoration: InputDecoration(
-                              hintText: '🔍 Vyhledat úkol...',
-                              border: InputBorder.none,
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 0,
-                              ),
-                              isDense: true,
-                              hintStyle: TextStyle(
-                                color: theme.appColors.base5,
-                                fontSize: 16,
-                              ),
+                // TextField (EXPANDED = maximální šířka!)
+                Expanded(
+                  child: _isSearchMode
+                      ? TextField(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          decoration: InputDecoration(
+                            hintText: '🔍 Vyhledat úkol...',
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 12,
+                              horizontal: 8,
                             ),
-                            style: TextStyle(
-                              color: theme.appColors.fg,
+                            isDense: true,
+                            hintStyle: TextStyle(
+                              color: theme.appColors.base5,
                               fontSize: 16,
                             ),
-                            // KRITICKÉ: Při tapu VŽDY request focus (Android fix)
-                            onTap: () {
-                              _focusNode.requestFocus();
-                            },
-                            onChanged: _onTextChanged,
-                            onSubmitted: (_) => _onSubmit(),
-                            textInputAction: TextInputAction.search,
-                            // KRITICKÉ: Force show cursor (Android keyboard fix)
-                            showCursor: true,
-                            // KRITICKÉ: Autofocus pokud přepínáme do search mode
-                            autofocus: false,
-                          )
-                        : TagAutocompleteField(
-                            controller: _controller,
-                            focusNode: _focusNode,
-                            hintText: '*a* *dnes* nakoupit...',
-                            onSubmitted: (_) => _onSubmit(),
                           ),
-                  ),
+                          style: TextStyle(
+                            color: theme.appColors.fg,
+                            fontSize: 16,
+                          ),
+                          // KRITICKÉ: Při tapu VŽDY request focus (Android fix)
+                          onTap: () {
+                            _focusNode.requestFocus();
+                          },
+                          onChanged: _onTextChanged,
+                          onSubmitted: (_) => _onSubmit(),
+                          textInputAction: TextInputAction.search,
+                          // KRITICKÉ: Force show cursor (Android keyboard fix)
+                          showCursor: true,
+                          // KRITICKÉ: Autofocus pokud přepínáme do search mode
+                          autofocus: false,
+                        )
+                      : TagAutocompleteField(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          hintText: '*a* *dnes* nakoupit...',
+                          onSubmitted: (_) => _onSubmit(),
+                        ),
+                ),
 
-                  // Add button (edge-aligned, skrytý v search mode)
-                  BlocBuilder<TodoListBloc, TodoListState>(
-                    builder: (context, state) {
-                      if (_isSearchMode) {
-                        return const SizedBox(width: 48);
-                      }
+                // Add button (edge-aligned, skrytý v search mode)
+                BlocBuilder<TodoListBloc, TodoListState>(
+                  builder: (context, state) {
+                    if (_isSearchMode) {
+                      return const SizedBox(width: 48);
+                    }
 
-                      return IconButton(
-                        icon: const Icon(Icons.add, size: 24),
-                        tooltip: 'Přidat úkol',
-                        color: theme.appColors.green,
-                        onPressed: _onSubmit,
-                      );
-                    },
-                  ),
-                ],
-              ),
+                    return IconButton(
+                      icon: const Icon(Icons.add, size: 24),
+                      tooltip: 'Přidat úkol',
+                      color: theme.appColors.green,
+                      onPressed: _onSubmit,
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

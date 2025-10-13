@@ -188,53 +188,42 @@ class _TodoListPageState extends State<TodoListPage> {
               ),
 
               // Bottom Controls (KEYBOARD AWARE!)
+              // KRITICKÉ: BEZ SafeArea wrapperu! (SafeArea je uvnitř InputBaru)
               Container(
-                decoration: BoxDecoration(
-                  color: theme.appColors.bgAlt,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, -2),
-                    ),
-                  ],
-                ),
                 // DŮLEŽITÉ: Padding podle keyboard inset!
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // SortBar (skrytý při psaní s animací!)
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        child: _isInputFocused
-                            ? const SizedBox.shrink()
-                            : const SortBar(),
-                      ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // SortBar (skrytý při psaní s animací!)
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      child: _isInputFocused
+                          ? const SizedBox.shrink()
+                          : const SortBar(),
+                    ),
 
-                      // ViewBar (skrytý při psaní s animací!)
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeInOut,
-                        child: _isInputFocused
-                            ? const SizedBox.shrink()
-                            : const ViewBar(),
-                      ),
+                    // ViewBar (skrytý při psaní s animací!)
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeInOut,
+                      child: _isInputFocused
+                          ? const SizedBox.shrink()
+                          : const ViewBar(),
+                    ),
 
-                      // InputBar (VŽDY viditelný)
-                      InputBar(
-                        onFocusChanged: (hasFocus) {
-                          setState(() {
-                            _isInputFocused = hasFocus;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
+                    // InputBar (VŽDY viditelný, má vlastní SafeArea uvnitř)
+                    InputBar(
+                      onFocusChanged: (hasFocus) {
+                        setState(() {
+                          _isInputFocused = hasFocus;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
