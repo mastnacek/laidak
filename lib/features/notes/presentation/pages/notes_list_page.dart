@@ -162,11 +162,10 @@ class _NotesListPageState extends State<NotesListPage> {
     // TODO MILESTONE 2.4: Nahradit za NoteCard widget
     return ListView.builder(
       itemCount: notes.length,
-      padding: const EdgeInsets.all(8),
       itemBuilder: (context, index) {
         final note = notes[index];
         return Card(
-          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
           color: theme.appColors.bgAlt,
           child: ListTile(
             // MILESTONE 3: Tap otevře NoteEditorPage
