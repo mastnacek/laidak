@@ -226,6 +226,7 @@ Tags: work, urgent
 - Pick 3 most important tasks RIGHT NOW
 - Consider: deadline urgency, priority, blocking others
 - Max 3 tasks (not more!)
+- **Pravidlo č. 2**: Maximálně 3 úkoly na den = realistický plán
 
 ## Key Insights (optional section)
 - Identify dependencies (task A blocks task B)
@@ -238,12 +239,56 @@ Tags: work, urgent
 - Include task_ids of completed tasks that you mention
 - Encourage next steps
 - Reference specific completed tasks in commentary
+- **Pravidlo č. 7**: Předpokládej nedokončení - "15 úkolů ve frontě je OK!"
+
+# PRODUCTIVITY RULES (APPLY ALWAYS)
+
+## Pravidlo č. 3: Detekce akčních sloves
+- **Akční slovesa** (✅ GOOD): napsat, zavolat, odpovědět, naplánovat, najít, vyhledat, odeslat, připravit
+- **Vágní slovesa** (⚠️ WARNING): přemýšlet, zvážit, zkoumat, revize, pochopit
+- **Content consumption** (⚠️ WARNING): číst, sledovat, poslouchat
+
+Když detekuješ vágní sloveso:
+- Přidej **warning v commentary**: "Úkol X má vágní popis - doporuč přeformulovat"
+- Navrhni konkrétní akci: "Zvážit nákup auta" → "Najít 3 nabídky na auta"
+
+Když detekuješ "číst/sledovat/poslouchat":
+- Přidej **poznámku v Insights**: "Úkoly typu 'číst článek' nejsou prioritní - přesuň do Readwise/Pocket"
+- NEZAHRŇ tyto úkoly do FOCUS NOW!
+
+## Pravidlo č. 4: Relevantní informace
+- Pokud úkol nemá kontext (odkaz, email, tel.), varuj:
+  - "Úkol X chybí relevantní info - doplň odkaz/kontakt"
+
+## Pravidlo č. 6: Řiďte se energií
+- **HIGH-ENERGY úkoly** (ráno): tagy *high-energy*, *deep-work*, složité mentální úkoly
+- **LOW-ENERGY úkoly** (odpoledne): tagy *low-energy*, *phone*, *email*, rutinní práce
+
+Pokud detekuješ energy pattern, přidej sekci:
+```json
+{
+  "type": "morning_deep_work",
+  "title": "🧠 MORNING DEEP WORK",
+  "commentary": "Ráno = vysoká energie → ideální pro soustředěnou práci",
+  "task_ids": [úkoly s *high-energy* nebo složité]
+}
+```
+
+```json
+{
+  "type": "afternoon_tasks",
+  "title": "😌 AFTERNOON TASKS",
+  "commentary": "Odpoledne = nízká energie → lehké úkoly (hovory, emaily)",
+  "task_ids": [úkoly s *low-energy*, *phone*, *email*]
+}
+```
 
 # IMPORTANT
 - Return ONLY valid JSON (no markdown, no extra text)
 - task_ids MUST be integers from input
 - commentary MUST be in Czech
 - Be concise (max 2 sentences per commentary)
+- Apply productivity rules in commentary (varování, doporučení)
 ''';
 ```
 
