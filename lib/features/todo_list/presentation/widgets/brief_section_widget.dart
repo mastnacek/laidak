@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/copyable_text.dart';
 import '../../../ai_brief/domain/entities/brief_section.dart';
 import '../../domain/entities/todo.dart';
 import 'todo_card.dart';
@@ -49,18 +50,31 @@ class BriefSectionWidget extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
-              Text(
-                section.title,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: _getSectionColor(theme, section.type),
-                ),
+              // Title s copy buttonem
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      section.title,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: _getSectionColor(theme, section.type),
+                      ),
+                    ),
+                  ),
+                  CopyButton(
+                    textToCopy: '${section.title}\n\n${section.commentary}',
+                    tooltip: 'Kopírovat AI komentář',
+                    iconSize: 18,
+                    iconColor: _getSectionColor(theme, section.type),
+                    successMessage: '📋 AI komentář zkopírován',
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               // AI Commentary
-              Text(
+              SelectableText(
                 section.commentary,
                 style: TextStyle(
                   fontSize: 14,

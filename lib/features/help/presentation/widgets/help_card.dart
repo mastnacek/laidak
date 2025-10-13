@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/copyable_text.dart';
 import '../../domain/models/help_section.dart';
 
 /// HelpCard - Reusable komponenta pro Help System (podle help.md UI specifikace)
@@ -108,23 +109,38 @@ class HelpCard extends StatelessWidget {
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: section.examples
-                            .map(
-                              (example) => Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 4),
-                                child: Text(
-                                  example,
-                                  style: TextStyle(
-                                    color: theme.appColors.fg,
-                                    fontSize: 12,
-                                    fontFamily: 'monospace',
-                                    height: 1.5,
+                        children: [
+                          // Copy button pro všechny příklady
+                          Align(
+                            alignment: Alignment.topRight,
+                            child: CopyButton(
+                              textToCopy: section.examples.join('\n'),
+                              tooltip: 'Kopírovat všechny příklady',
+                              iconSize: 16,
+                              iconColor: theme.appColors.cyan,
+                              successMessage: '📋 Příklady zkopírovány',
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          // Příklady (každý selectable)
+                          ...section.examples
+                              .map(
+                                (example) => Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  child: SelectableText(
+                                    example,
+                                    style: TextStyle(
+                                      color: theme.appColors.fg,
+                                      fontSize: 12,
+                                      fontFamily: 'monospace',
+                                      height: 1.5,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            )
-                            .toList(),
+                              )
+                              .toList(),
+                        ],
                       ),
                     ),
                   ],

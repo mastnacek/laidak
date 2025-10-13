@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/widgets/copyable_text.dart';
 import '../../../todo_list/domain/entities/todo.dart';
 import '../../../todo_list/presentation/bloc/todo_list_bloc.dart';
 import '../../../todo_list/presentation/bloc/todo_list_event.dart';
@@ -117,6 +118,31 @@ class _AiSplitDialogState extends State<AiSplitDialog> {
     );
   }
 
+  /// Sestavit text pro kopírování (všechny subtasky + recommendations + deadline)
+  String _buildCopyText(AiSplitLoaded state) {
+    final buffer = StringBuffer();
+
+    buffer.writeln('📋 AI PODÚKOLY:');
+    buffer.writeln();
+    for (var i = 0; i < state.response.subtasks.length; i++) {
+      buffer.writeln('${i + 1}. ${state.response.subtasks[i]}');
+    }
+
+    if (state.response.recommendations.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('💡 DOPORUČENÍ:');
+      buffer.writeln(state.response.recommendations);
+    }
+
+    if (state.response.deadlineAnalysis.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('⏰ TERMÍN:');
+      buffer.writeln(state.response.deadlineAnalysis);
+    }
+
+    return buffer.toString();
+  }
+
   /// Body dialogu - switch podle stavu
   Widget _buildBody(BuildContext context, AiSplitState state, ThemeData theme) {
     return switch (state) {
@@ -156,15 +182,28 @@ class _AiSplitDialogState extends State<AiSplitDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Podúkoly
+          // Podúkoly s copy buttonem
           if (state.response.subtasks.isNotEmpty) ...[
-            Text(
-              '📋 PODÚKOLY:',
-              style: TextStyle(
-                color: theme.appColors.cyan,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '📋 PODÚKOLY:',
+                    style: TextStyle(
+                      color: theme.appColors.cyan,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                CopyButton(
+                  textToCopy: _buildCopyText(state),
+                  tooltip: 'Kopírovat celý AI návrh',
+                  iconSize: 18,
+                  iconColor: theme.appColors.cyan,
+                  successMessage: '📋 AI návrh zkopírován',
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             ...state.response.subtasks.asMap().entries.map((entry) {
