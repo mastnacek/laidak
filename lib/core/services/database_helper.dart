@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 18,  // ← Notes + PARA System (MILESTONE 1)
+      version: 19,  // ← Notes + note_tags tabulka (MILESTONE 3)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -235,6 +235,20 @@ class DatabaseHelper {
 
     await db.execute('CREATE INDEX idx_notes_created_at ON notes(created_at DESC)');
     await db.execute('CREATE INDEX idx_notes_updated_at ON notes(updated_at DESC)');
+
+    // Tabulka note_tags - M:N vztah mezi poznámkami a tagy (MILESTONE 3)
+    await db.execute('''
+      CREATE TABLE note_tags (
+        note_id INTEGER NOT NULL,
+        tag TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (note_id, tag),
+        FOREIGN KEY(note_id) REFERENCES notes(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_note_tags_note_id ON note_tags(note_id)');
+    await db.execute('CREATE INDEX idx_note_tags_tag ON note_tags(tag)');
 
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
@@ -452,6 +466,22 @@ class DatabaseHelper {
 
       await db.execute('CREATE INDEX idx_notes_created_at ON notes(created_at DESC)');
       await db.execute('CREATE INDEX idx_notes_updated_at ON notes(updated_at DESC)');
+    }
+
+    if (oldVersion < 19) {
+      // Notes Tags - MILESTONE 3: Tabulka tagů pro poznámky
+      await db.execute('''
+        CREATE TABLE note_tags (
+          note_id INTEGER NOT NULL,
+          tag TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          PRIMARY KEY (note_id, tag),
+          FOREIGN KEY(note_id) REFERENCES notes(id) ON DELETE CASCADE
+        )
+      ''');
+
+      await db.execute('CREATE INDEX idx_note_tags_note_id ON note_tags(note_id)');
+      await db.execute('CREATE INDEX idx_note_tags_tag ON note_tags(tag)');
     }
   }
 
@@ -1609,5 +1639,73 @@ class DatabaseHelper {
       orderBy: 'updated_at DESC',
       limit: limit,
     );
+  }
+
+  // ==================== NOTE_TAGS CRUD (MILESTONE 3) ====================
+
+  /// Přidat tagy k poznámce
+  Future<void> addTagsToNote(int noteId, List<String> tags) async {
+    final db = await database;
+
+    for (final tag in tags) {
+      // Vytvořit vazbu (ignore duplicates)
+      await db.insert(
+        'note_tags',
+        {
+          'note_id': noteId,
+          'tag': tag.toLowerCase(),
+          'created_at': DateTime.now().millisecondsSinceEpoch,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
+  }
+
+  /// Odstranit všechny tagy z poznámky
+  Future<void> removeAllTagsFromNote(int noteId) async {
+    final db = await database;
+    await db.delete('note_tags', where: 'note_id = ?', whereArgs: [noteId]);
+  }
+
+  /// Získat tagy pro poznámku
+  Future<List<String>> getTagsForNote(int noteId) async {
+    final db = await database;
+
+    final results = await db.query(
+      'note_tags',
+      where: 'note_id = ?',
+      whereArgs: [noteId],
+      orderBy: 'tag',
+    );
+
+    return results.map((row) => row['tag'] as String).toList();
+  }
+
+  /// Získat všechny unikátní tagy z poznámek (pro autocomplete)
+  Future<List<String>> getAllUniqueNoteTags() async {
+    final db = await database;
+
+    final results = await db.rawQuery('''
+      SELECT DISTINCT tag
+      FROM note_tags
+      ORDER BY tag
+    ''');
+
+    return results.map((row) => row['tag'] as String).toList();
+  }
+
+  /// Získat poznámky podle tagu
+  Future<List<Map<String, dynamic>>> getNotesByTag(String tag) async {
+    final db = await database;
+
+    final results = await db.rawQuery('''
+      SELECT n.*
+      FROM notes n
+      INNER JOIN note_tags nt ON n.id = nt.note_id
+      WHERE nt.tag = ?
+      ORDER BY n.updated_at DESC
+    ''', [tag.toLowerCase()]);
+
+    return results;
   }
 }

@@ -4,6 +4,7 @@ import '../../../../core/theme/theme_colors.dart';
 import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
 import '../bloc/notes_state.dart';
+import 'note_editor_page.dart';
 
 /// NotesListPage - Seznam poznámek (MILESTONE 2)
 ///
@@ -42,70 +43,95 @@ class _NotesListPageState extends State<NotesListPage> {
         }
       },
       builder: (context, state) {
-        return Column(
+        return Stack(
           children: [
-            // Notes List (scrollable) - Expanded = zabere zbytek místa
-            Expanded(
-              child: switch (state) {
-                NotesInitial() => const Center(
-                    child: Text('Inicializace poznámek...'),
-                  ),
-                NotesLoading() => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                NotesLoaded() => _buildNotesList(context, state),
-                NotesError() => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline,
-                            size: 48, color: theme.appColors.red),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Chyba při načítání poznámek',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: theme.appColors.fg,
-                            fontWeight: FontWeight.bold,
-                          ),
+            Column(
+              children: [
+                // Notes List (scrollable) - Expanded = zabere zbytek místa
+                Expanded(
+                  child: switch (state) {
+                    NotesInitial() => const Center(
+                        child: Text('Inicializace poznámek...'),
+                      ),
+                    NotesLoading() => const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    NotesLoaded() => _buildNotesList(context, state),
+                    NotesError() => Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline,
+                                size: 48, color: theme.appColors.red),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Chyba při načítání poznámek',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: theme.appColors.fg,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              state.message,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: theme.appColors.base5,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                context.read<NotesBloc>().add(const LoadNotesEvent());
+                              },
+                              icon: const Icon(Icons.refresh),
+                              label: const Text('Zkusit znovu'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.appColors.yellow,
+                                foregroundColor: theme.appColors.bg,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          state.message,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: theme.appColors.base5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            context.read<NotesBloc>().add(const LoadNotesEvent());
-                          },
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Zkusit znovu'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.appColors.yellow,
-                            foregroundColor: theme.appColors.bg,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    _ => const Center(
+                        child: Text('Neznámý stav'),
+                      ),
+                  },
+                ),
+
+                // Bottom Controls (INPUT BAR) - TODO MILESTONE 2.3
+                // Zatím placeholder
+                Container(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
-                _ => const Center(
-                    child: Text('Neznámý stav'),
-                  ),
-              },
+                  child: _buildPlaceholderInputBar(context),
+                ),
+              ],
             ),
 
-            // Bottom Controls (INPUT BAR) - TODO MILESTONE 2.3
-            // Zatím placeholder
-            Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
+            // FAB - Floating Action Button pro novou poznámku (MILESTONE 3)
+            Positioned(
+              right: 16,
+              bottom: 80, // Nad input bar
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => BlocProvider.value(
+                        value: context.read<NotesBloc>(),
+                        child: const NoteEditorPage(), // Null = nová poznámka
+                      ),
+                    ),
+                  );
+                },
+                backgroundColor: theme.appColors.yellow,
+                child: Icon(Icons.add, color: theme.appColors.bg),
               ),
-              child: _buildPlaceholderInputBar(context),
             ),
           ],
         );
@@ -162,6 +188,18 @@ class _NotesListPageState extends State<NotesListPage> {
           margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
           color: theme.appColors.bgAlt,
           child: ListTile(
+            // MILESTONE 3: Tap otevře NoteEditorPage
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider.value(
+                    value: context.read<NotesBloc>(),
+                    child: NoteEditorPage(note: note),
+                  ),
+                ),
+              );
+            },
             title: Text(
               note.content.split('\n').first,
               maxLines: 1,
