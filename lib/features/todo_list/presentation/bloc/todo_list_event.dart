@@ -138,3 +138,10 @@ final class ChangeToCustomViewEvent extends TodoListEvent {
   @override
   List<Object?> get props => [customView];
 }
+
+// ==================== AI BRIEF EVENTS ====================
+
+/// Regenerovat AI Brief (ignorovat cache)
+final class RegenerateBriefEvent extends TodoListEvent {
+  const RegenerateBriefEvent();
+}

@@ -24,6 +24,10 @@ enum ViewMode {
   /// (dueDate < today && !isCompleted)
   overdue,
 
+  /// AI Brief - inteligentně prioritizované úkoly
+  /// (AI vrací top 3 focus now + insights + motivation)
+  aiBrief,
+
   /// Custom view (tag-based filtr)
   /// Indikátor že je to custom view vytvořený uživatelem
   custom;
@@ -36,6 +40,7 @@ enum ViewMode {
       ViewMode.week => '🗓️ Týden',
       ViewMode.upcoming => '⏰ Nadcházející',
       ViewMode.overdue => '⚠️ Overdue',
+      ViewMode.aiBrief => '✨ Brief',
       ViewMode.custom => 'Custom', // Dynamický label se nastaví jinde
     };
   }
@@ -48,6 +53,7 @@ enum ViewMode {
       ViewMode.week => 'Plán na celý týden',
       ViewMode.upcoming => 'Co tě čeká v příštích 7 dnech',
       ViewMode.overdue => 'Úkoly po termínu',
+      ViewMode.aiBrief => 'AI prioritizované úkoly',
       ViewMode.custom => 'Vlastní pohled podle tagu',
     };
   }
@@ -60,6 +66,7 @@ enum ViewMode {
       ViewMode.week => '🗓️',
       ViewMode.upcoming => '⏰',
       ViewMode.overdue => '⚠️',
+      ViewMode.aiBrief => '✨',
       ViewMode.custom => '🏷️', // Dynamické emoji se nastaví jinde
     };
   }
@@ -73,6 +80,7 @@ enum ViewMode {
       ViewMode.week => Icons.view_week,
       ViewMode.upcoming => Icons.schedule,
       ViewMode.overdue => Icons.warning,
+      ViewMode.aiBrief => Icons.auto_awesome,
       ViewMode.custom => Icons.filter_alt,
     };
   }

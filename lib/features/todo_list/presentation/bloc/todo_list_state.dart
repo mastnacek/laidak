@@ -3,7 +3,9 @@ import '../../domain/entities/todo.dart';
 import '../../domain/enums/view_mode.dart';
 import '../../domain/enums/sort_mode.dart';
 import '../../domain/extensions/todo_filtering.dart';
+import '../../domain/models/brief_section_with_todos.dart';
 import '../../../../features/settings/domain/models/custom_agenda_view.dart';
+import '../../../../features/ai_brief/domain/entities/brief_response.dart';
 
 /// Sealed class pro všechny TodoList states
 ///
@@ -53,6 +55,17 @@ final class TodoListLoaded extends TodoListState {
   /// Custom view (když viewMode == ViewMode.custom)
   final CustomAgendaView? currentCustomView;
 
+  // ==================== AI BRIEF FIELDS ====================
+
+  /// AI Brief data (když viewMode == ViewMode.aiBrief)
+  final BriefResponse? aiBriefData;
+
+  /// Generating AI Brief? (loading state)
+  final bool isGeneratingBrief;
+
+  /// Brief generation error message
+  final String? briefError;
+
   /// Helper: ID aktuálního custom view
   String? get currentCustomViewId => currentCustomView?.id;
 
@@ -65,7 +78,38 @@ final class TodoListLoaded extends TodoListState {
     this.sortMode,
     this.sortDirection = SortDirection.desc,
     this.currentCustomView,
+    this.aiBriefData,
+    this.isGeneratingBrief = false,
+    this.briefError,
   });
+
+  /// Computed property: Brief sections s real Todo objekty
+  ///
+  /// Mapuje task IDs z AI Brief na skutečné Todo objekty.
+  /// Používá se pouze když viewMode == ViewMode.aiBrief.
+  List<BriefSectionWithTodos>? get briefSections {
+    if (aiBriefData == null) return null;
+
+    return aiBriefData!.sections.map((section) {
+      // Map task IDs to real Todo objects
+      final sectionTodos = section.taskIds
+          .map((id) {
+            try {
+              return allTodos.firstWhere((t) => t.id == id);
+            } catch (e) {
+              // Task neexistuje (AI hallucination nebo task byl smazán)
+              return null;
+            }
+          })
+          .whereType<Todo>()
+          .toList();
+
+      return BriefSectionWithTodos(
+        section: section,
+        todos: sectionTodos,
+      );
+    }).toList();
+  }
 
   /// Computed property: Filtrované a seřazené todos
   ///
@@ -122,6 +166,11 @@ final class TodoListLoaded extends TodoListState {
     SortDirection? sortDirection,
     CustomAgendaView? currentCustomView,
     bool clearCustomView = false,
+    BriefResponse? aiBriefData,
+    bool clearAiBriefData = false,
+    bool? isGeneratingBrief,
+    String? briefError,
+    bool clearBriefError = false,
   }) {
     return TodoListLoaded(
       allTodos: allTodos ?? this.allTodos,
@@ -133,6 +182,9 @@ final class TodoListLoaded extends TodoListState {
       sortMode: clearSortMode ? null : (sortMode ?? this.sortMode),
       sortDirection: sortDirection ?? this.sortDirection,
       currentCustomView: clearCustomView ? null : (currentCustomView ?? this.currentCustomView),
+      aiBriefData: clearAiBriefData ? null : (aiBriefData ?? this.aiBriefData),
+      isGeneratingBrief: isGeneratingBrief ?? this.isGeneratingBrief,
+      briefError: clearBriefError ? null : (briefError ?? this.briefError),
     );
   }
 
@@ -146,6 +198,9 @@ final class TodoListLoaded extends TodoListState {
         sortMode,
         sortDirection,
         currentCustomView,
+        aiBriefData,
+        isGeneratingBrief,
+        briefError,
       ];
 }
 
