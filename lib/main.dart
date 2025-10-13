@@ -17,6 +17,8 @@ import 'features/ai_motivation/data/repositories/motivation_repository_impl.dart
 import 'features/ai_split/presentation/cubit/ai_split_cubit.dart';
 import 'features/ai_split/data/repositories/ai_split_repository_impl.dart';
 import 'features/ai_split/data/datasources/openrouter_datasource.dart';
+import 'features/ai_brief/data/repositories/ai_brief_repository_impl.dart';
+import 'features/ai_brief/data/datasources/brief_ai_datasource.dart';
 import 'core/services/database_helper.dart';
 import 'services/tag_service.dart';
 
@@ -52,6 +54,13 @@ void main() async {
     db: db,
   );
 
+  // Inicializovat AI Brief dependencies
+  final briefAiDatasource = BriefAiDatasource();
+  final aiBriefRepository = AiBriefRepositoryImpl(
+    db: db,
+    aiDatasource: briefAiDatasource,
+  );
+
   runApp(
     MultiBlocProvider(
       providers: [
@@ -61,8 +70,10 @@ void main() async {
         ),
         // TodoListBloc pro todo list management
         BlocProvider(
-          create: (_) => TodoListBloc(TodoRepositoryImpl(db))
-            ..add(const LoadTodosEvent()), // Automaticky načíst todos
+          create: (_) => TodoListBloc(
+            TodoRepositoryImpl(db),
+            aiBriefRepository,
+          )..add(const LoadTodosEvent()), // Automaticky načíst todos
         ),
         // MotivationCubit pro AI motivaci
         BlocProvider(
