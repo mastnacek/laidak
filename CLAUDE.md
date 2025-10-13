@@ -545,6 +545,96 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ---
 
+## 📝 Notes + PARA System - Second Brain Feature
+
+### 📋 Kompletní guide: [notes-para.md](notes-para.md)
+
+**⚠️ AKTUÁLNÍ STATUS: Phase 1 - Milestone implementace**
+
+**Funkce**: Notes s PARA organizací (Apple Notes + Obsidian inspirace) + AI-asistovaná klasifikace
+
+**Co implementujeme:**
+1. 📝 **Notes systém** - poznámky s tagy (stejný systém jako TODO)
+2. 📁 **PARA organizace** - Projects, Areas, Resources, Archives
+3. 🤖 **AI Helper** - automatická klasifikace do PARA + navrhování tagů
+4. 🔗 **Bidirectional linking** - propojení poznámek s TODO úkoly
+5. 🔍 **Fulltext search** - FTS5 v SQLite
+
+### 🎯 Přidání nové feature - POSTUPUJ PO MILESTONES!
+
+**DŮLEŽITÉ**: Implementujeme postupně po malých krocích kvůli token budgetu!
+
+**Aktuální milestone**: MILESTONE 1 - Databáze + Základní Entity (2-3h)
+
+**Další milestones:**
+- MILESTONE 2: GUI - Input Bar + Seznam Poznámek (3-4h)
+- MILESTONE 3: Note Editor + Základní Tagy (2-3h)
+- MILESTONE 4: Folders - Recent + Favorites (2h)
+- MILESTONE 5: Fulltext Search (2-3h)
+- MILESTONE 6: PARA Folders - Základy (4-5h)
+- MILESTONE 7: AI Helper - PARA Klasifikace (5-6h)
+- MILESTONE 8: Backlinks + Note Linking (3-4h)
+
+### 🚨 CRITICAL RULES pro Notes Feature
+
+1. **GUI = stejný jako TODO Input Bar** - ipnuté dole, nad klávesnicí při focusu
+2. **Folders Tab Bar = stejný jako Agenda views** - horizontal scroll
+3. **Tagy = custom oddělovače** `*tag*` (konzistence s TODO)
+4. **PARA je volitelné** - zatím základní folders (All Notes, Recent, Favorites)
+5. **Postupuj po milestones** - po každém aktualizuj notes-para.md TODO seznam!
+
+### 📐 Architektura
+
+```
+lib/features/notes/
+├── presentation/
+│   ├── bloc/
+│   │   ├── notes_bloc.dart
+│   │   ├── notes_event.dart
+│   │   └── notes_state.dart
+│   ├── pages/
+│   │   ├── notes_list_page.dart      # Input bar + seznam (jako TODO)
+│   │   └── note_editor_page.dart     # Full screen editor
+│   └── widgets/
+│       ├── note_input_bar.dart       # Reusable input bar
+│       ├── note_card.dart            # Preview karty poznámek
+│       └── folders_tab_bar.dart      # Horizontal tabs (All, Recent, Fav...)
+├── domain/
+│   ├── entities/
+│   │   └── note.dart                 # Note entity (id, content, createdAt...)
+│   ├── repositories/
+│   │   └── notes_repository.dart     # CRUD interface
+│   └── services/
+│       └── notes_tag_parser.dart     # Parse *tag*, *#123*, *[[Note]]*
+└── data/
+    ├── datasources/
+    │   └── notes_db_datasource.dart  # SQLite operations
+    └── repositories/
+        └── notes_repository_impl.dart
+```
+
+### 📋 Checklist před implementací
+
+- [ ] Přečetl jsem celý [notes-para.md](notes-para.md)
+- [ ] Pochopil jsem milestones workflow (po každém aktualizuj TODO seznam!)
+- [ ] Snapshot commit před začátkem
+- [ ] Vytvořil jsem TODO list pro aktuální milestone
+- [ ] Dodržuji SCÉNÁŘ 1 z mapa-bloc.md (přidání nové feature)
+
+### 💡 Tips
+
+- **GUI inspirace**: TODO Input Bar + Agenda Tabs (reuse vizuální design!)
+- **Start small**: Milestone 1 = jen databáze + entity (bez GUI)
+- **Token budget**: Po každém milestonu commit + pause → nová konverzace pokud potřeba
+- **PARA později**: Začínáme s "All Notes" folder, PARA až Milestone 6
+- **Auto-generated title**: Z prvního řádku nebo timestamp (displayTitle computed property)
+
+**Priorita**: ⭐⭐⭐⭐ Velmi vysoká (Second Brain = killer feature)
+
+**Effort**: 20-25h celkem (rozloženo do 8 milestones)
+
+---
+
 ## 📚 META
 
 Účel: Instrukce pro AI agenty pracující na Flutter/BLoC projektech
@@ -553,10 +643,11 @@ Companion dokumenty:
 - bloc.md - Detailní BLoC best practices guide
 - mapa-bloc.md - Navigační decision tree
 - brief.md - AI Brief implementační plán
+- **notes-para.md** - Notes + PARA System design a milestones (NEW!)
 
-Verze: 1.9
+Verze: 2.0
 Vytvořeno: 2025-10-09
-Aktualizováno: 2025-10-13 (přidán AI Brief - inteligentní filtrování úkolů)
+Aktualizováno: 2025-10-13 (přidán AI Brief + Notes + PARA System)
 Autor: Claude Code (AI asistent)
 
 ---
