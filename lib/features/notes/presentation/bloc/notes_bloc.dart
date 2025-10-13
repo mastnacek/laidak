@@ -19,6 +19,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<CreateNoteEvent>(_onCreateNote);
     on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
+    on<ChangeFolderEvent>(_onChangeFolder); // MILESTONE 4
   }
 
   /// Handler: Načíst všechny poznámky
@@ -114,6 +115,19 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       add(const LoadNotesEvent());
     } catch (e) {
       emit(NotesError('Chyba při mazání poznámky: $e'));
+    }
+  }
+
+  /// Handler: Změnit folder (MILESTONE 4)
+  Future<void> _onChangeFolder(
+    ChangeFolderEvent event,
+    Emitter<NotesState> emit,
+  ) async {
+    // Pouze změnit currentFolder, notes zůstávají stejné
+    // Filtering se dělá v NotesState.displayedNotes
+    if (state is NotesLoaded) {
+      final currentState = state as NotesLoaded;
+      emit(currentState.copyWith(currentFolder: event.mode));
     }
   }
 }

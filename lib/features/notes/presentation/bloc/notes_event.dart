@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../../models/note.dart';
+import '../../domain/enums/folder_mode.dart';
 
 /// Base event pro NotesBloc
 abstract class NotesEvent extends Equatable {
@@ -42,4 +43,14 @@ class DeleteNoteEvent extends NotesEvent {
 
   @override
   List<Object?> get props => [id];
+}
+
+/// Event: Změnit folder (MILESTONE 4)
+class ChangeFolderEvent extends NotesEvent {
+  final FolderMode mode;
+
+  const ChangeFolderEvent(this.mode);
+
+  @override
+  List<Object?> get props => [mode];
 }

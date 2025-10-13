@@ -7,6 +7,7 @@ import '../bloc/notes_state.dart';
 import 'note_editor_page.dart';
 import '../widgets/note_input_bar.dart';
 import '../widgets/note_card.dart';
+import '../widgets/folders_tab_bar.dart';
 
 /// NotesListPage - Seznam poznámek (MILESTONE 2)
 ///
@@ -102,17 +103,26 @@ class _NotesListPageState extends State<NotesListPage> {
               },
             ),
 
-            // Bottom Controls (INPUT BAR) - MILESTONE 3
+            // Bottom Controls - Folders Tab Bar + Input Bar (MILESTONE 4)
             Container(
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: NoteInputBar(
-                onFocusChanged: (hasFocus) {
-                  setState(() {
-                    _isInputFocused = hasFocus;
-                  });
-                },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // FoldersTabBar (MILESTONE 4)
+                  const FoldersTabBar(),
+
+                  // NoteInputBar (MILESTONE 3)
+                  NoteInputBar(
+                    onFocusChanged: (hasFocus) {
+                      setState(() {
+                        _isInputFocused = hasFocus;
+                      });
+                    },
+                  ),
+                ],
               ),
             ),
           ],
@@ -124,7 +134,7 @@ class _NotesListPageState extends State<NotesListPage> {
   /// Sestavit seznam poznámek (Loaded state)
   Widget _buildNotesList(BuildContext context, NotesLoaded state) {
     final theme = Theme.of(context);
-    final notes = state.notes;
+    final notes = state.displayedNotes; // MILESTONE 4: filtrované podle currentFolder
 
     if (notes.isEmpty) {
       return Center(

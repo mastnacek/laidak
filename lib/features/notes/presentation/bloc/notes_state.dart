@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../../models/note.dart';
+import '../../domain/enums/folder_mode.dart';
 
 /// Base state pro NotesBloc
 abstract class NotesState extends Equatable {
@@ -21,19 +22,40 @@ class NotesLoading extends NotesState {
 
 /// State: Poznámky načteny
 class NotesLoaded extends NotesState {
-  final List<Note> notes;
+  final List<Note> notes; // Všechny poznámky (unfiltered)
+  final FolderMode currentFolder; // Aktuální folder (MILESTONE 4)
 
-  const NotesLoaded({required this.notes});
+  const NotesLoaded({
+    required this.notes,
+    this.currentFolder = FolderMode.all,
+  });
 
   @override
-  List<Object?> get props => [notes];
+  List<Object?> get props => [notes, currentFolder];
+
+  /// Computed: Filtrované poznámky podle currentFolder
+  List<Note> get displayedNotes {
+    switch (currentFolder) {
+      case FolderMode.all:
+        return notes;
+      case FolderMode.recent:
+        // Poslední týden
+        final weekAgo = DateTime.now().subtract(const Duration(days: 7));
+        return notes.where((note) => note.createdAt.isAfter(weekAgo)).toList();
+      case FolderMode.favorites:
+        // TODO: Implementovat favorites v MILESTONE 4.1
+        return [];
+    }
+  }
 
   /// Copy with pro immutable updates
   NotesLoaded copyWith({
     List<Note>? notes,
+    FolderMode? currentFolder,
   }) {
     return NotesLoaded(
       notes: notes ?? this.notes,
+      currentFolder: currentFolder ?? this.currentFolder,
     );
   }
 }
