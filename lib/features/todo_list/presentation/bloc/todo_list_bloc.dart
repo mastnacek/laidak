@@ -266,11 +266,9 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
       ));
 
       try {
-        // Generovat Brief z nehotových úkolů
+        // Generovat Brief ze VŠECH úkolů (context builder filtruje completed podle config)
         final briefResponse = await _aiBriefRepository.generateBrief(
-          tasks: currentState.allTodos
-              .where((t) => !t.isCompleted)
-              .toList(),
+          tasks: currentState.allTodos, // ← VŠECHNY úkoly (aktivní + completed)
           config: currentState.briefConfig, // Použij aktuální config ze state
         );
 
@@ -368,10 +366,9 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     ));
 
     try {
+      // Generovat Brief ze VŠECH úkolů (context builder filtruje completed podle config)
       final briefResponse = await _aiBriefRepository.generateBrief(
-        tasks: currentState.allTodos
-            .where((t) => !t.isCompleted)
-            .toList(),
+        tasks: currentState.allTodos, // ← VŠECHNY úkoly (aktivní + completed)
         config: currentState.briefConfig, // Použij aktuální config ze state
       );
 
@@ -411,6 +408,11 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
         briefConfig: event.config,
         clearAiBriefData: true, // Clear starý Brief
       ));
+
+      // Pokud je user právě v Brief view → automaticky regenerovat
+      if (currentState.viewMode == ViewMode.aiBrief) {
+        add(const RegenerateBriefEvent());
+      }
     } catch (e) {
       // Error při ukládání do storage - ignore (fallback na default)
       emit(currentState.copyWith(
