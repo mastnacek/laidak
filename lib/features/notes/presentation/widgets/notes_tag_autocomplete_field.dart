@@ -271,7 +271,8 @@ class _NotesTagAutocompleteFieldState
       child: TextField(
         controller: widget.controller,
         focusNode: widget.focusNode,
-        maxLines: widget.maxLines,
+        maxLines: widget.expands ? null : widget.maxLines,
+        minLines: widget.expands ? null : 1,
         expands: widget.expands,
         textAlignVertical: widget.textAlignVertical,
         keyboardType: widget.keyboardType,
