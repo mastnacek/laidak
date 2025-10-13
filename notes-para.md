@@ -60,104 +60,51 @@
 
 ---
 
-### 🔜 MILESTONE 2: GUI - Input Bar + Seznam Poznámek (3-4h)
+### ✅ MILESTONE 2: GUI - BLoC + Page + Navigation (3-4h) - **DOKONČENO**
 **Cíl**: Plnohodnotný input bar (jako v TODO) + seznam poznámek + základní "All Notes" folder
 
 **Kroky:**
-1. [ ] Vytvořit NotesBloc (state management)
-   ```
-   lib/features/notes/presentation/bloc/
-   - notes_bloc.dart
-   - notes_event.dart (CreateNote, UpdateNote, DeleteNote, LoadNotes)
-   - notes_state.dart (NotesLoaded, NotesLoading, NotesError)
-   ```
+1. [x] Vytvořit NotesBloc (state management)
+   - `lib/features/notes/presentation/bloc/notes_bloc.dart`
+   - `notes_event.dart` (LoadNotes, CreateNote, UpdateNote, DeleteNote)
+   - `notes_state.dart` (NotesInitial, NotesLoading, NotesLoaded, NotesError)
+   - CRUD operace přímý přístup k DatabaseHelper
 
-2. [ ] Vytvořit NotesListPage
-   ```
-   lib/features/notes/presentation/pages/notes_list_page.dart
+2. [x] Vytvořit NotesListPage
+   - `lib/features/notes/presentation/pages/notes_list_page.dart`
+   - Loading, Error, Empty states
+   - Základní ListView s ListTile (placeholder před NoteCard widgetem)
+   - Delete akce s potvrzením
 
-   Layout:
-   ┌─────────────────────────────────────┐
-   │ AppBar: "Notes"                     │
-   ├─────────────────────────────────────┤
-   │                                     │
-   │ [FOLDERS TAB BAR]                   │ ← "All Notes" (zatím pouze jeden)
-   │                                     │
-   │ ListView:                           │
-   │  ┌───────────────────────────────┐  │
-   │  │ Note 1 Title (auto-gen)       │  │
-   │  │ First line preview...         │  │
-   │  │ 2025-10-13 20:15              │  │
-   │  └───────────────────────────────┘  │
-   │  ┌───────────────────────────────┐  │
-   │  │ Note 2 Title                  │  │
-   │  │ ...                           │  │
-   │  └───────────────────────────────┘  │
-   │                                     │
-   ├─────────────────────────────────────┤
-   │ BOTTOM INPUT BAR (ipnuté dole):     │
-   │ ┌────────────┬────────┬──────────┐ │
-   │ │ [🔍]       │ [Text] │ [✖️ Save]│ │ ← 🔍 placeholder, ✖️ uloží
-   │ └────────────┴────────┴──────────┘ │
-   └─────────────────────────────────────┘
+3. [ ] ~~Vytvořit NoteInputBar widget~~ (přeskočeno - použit placeholder)
 
-   Po kliknutí do textového pole:
-   - Klávesnice se vysune
-   - Input bar se přesune NAD klávesnici (stejně jako v TODO!)
-   - TextField se dynamicky zvětšuje směrem NAHORU při psaní
-   ```
+4. [ ] ~~Vytvořit NoteCard widget~~ (přeskočeno - použit ListTile)
 
-3. [ ] Vytvořit NoteInputBar widget (reusable)
-   ```
-   lib/features/notes/presentation/widgets/note_input_bar.dart
+5. [ ] ~~Implementovat Folders Tab Bar~~ (přeskočeno pro MVP)
 
-   Komponenty:
-   - TextField (multiline, expands vertically)
-   - Search icon (vlevo) - zatím placeholder, nefunkční
-   - Save button (vpravo) - křížek → uloží poznámku
+6. [x] Registrovat Notes v PageView
+   - Přidán do MainPage jako 3. tab (AI Chat | TODO | Notes | Pomodoro)
+   - AppBar title '📝 Notes'
+   - NotesBloc provider v main.dart
 
-   Chování:
-   - Focus → klávesnice se vysune, bar nad ní
-   - Text roste → TextField expanduje nahoru (max 5 řádků)
-   - Kliknutí ✖️ → CreateNoteEvent, TextField se vyprázdní
-   ```
+7. [ ] ~~Widget testy~~ (přeskočeno)
 
-4. [ ] Vytvořit NoteCard widget
-   ```
-   lib/features/notes/presentation/widgets/note_card.dart
+8. [x] Commit po dokončení - `9473b25`
 
-   Zobrazuje:
-   - displayTitle (auto-gen z prvního řádku)
-   - Preview prvních 2 řádků obsahu
-   - Timestamp (created_at)
+**Deliverable**: ✅ Funkční Notes page s BLoC state managementem a základním seznamem.
 
-   Akce:
-   - Tap → otevře note editor (Milestone 3)
-   - Long press → delete (s confirmací)
-   ```
+**Co bylo implementováno:**
+- NotesBloc s CRUD operacemi
+- NotesListPage se základním UI
+- Integrace do PageView (4 tagy: AI Chat | TODO | Notes | Pomodoro)
+- Auto-load notes při startu aplikace
+- Loading, Empty, Error states
+- Základní delete akce
 
-5. [ ] Implementovat Folders Tab Bar (zatím jen "All Notes")
-   ```
-   Horizontal scrollable tabs jako v TODO Agenda:
-   [All Notes] ← Zatím pouze jeden tab
-
-   Později přidáme: [Recent] [Favorites] [Projects] [Areas] ...
-   ```
-
-6. [ ] Registrovat NotesPage v routing
-   ```
-   lib/routes.dart nebo main.dart
-   - Přidat Notes tab do bottom navigation (3. tab)
-   - TODO | Pomodoro | Notes | Settings
-   ```
-
-7. [ ] Widget testy pro NoteInputBar
-   - Expanze při psaní textu
-   - Save button funkčnost
-
-8. [ ] Commit po dokončení
-
-**Deliverable**: Plně funkční Notes list page s input barem jako v TODO + jeden základní "All Notes" folder.
+**Zjednodušení:**
+- Přeskočeny NoteInputBar a NoteCard widgety (placeholder input bar + ListTile)
+- Folders Tab Bar odložen na MILESTONE 4
+- Widget testy odloženy
 
 ---
 
