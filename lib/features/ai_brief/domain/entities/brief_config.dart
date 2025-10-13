@@ -3,7 +3,7 @@ import 'package:equatable/equatable.dart';
 /// Konfigurace AI Brief generování
 ///
 /// Obsahuje nastavení pro:
-/// - Jaký kontext posílat AI (subtasks, pomodoro stats)
+/// - Jaký kontext posílat AI (subtasks, pomodoro stats, completed tasks)
 /// - Parametry AI modelu (temperature, max tokens)
 class BriefConfig extends Equatable {
   /// Zahrnout statistiky subtasků do kontextu (výchozí: true)
@@ -11,6 +11,21 @@ class BriefConfig extends Equatable {
 
   /// Zahrnout Pomodoro statistiky do kontextu (výchozí: true)
   final bool includePomodoroStats;
+
+  /// Zahrnout splněné úkoly z dnešního dne (výchozí: true)
+  final bool includeCompletedToday;
+
+  /// Zahrnout splněné úkoly za týden (výchozí: true)
+  final bool includeCompletedWeek;
+
+  /// Zahrnout splněné úkoly za měsíc (výchozí: false)
+  final bool includeCompletedMonth;
+
+  /// Zahrnout splněné úkoly za rok (výchozí: false)
+  final bool includeCompletedYear;
+
+  /// Zahrnout všechny splněné úkoly (výchozí: false)
+  final bool includeCompletedAll;
 
   /// AI temperature (0.0-1.0, výchozí: 0.3)
   /// 0.3 = více konzervativní odpovědi (pro prioritizaci úkolů)
@@ -22,6 +37,11 @@ class BriefConfig extends Equatable {
   const BriefConfig({
     this.includeSubtasks = true,
     this.includePomodoroStats = true,
+    this.includeCompletedToday = true,
+    this.includeCompletedWeek = true,
+    this.includeCompletedMonth = false,
+    this.includeCompletedYear = false,
+    this.includeCompletedAll = false,
     this.temperature = 0.3,
     this.maxTokens = 500,
   });
@@ -30,12 +50,22 @@ class BriefConfig extends Equatable {
   BriefConfig copyWith({
     bool? includeSubtasks,
     bool? includePomodoroStats,
+    bool? includeCompletedToday,
+    bool? includeCompletedWeek,
+    bool? includeCompletedMonth,
+    bool? includeCompletedYear,
+    bool? includeCompletedAll,
     double? temperature,
     int? maxTokens,
   }) {
     return BriefConfig(
       includeSubtasks: includeSubtasks ?? this.includeSubtasks,
       includePomodoroStats: includePomodoroStats ?? this.includePomodoroStats,
+      includeCompletedToday: includeCompletedToday ?? this.includeCompletedToday,
+      includeCompletedWeek: includeCompletedWeek ?? this.includeCompletedWeek,
+      includeCompletedMonth: includeCompletedMonth ?? this.includeCompletedMonth,
+      includeCompletedYear: includeCompletedYear ?? this.includeCompletedYear,
+      includeCompletedAll: includeCompletedAll ?? this.includeCompletedAll,
       temperature: temperature ?? this.temperature,
       maxTokens: maxTokens ?? this.maxTokens,
     );
@@ -51,6 +81,11 @@ class BriefConfig extends Equatable {
     return BriefConfig(
       includeSubtasks: json['includeSubtasks'] as bool? ?? true,
       includePomodoroStats: json['includePomodoroStats'] as bool? ?? true,
+      includeCompletedToday: json['includeCompletedToday'] as bool? ?? true,
+      includeCompletedWeek: json['includeCompletedWeek'] as bool? ?? true,
+      includeCompletedMonth: json['includeCompletedMonth'] as bool? ?? false,
+      includeCompletedYear: json['includeCompletedYear'] as bool? ?? false,
+      includeCompletedAll: json['includeCompletedAll'] as bool? ?? false,
       temperature: (json['temperature'] as num?)?.toDouble() ?? 0.3,
       maxTokens: json['maxTokens'] as int? ?? 500,
     );
@@ -61,6 +96,11 @@ class BriefConfig extends Equatable {
     return {
       'includeSubtasks': includeSubtasks,
       'includePomodoroStats': includePomodoroStats,
+      'includeCompletedToday': includeCompletedToday,
+      'includeCompletedWeek': includeCompletedWeek,
+      'includeCompletedMonth': includeCompletedMonth,
+      'includeCompletedYear': includeCompletedYear,
+      'includeCompletedAll': includeCompletedAll,
       'temperature': temperature,
       'maxTokens': maxTokens,
     };
@@ -70,12 +110,17 @@ class BriefConfig extends Equatable {
   List<Object?> get props => [
         includeSubtasks,
         includePomodoroStats,
+        includeCompletedToday,
+        includeCompletedWeek,
+        includeCompletedMonth,
+        includeCompletedYear,
+        includeCompletedAll,
         temperature,
         maxTokens,
       ];
 
   @override
   String toString() {
-    return 'BriefConfig(includeSubtasks: $includeSubtasks, includePomodoroStats: $includePomodoroStats, temperature: $temperature, maxTokens: $maxTokens)';
+    return 'BriefConfig(includeSubtasks: $includeSubtasks, includePomodoroStats: $includePomodoroStats, includeCompletedToday: $includeCompletedToday, includeCompletedWeek: $includeCompletedWeek, includeCompletedMonth: $includeCompletedMonth, includeCompletedYear: $includeCompletedYear, includeCompletedAll: $includeCompletedAll, temperature: $temperature, maxTokens: $maxTokens)';
   }
 }

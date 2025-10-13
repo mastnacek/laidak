@@ -99,6 +99,7 @@ class TodoRepositoryImpl implements TodoRepository {
       task: item.task,
       isCompleted: item.isCompleted,
       createdAt: item.createdAt,
+      completedAt: item.completedAt,
       priority: item.priority,
       dueDate: item.dueDate,
       tags: tags,  // ✅ NOVÉ: použij normalizované tagy
@@ -115,6 +116,7 @@ class TodoRepositoryImpl implements TodoRepository {
       task: todo.task,
       isCompleted: todo.isCompleted,
       createdAt: todo.createdAt,
+      completedAt: todo.completedAt,
       priority: todo.priority,
       dueDate: todo.dueDate,
       tags: [],  // ❌ DEPRECATED: CSV sloupec už nepoužíváme

@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 15,  // ← Brief Settings (includeSubtasks + includePomodoroStats)
+      version: 17,  // ← Brief completed tasks timeframes settings
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -51,6 +51,7 @@ class DatabaseHelper {
         task TEXT NOT NULL,
         isCompleted INTEGER NOT NULL DEFAULT 0,
         createdAt TEXT NOT NULL,
+        completed_at TEXT,
         priority TEXT,
         dueDate TEXT,
         tags TEXT,  -- ❌ DEPRECATED: Používej todo_tags tabulku!
@@ -85,7 +86,12 @@ class DatabaseHelper {
         ai_task_temperature REAL NOT NULL DEFAULT 0.3,
         ai_task_max_tokens INTEGER NOT NULL DEFAULT 1000,
         brief_include_subtasks INTEGER NOT NULL DEFAULT 1,
-        brief_include_pomodoro INTEGER NOT NULL DEFAULT 1
+        brief_include_pomodoro INTEGER NOT NULL DEFAULT 1,
+        brief_completed_today INTEGER NOT NULL DEFAULT 1,
+        brief_completed_week INTEGER NOT NULL DEFAULT 1,
+        brief_completed_month INTEGER NOT NULL DEFAULT 0,
+        brief_completed_year INTEGER NOT NULL DEFAULT 0,
+        brief_completed_all INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -405,6 +411,20 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE settings ADD COLUMN brief_include_subtasks INTEGER NOT NULL DEFAULT 1');
       await db.execute('ALTER TABLE settings ADD COLUMN brief_include_pomodoro INTEGER NOT NULL DEFAULT 1');
     }
+
+    if (oldVersion < 16) {
+      // Completed At: Přidat sloupec pro tracking kdy byl úkol splněn
+      await db.execute('ALTER TABLE todos ADD COLUMN completed_at TEXT');
+    }
+
+    if (oldVersion < 17) {
+      // Brief Completed Tasks Timeframes: Přidat sloupce pro filtrování completed úkolů
+      await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_today INTEGER NOT NULL DEFAULT 1');
+      await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_week INTEGER NOT NULL DEFAULT 1');
+      await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_month INTEGER NOT NULL DEFAULT 0');
+      await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_year INTEGER NOT NULL DEFAULT 0');
+      await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_all INTEGER NOT NULL DEFAULT 0');
+    }
   }
 
   /// Vložit výchozí AI nastavení
@@ -436,6 +456,11 @@ class DatabaseHelper {
       // Brief Settings
       'brief_include_subtasks': 1,
       'brief_include_pomodoro': 1,
+      'brief_completed_today': 1,
+      'brief_completed_week': 1,
+      'brief_completed_month': 0,
+      'brief_completed_year': 0,
+      'brief_completed_all': 0,
     });
   }
 
@@ -603,11 +628,17 @@ class DatabaseHelper {
   }
 
   /// Označit úkol jako hotový/nehotový
+  ///
+  /// Když je úkol označen jako hotový (isCompleted = true), nastaví completed_at na aktuální čas.
+  /// Když je úkol odznačen zpět jako nehotový (isCompleted = false), vynuluje completed_at na null.
   Future<int> toggleTodoStatus(int id, bool isCompleted) async {
     final db = await database;
     return await db.update(
       'todos',
-      {'isCompleted': isCompleted ? 1 : 0},
+      {
+        'isCompleted': isCompleted ? 1 : 0,
+        'completed_at': isCompleted ? DateTime.now().toIso8601String() : null,
+      },
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -664,6 +695,11 @@ class DatabaseHelper {
     // Brief Settings
     bool? briefIncludeSubtasks,
     bool? briefIncludePomodoro,
+    bool? briefCompletedToday,
+    bool? briefCompletedWeek,
+    bool? briefCompletedMonth,
+    bool? briefCompletedYear,
+    bool? briefCompletedAll,
   }) async {
     final db = await database;
 
@@ -692,6 +728,11 @@ class DatabaseHelper {
     // Brief Settings
     if (briefIncludeSubtasks != null) updateData['brief_include_subtasks'] = briefIncludeSubtasks ? 1 : 0;
     if (briefIncludePomodoro != null) updateData['brief_include_pomodoro'] = briefIncludePomodoro ? 1 : 0;
+    if (briefCompletedToday != null) updateData['brief_completed_today'] = briefCompletedToday ? 1 : 0;
+    if (briefCompletedWeek != null) updateData['brief_completed_week'] = briefCompletedWeek ? 1 : 0;
+    if (briefCompletedMonth != null) updateData['brief_completed_month'] = briefCompletedMonth ? 1 : 0;
+    if (briefCompletedYear != null) updateData['brief_completed_year'] = briefCompletedYear ? 1 : 0;
+    if (briefCompletedAll != null) updateData['brief_completed_all'] = briefCompletedAll ? 1 : 0;
 
     if (updateData.isEmpty) return;
 

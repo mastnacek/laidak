@@ -25,10 +25,20 @@ class BriefSettingsService {
 
       final includeSubtasks = settings['brief_include_subtasks'] == 1;
       final includePomodoroStats = settings['brief_include_pomodoro'] == 1;
+      final includeCompletedToday = settings['brief_completed_today'] == 1;
+      final includeCompletedWeek = settings['brief_completed_week'] == 1;
+      final includeCompletedMonth = settings['brief_completed_month'] == 1;
+      final includeCompletedYear = settings['brief_completed_year'] == 1;
+      final includeCompletedAll = settings['brief_completed_all'] == 1;
 
       return BriefConfig(
         includeSubtasks: includeSubtasks,
         includePomodoroStats: includePomodoroStats,
+        includeCompletedToday: includeCompletedToday,
+        includeCompletedWeek: includeCompletedWeek,
+        includeCompletedMonth: includeCompletedMonth,
+        includeCompletedYear: includeCompletedYear,
+        includeCompletedAll: includeCompletedAll,
       );
     } catch (e) {
       // Fallback při chybě
@@ -41,6 +51,11 @@ class BriefSettingsService {
     await _db.updateSettings(
       briefIncludeSubtasks: config.includeSubtasks,
       briefIncludePomodoro: config.includePomodoroStats,
+      briefCompletedToday: config.includeCompletedToday,
+      briefCompletedWeek: config.includeCompletedWeek,
+      briefCompletedMonth: config.includeCompletedMonth,
+      briefCompletedYear: config.includeCompletedYear,
+      briefCompletedAll: config.includeCompletedAll,
     );
   }
 

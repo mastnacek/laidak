@@ -4,6 +4,7 @@ class TodoItem {
   String task;
   bool isCompleted;
   DateTime createdAt;
+  DateTime? completedAt;
 
   // Parsované hodnoty z tagů
   String? priority; // 'a', 'b', 'c' z *a*, *b*, *c*
@@ -19,6 +20,7 @@ class TodoItem {
     required this.task,
     this.isCompleted = false,
     DateTime? createdAt,
+    this.completedAt,
     this.priority,
     this.dueDate,
     List<String>? tags,
@@ -34,6 +36,7 @@ class TodoItem {
       'task': task,
       'isCompleted': isCompleted ? 1 : 0,
       'createdAt': createdAt.toIso8601String(),
+      'completed_at': completedAt?.toIso8601String(),
       'priority': priority,
       'dueDate': dueDate?.toIso8601String(),
       'tags': tags.join(','), // Ukládat jako CSV
@@ -49,6 +52,9 @@ class TodoItem {
       task: map['task'] as String,
       isCompleted: (map['isCompleted'] as int) == 1,
       createdAt: DateTime.parse(map['createdAt'] as String),
+      completedAt: map['completed_at'] != null
+          ? DateTime.parse(map['completed_at'] as String)
+          : null,
       priority: map['priority'] as String?,
       dueDate: map['dueDate'] != null
           ? DateTime.parse(map['dueDate'] as String)
@@ -67,6 +73,7 @@ class TodoItem {
     String? task,
     bool? isCompleted,
     DateTime? createdAt,
+    DateTime? completedAt,
     String? priority,
     DateTime? dueDate,
     List<String>? tags,
@@ -78,6 +85,7 @@ class TodoItem {
       task: task ?? this.task,
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
+      completedAt: completedAt ?? this.completedAt,
       priority: priority ?? this.priority,
       dueDate: dueDate ?? this.dueDate,
       tags: tags ?? this.tags,
