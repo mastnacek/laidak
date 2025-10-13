@@ -201,7 +201,7 @@
 
    Parse patterns:
    - *tag* → běžný tag
-   - *#123* → link na TODO (zatím jen parse, linking později)
+   - *123* → link na TODO (zatím jen parse, linking později)
    - *[[Note]]* → link na jinou poznámku (parsing, linking Phase 2)
    ```
 

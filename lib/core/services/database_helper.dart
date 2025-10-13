@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 17,  // ← Brief completed tasks timeframes settings
+      version: 18,  // ← Notes + PARA System (MILESTONE 1)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -222,6 +222,19 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_todos_priority ON todos(priority)');
     await db.execute('CREATE INDEX idx_todos_isCompleted ON todos(isCompleted)');
     await db.execute('CREATE INDEX idx_todos_createdAt ON todos(createdAt)');
+
+    // Tabulka poznámek (Notes + PARA System - MILESTONE 1)
+    await db.execute('''
+      CREATE TABLE notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_notes_created_at ON notes(created_at DESC)');
+    await db.execute('CREATE INDEX idx_notes_updated_at ON notes(updated_at DESC)');
 
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
@@ -424,6 +437,21 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_month INTEGER NOT NULL DEFAULT 0');
       await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_year INTEGER NOT NULL DEFAULT 0');
       await db.execute('ALTER TABLE settings ADD COLUMN brief_completed_all INTEGER NOT NULL DEFAULT 0');
+    }
+
+    if (oldVersion < 18) {
+      // Notes + PARA System - MILESTONE 1: Základní tabulka poznámek
+      await db.execute('''
+        CREATE TABLE notes (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          content TEXT NOT NULL,
+          created_at INTEGER NOT NULL,
+          updated_at INTEGER NOT NULL
+        )
+      ''');
+
+      await db.execute('CREATE INDEX idx_notes_created_at ON notes(created_at DESC)');
+      await db.execute('CREATE INDEX idx_notes_updated_at ON notes(updated_at DESC)');
     }
   }
 
@@ -1516,5 +1544,70 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.rawQuery('PRAGMA page_size');
     return result.first['page_size'] as int;
+  }
+
+  // ==================== NOTES CRUD (MILESTONE 1) ====================
+
+  /// Vytvořit novou poznámku
+  Future<int> insertNote(Map<String, dynamic> note) async {
+    final db = await database;
+    return await db.insert('notes', note);
+  }
+
+  /// Získat všechny poznámky (seřazené od nejnovějších)
+  Future<List<Map<String, dynamic>>> getAllNotes() async {
+    final db = await database;
+    return await db.query('notes', orderBy: 'updated_at DESC');
+  }
+
+  /// Získat poznámku podle ID
+  Future<Map<String, dynamic>?> getNoteById(int id) async {
+    final db = await database;
+    final results = await db.query(
+      'notes',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  /// Aktualizovat poznámku
+  Future<int> updateNote(int id, Map<String, dynamic> note) async {
+    final db = await database;
+    return await db.update(
+      'notes',
+      note,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Smazat poznámku
+  Future<int> deleteNote(int id) async {
+    final db = await database;
+    return await db.delete(
+      'notes',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Získat počet poznámek
+  Future<int> getNotesCount() async {
+    final db = await database;
+    final result = await db.rawQuery('SELECT COUNT(*) as count FROM notes');
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
+  /// Získat nejnovější poznámky (limit)
+  Future<List<Map<String, dynamic>>> getRecentNotes({int limit = 10}) async {
+    final db = await database;
+    return await db.query(
+      'notes',
+      orderBy: 'updated_at DESC',
+      limit: limit,
+    );
   }
 }
