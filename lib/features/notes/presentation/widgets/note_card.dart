@@ -34,7 +34,7 @@ class NoteCard extends StatelessWidget {
     final titleLine = note.content.split('\n').first;
 
     return Card(
-      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+      margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
       color: theme.appColors.bgAlt,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
