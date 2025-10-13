@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 14,  // ← AI Settings (Motivation + Task models)
+      version: 15,  // ← Brief Settings (includeSubtasks + includePomodoroStats)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -83,7 +83,9 @@ class DatabaseHelper {
         ai_motivation_max_tokens INTEGER NOT NULL DEFAULT 200,
         ai_task_model TEXT NOT NULL DEFAULT 'anthropic/claude-3.5-sonnet',
         ai_task_temperature REAL NOT NULL DEFAULT 0.3,
-        ai_task_max_tokens INTEGER NOT NULL DEFAULT 1000
+        ai_task_max_tokens INTEGER NOT NULL DEFAULT 1000,
+        brief_include_subtasks INTEGER NOT NULL DEFAULT 1,
+        brief_include_pomodoro INTEGER NOT NULL DEFAULT 1
       )
     ''');
 
@@ -397,6 +399,12 @@ class DatabaseHelper {
       await db.execute('ALTER TABLE settings ADD COLUMN ai_task_temperature REAL NOT NULL DEFAULT 0.3');
       await db.execute('ALTER TABLE settings ADD COLUMN ai_task_max_tokens INTEGER NOT NULL DEFAULT 1000');
     }
+
+    if (oldVersion < 15) {
+      // Brief Settings: Přidat sloupce pro include subtasks + pomodoro
+      await db.execute('ALTER TABLE settings ADD COLUMN brief_include_subtasks INTEGER NOT NULL DEFAULT 1');
+      await db.execute('ALTER TABLE settings ADD COLUMN brief_include_pomodoro INTEGER NOT NULL DEFAULT 1');
+    }
   }
 
   /// Vložit výchozí AI nastavení
@@ -425,6 +433,9 @@ class DatabaseHelper {
       'ai_task_model': 'anthropic/claude-3.5-sonnet',
       'ai_task_temperature': 0.3,
       'ai_task_max_tokens': 1000,
+      // Brief Settings
+      'brief_include_subtasks': 1,
+      'brief_include_pomodoro': 1,
     });
   }
 
@@ -650,6 +661,9 @@ class DatabaseHelper {
     String? aiTaskModel,
     double? aiTaskTemperature,
     int? aiTaskMaxTokens,
+    // Brief Settings
+    bool? briefIncludeSubtasks,
+    bool? briefIncludePomodoro,
   }) async {
     final db = await database;
 
@@ -675,6 +689,9 @@ class DatabaseHelper {
     if (aiTaskModel != null) updateData['ai_task_model'] = aiTaskModel;
     if (aiTaskTemperature != null) updateData['ai_task_temperature'] = aiTaskTemperature;
     if (aiTaskMaxTokens != null) updateData['ai_task_max_tokens'] = aiTaskMaxTokens;
+    // Brief Settings
+    if (briefIncludeSubtasks != null) updateData['brief_include_subtasks'] = briefIncludeSubtasks ? 1 : 0;
+    if (briefIncludePomodoro != null) updateData['brief_include_pomodoro'] = briefIncludePomodoro ? 1 : 0;
 
     if (updateData.isEmpty) return;
 

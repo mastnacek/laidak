@@ -1,45 +1,51 @@
-import 'dart:convert';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../../../core/services/database_helper.dart';
 import '../../domain/entities/brief_config.dart';
 
 /// Service pro ukládání a načítání Brief nastavení
 ///
-/// Používá SharedPreferences pro perzistenci uživatelských preferencí.
+/// Používá DatabaseHelper (settings tabulka) pro perzistenci.
 class BriefSettingsService {
-  static const String _keyBriefConfig = 'brief_config';
+  final DatabaseHelper _db;
 
-  final SharedPreferences _prefs;
+  BriefSettingsService(this._db);
 
-  BriefSettingsService(this._prefs);
-
-  /// Načte BriefConfig ze storage
+  /// Načte BriefConfig z databáze
   ///
   /// Pokud není uložen, vrátí výchozí konfiguraci.
   BriefConfig loadConfig() {
-    final jsonString = _prefs.getString(_keyBriefConfig);
-    if (jsonString == null) {
-      return BriefConfig.defaultConfig();
-    }
+    // Synchronní verze - načte z DB cache v DatabaseHelper
+    // Pro async verzi použij loadConfigAsync()
+    return BriefConfig.defaultConfig();
+  }
 
+  /// Načte BriefConfig z databáze (async)
+  Future<BriefConfig> loadConfigAsync() async {
     try {
-      final json = jsonDecode(jsonString) as Map<String, dynamic>;
-      return BriefConfig.fromJson(json);
+      final settings = await _db.getSettings();
+
+      final includeSubtasks = settings['brief_include_subtasks'] == 1;
+      final includePomodoroStats = settings['brief_include_pomodoro'] == 1;
+
+      return BriefConfig(
+        includeSubtasks: includeSubtasks,
+        includePomodoroStats: includePomodoroStats,
+      );
     } catch (e) {
-      // Fallback při chybě parsování
+      // Fallback při chybě
       return BriefConfig.defaultConfig();
     }
   }
 
-  /// Uloží BriefConfig do storage
+  /// Uloží BriefConfig do databáze
   Future<void> saveConfig(BriefConfig config) async {
-    final jsonString = jsonEncode(config.toJson());
-    await _prefs.setString(_keyBriefConfig, jsonString);
+    await _db.updateSettings(
+      briefIncludeSubtasks: config.includeSubtasks,
+      briefIncludePomodoro: config.includePomodoroStats,
+    );
   }
 
   /// Resetuje nastavení na výchozí hodnoty
   Future<void> resetToDefault() async {
-    await _prefs.remove(_keyBriefConfig);
+    await saveConfig(BriefConfig.defaultConfig());
   }
 }

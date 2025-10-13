@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'core/theme/doom_one_theme.dart';
 import 'core/observers/simple_bloc_observer.dart';
@@ -46,9 +45,6 @@ void main() async {
   // Inicializovat databázi
   final db = DatabaseHelper();
 
-  // Inicializovat SharedPreferences pro Brief settings
-  final prefs = await SharedPreferences.getInstance();
-
   // Inicializovat HTTP client pro AI split
   final httpClient = http.Client();
 
@@ -65,7 +61,7 @@ void main() async {
     db: db,
     aiDatasource: briefAiDatasource,
   );
-  final briefSettingsService = BriefSettingsService(prefs);
+  final briefSettingsService = BriefSettingsService(db);
 
   runApp(
     MultiBlocProvider(
