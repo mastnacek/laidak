@@ -93,6 +93,9 @@ class _NotesListPageState extends State<NotesListPage> {
                       ],
                     ),
                   ),
+                _ => const Center(
+                    child: Text('Neznámý stav'),
+                  ),
               },
             ),
 
@@ -102,7 +105,7 @@ class _NotesListPageState extends State<NotesListPage> {
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: _buildPlaceholderInputBar(theme),
+              child: _buildPlaceholderInputBar(context),
             ),
           ],
         );
@@ -211,34 +214,35 @@ class _NotesListPageState extends State<NotesListPage> {
   }
 
   /// Placeholder pro input bar (MILESTONE 2.3)
-  Widget _buildPlaceholderInputBar(ThemeColors theme) {
+  Widget _buildPlaceholderInputBar(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: theme.bgAlt,
+        color: theme.appColors.bgAlt,
         border: Border(
           top: BorderSide(
-            color: theme.base3.withOpacity(0.3),
+            color: theme.appColors.base3.withOpacity(0.3),
             width: 1,
           ),
         ),
       ),
       child: Row(
         children: [
-          Icon(Icons.search, color: theme.base5),
+          Icon(Icons.search, color: theme.appColors.base5),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Nová poznámka... (TODO: MILESTONE 2.3)',
-                hintStyle: TextStyle(color: theme.base5),
+                hintStyle: TextStyle(color: theme.appColors.base5),
                 border: InputBorder.none,
               ),
-              style: TextStyle(color: theme.fg),
+              style: TextStyle(color: theme.appColors.fg),
               enabled: false, // Zatím disabled
             ),
           ),
-          Icon(Icons.close, color: theme.base5),
+          Icon(Icons.close, color: theme.appColors.base5),
         ],
       ),
     );
