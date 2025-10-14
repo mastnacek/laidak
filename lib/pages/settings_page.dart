@@ -4,8 +4,8 @@ import '../features/settings/presentation/pages/ai_settings_tab.dart';
 import '../features/settings/presentation/pages/prompts_tab.dart';
 import '../features/settings/presentation/pages/themes_tab.dart';
 import '../features/settings/presentation/pages/agenda_tab.dart';
+import '../features/settings/presentation/pages/notes_tab.dart';
 import '../features/tag_management/presentation/pages/tag_management_page.dart';
-import '../features/notes/presentation/pages/smart_folder_settings_page.dart';
 
 /// Stránka s nastavením AI motivace
 class SettingsPage extends StatefulWidget {
@@ -69,7 +69,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
             ),
             Tab(
               icon: Icon(Icons.folder_special),
-              text: 'NOTES SLOŽKY',
+              text: 'NOTES VIEWS',
             ),
           ],
         ),
@@ -82,7 +82,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           TagManagementPage(),
           ThemesTab(),
           AgendaTab(),
-          SmartFolderSettingsPage(),
+          NotesTab(),
         ],
       ),
     );
