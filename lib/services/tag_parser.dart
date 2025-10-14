@@ -86,31 +86,84 @@ class TagParser {
   }
 
   /// Parsovat datum tag a převést na DateTime
+  ///
+  /// Podporované formáty:
+  /// - dnes, zítra, zatyden, zamesic, zarok
+  /// - dnes14:00, zítra14:30 (s časem HH:MM)
+  /// - dnes14.30, zítra9.45 (s časem HH.MM - tečka místo dvojtečky)
+  /// - DD.MM.YYYY (bez času)
+  /// - DD.MM.YYYY14:00 (s časem)
   static DateTime? _parseDateTag(String tagValue) {
     final now = DateTime.now();
 
-    switch (tagValue) {
+    // 1. Zkusit extrahovat čas z tagu (pokud existuje)
+    final timeMatch = RegExp(r'(\d{1,2})[:.](\d{2})$').firstMatch(tagValue);
+    int? hour;
+    int? minute;
+    String datePartOnly = tagValue;
+
+    if (timeMatch != null) {
+      // Našli jsme čas na konci → extrahovat
+      hour = int.tryParse(timeMatch.group(1)!);
+      minute = int.tryParse(timeMatch.group(2)!);
+
+      // Validace času
+      if (hour == null || minute == null || hour > 23 || minute > 59) {
+        return null; // Nevalidní čas
+      }
+
+      // Odstranit časovou část z tagu pro další parsing
+      datePartOnly = tagValue.substring(0, timeMatch.start);
+    }
+
+    // 2. Parsovat datum (bez času)
+    DateTime? baseDate;
+
+    switch (datePartOnly) {
       case 'dnes':
-        return DateTime(now.year, now.month, now.day);
+        baseDate = DateTime(now.year, now.month, now.day);
+        break;
 
       case 'zitra':
-        return DateTime(now.year, now.month, now.day)
+        baseDate = DateTime(now.year, now.month, now.day)
             .add(const Duration(days: 1));
+        break;
 
       case 'zatyden':
-        return DateTime(now.year, now.month, now.day)
+        baseDate = DateTime(now.year, now.month, now.day)
             .add(const Duration(days: 7));
+        break;
 
       case 'zamesic':
-        return DateTime(now.year, now.month + 1, now.day);
+        baseDate = DateTime(now.year, now.month + 1, now.day);
+        break;
 
       case 'zarok':
-        return DateTime(now.year + 1, now.month, now.day);
+        baseDate = DateTime(now.year + 1, now.month, now.day);
+        break;
 
       default:
         // Zkusit parsovat DD.MM.YYYY formát
-        return _parseDateFormat(tagValue);
+        baseDate = _parseDateFormat(datePartOnly);
+        break;
     }
+
+    // 3. Pokud se nepodařilo parsovat datum, return null
+    if (baseDate == null) return null;
+
+    // 4. Přidat čas, pokud byl zadán
+    if (hour != null && minute != null) {
+      return DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+        hour,
+        minute,
+      );
+    }
+
+    // 5. Bez času → vrátit pouze datum (00:00)
+    return baseDate;
   }
 
   /// Parsovat datum ve formátu DD.MM.YYYY
@@ -136,18 +189,27 @@ class TagParser {
   }
 
   /// Formátovat datum pro zobrazení
+  ///
+  /// Vrací:
+  /// - "dnes" nebo "dnes 14:00" (pokud má čas)
+  /// - "zítra" nebo "zítra 9:30" (pokud má čas)
+  /// - "14.10.2025" nebo "14.10.2025 16:45" (pokud má čas)
   static String formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
     final dateOnly = DateTime(date.year, date.month, date.day);
 
+    // Zkontrolovat, zda datum má čas (ne 00:00)
+    final hasTime = date.hour != 0 || date.minute != 0;
+    final timeStr = hasTime ? ' ${date.hour}:${date.minute.toString().padLeft(2, '0')}' : '';
+
     if (dateOnly == today) {
-      return 'dnes';
+      return 'dnes$timeStr';
     } else if (dateOnly == tomorrow) {
-      return 'zítra';
+      return 'zítra$timeStr';
     } else {
-      return DateFormat('d.M.yyyy').format(date);
+      return '${DateFormat('d.M.yyyy').format(date)}$timeStr';
     }
   }
 
