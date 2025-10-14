@@ -929,7 +929,7 @@ class _DelimiterSelector extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Řádek 2: DateTime příklad
+          // Řádek 2: DateTime příklad (S MEZEROU - preferovaný formát)
           Wrap(
             spacing: 4,
             children: [
@@ -950,7 +950,7 @@ class _DelimiterSelector extends StatelessWidget {
                 ),
               ),
               Text(
-                'dnes14:00',
+                'dnes 14:00',
                 style: TextStyle(
                   color: theme.appColors.fg,
                   fontSize: 14,
@@ -976,7 +976,7 @@ class _DelimiterSelector extends StatelessWidget {
                 ),
               ),
               Text(
-                'zítra9.30',
+                'zítra 9.30',
                 style: TextStyle(
                   color: theme.appColors.fg,
                   fontSize: 14,

@@ -89,15 +89,18 @@ class TagParser {
   ///
   /// Podporované formáty:
   /// - dnes, zítra, zatyden, zamesic, zarok
-  /// - dnes14:00, zítra14:30 (s časem HH:MM)
-  /// - dnes14.30, zítra9.45 (s časem HH.MM - tečka místo dvojtečky)
+  /// - dnes 14:00, zítra 14:30 (PREFEROVÁNO: s mezerou a dvojtečkou)
+  /// - dnes 14.30, zítra 9.45 (s mezerou a tečkou místo dvojtečky)
+  /// - dnes14:00, zítra14.30 (backward compatibility: bez mezery)
   /// - DD.MM.YYYY (bez času)
-  /// - DD.MM.YYYY14:00 (s časem)
+  /// - DD.MM.YYYY 14:00 (s časem)
   static DateTime? _parseDateTag(String tagValue) {
     final now = DateTime.now();
 
     // 1. Zkusit extrahovat čas z tagu (pokud existuje)
-    final timeMatch = RegExp(r'(\d{1,2})[:.](\d{2})$').firstMatch(tagValue);
+    // Pattern: volitelná mezera + hodiny + dvojtečka/tečka + minuty
+    // Podporuje: "dnes 14:00", "dnes14:00", "dnes 14.30", "dnes14.30"
+    final timeMatch = RegExp(r'\s?(\d{1,2})[:.](\d{2})$').firstMatch(tagValue);
     int? hour;
     int? minute;
     String datePartOnly = tagValue;
@@ -112,8 +115,8 @@ class TagParser {
         return null; // Nevalidní čas
       }
 
-      // Odstranit časovou část z tagu pro další parsing
-      datePartOnly = tagValue.substring(0, timeMatch.start);
+      // Odstranit časovou část z tagu pro další parsing (včetně mezery)
+      datePartOnly = tagValue.substring(0, timeMatch.start).trim();
     }
 
     // 2. Parsovat datum (bez času)
