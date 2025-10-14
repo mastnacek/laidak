@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../domain/models/smart_folder.dart';
+import '../../../settings/presentation/cubit/settings_cubit.dart';
+import '../../../settings/presentation/cubit/settings_state.dart';
 import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
 import '../bloc/notes_state.dart';
 
-/// FoldersTabBar - Horizontal scroll tabs pro Notes Smart Folders (PHASE 2)
+/// FoldersTabBar - Horizontal scroll tabs pro Notes Views
 ///
-/// Zobrazuje všechny Smart Folders z databáze (default + custom):
+/// Zobrazuje built-in + custom views z SettingsCubit.notesConfig:
 /// - All Notes (📝)
-/// - Recent (🕐)
-/// - Favorites (⭐)
-/// - Custom folders (phase 3+)
+/// - Recent Notes (🕐)
+/// - Custom tag-based views (🛒, ⚽, ...)
 /// - Height: 56dp
 /// - Icon size: 20dp (emoji)
 /// - Touch target: 44x44dp
@@ -39,30 +39,76 @@ class FoldersTabBar extends StatelessWidget {
           top: false,
           child: Row(
             children: [
-              // Folder tabs - expandují na celou šířku
+              // View tabs - expandují na celou šířku
               Expanded(
-                child: BlocBuilder<NotesBloc, NotesState>(
-                  builder: (context, notesState) {
-                    // Načíst SmartFolders a currentFolder ze state
-                    if (notesState is! NotesLoaded) {
+                child: BlocBuilder<SettingsCubit, SettingsState>(
+                  builder: (context, settingsState) {
+                    // Načíst notesConfig ze SettingsCubit
+                    if (settingsState is! SettingsLoaded) {
                       return const SizedBox.shrink();
                     }
 
-                    final smartFolders = notesState.smartFolders;
-                    final currentFolder = notesState.currentFolder;
+                    final notesConfig = settingsState.notesConfig;
+
+                    // Načíst currentView z NotesBloc
+                    final notesState = context.watch<NotesBloc>().state;
+                    final currentView = notesState is NotesLoaded
+                        ? notesState.currentView
+                        : ViewMode.allNotes;
+                    final currentCustomViewId = notesState is NotesLoaded
+                        ? notesState.customViewId
+                        : null;
+
+                    // Sestavit seznam view items (built-in + custom)
+                    final viewItems = <_ViewItem>[];
+
+                    // Built-in: All Notes
+                    if (notesConfig.showAllNotes) {
+                      viewItems.add(_ViewItem(
+                        emoji: '📝',
+                        mode: ViewMode.allNotes,
+                        customViewId: null,
+                        tagFilter: null,
+                      ));
+                    }
+
+                    // Built-in: Recent Notes
+                    if (notesConfig.showRecentNotes) {
+                      viewItems.add(_ViewItem(
+                        emoji: '🕐',
+                        mode: ViewMode.recentNotes,
+                        customViewId: null,
+                        tagFilter: null,
+                      ));
+                    }
+
+                    // Custom views (pouze enabled)
+                    for (final customView in notesConfig.customViews) {
+                      if (customView.isEnabled) {
+                        viewItems.add(_ViewItem(
+                          emoji: customView.emoji,
+                          mode: ViewMode.customTag,
+                          customViewId: customView.id,
+                          tagFilter: customView.tagFilter,
+                        ));
+                      }
+                    }
 
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
-                        children: smartFolders.map((folder) {
-                          final isSelected = currentFolder?.id == folder.id;
+                        children: viewItems.map((item) {
+                          // Check if selected
+                          final isSelected = item.mode == currentView &&
+                              (item.mode != ViewMode.customTag ||
+                                  item.customViewId == currentCustomViewId);
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: InkWell(
                               onTap: () {
-                                _handleFolderTap(context, folder, isSelected, smartFolders);
+                                _handleViewTap(context, item, isSelected);
                               },
                               borderRadius: BorderRadius.circular(22),
                               child: Container(
@@ -72,7 +118,7 @@ class FoldersTabBar extends StatelessWidget {
                                 ),
                                 alignment: Alignment.center,
                                 child: Text(
-                                  folder.icon,
+                                  item.emoji,
                                   style: TextStyle(
                                     fontSize: 20,
                                     // Emoji s opacity pokud není vybraný
@@ -97,24 +143,52 @@ class FoldersTabBar extends StatelessWidget {
     );
   }
 
-  /// Handle tap na folder item
-  void _handleFolderTap(
+  /// Handle tap na view item
+  void _handleViewTap(
     BuildContext context,
-    SmartFolder folder,
+    _ViewItem item,
     bool isSelected,
-    List<SmartFolder> allFolders,
   ) {
     final bloc = context.read<NotesBloc>();
 
-    // Toggle behavior: Tap na vybraný folder → vrátit na All Notes (první systémový folder)
-    if (isSelected && folder.displayOrder != 0) {
-      final allNotesFolder = allFolders.firstWhere(
-        (f) => f.isSystem && f.displayOrder == 0,
-        orElse: () => allFolders.first,
-      );
-      bloc.add(ChangeSmartFolderEvent(allNotesFolder));
+    // Toggle behavior: Tap na vybraný view → vrátit na All Notes
+    if (isSelected && item.mode != ViewMode.allNotes) {
+      bloc.add(const ChangeViewModeEvent(ViewMode.allNotes));
     } else {
-      bloc.add(ChangeSmartFolderEvent(folder));
+      // Dispatch event s tagFilter pro custom views
+      bloc.add(ChangeViewModeEvent(
+        item.mode,
+        customViewId: item.customViewId,
+      ));
+
+      // Update customViewTagFilter v NotesBloc state (oprava - musí předat i tagFilter)
+      // TODO: Upravit ChangeViewModeEvent aby přijímal tagFilter přímo
+      if (item.mode == ViewMode.customTag && item.tagFilter != null) {
+        final notesState = bloc.state;
+        if (notesState is NotesLoaded) {
+          // Emit state s tagFilter (aktualizace přes copyWith)
+          bloc.emit(notesState.copyWith(
+            currentView: item.mode,
+            customViewId: item.customViewId,
+            customViewTagFilter: item.tagFilter,
+          ));
+        }
+      }
     }
   }
+}
+
+/// Helper class pro view item v tab baru
+class _ViewItem {
+  final String emoji;
+  final ViewMode mode;
+  final String? customViewId; // Pro custom views
+  final String? tagFilter; // Pro custom tag-based filtrování
+
+  _ViewItem({
+    required this.emoji,
+    required this.mode,
+    this.customViewId,
+    this.tagFilter,
+  });
 }
