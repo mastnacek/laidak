@@ -246,9 +246,15 @@ class HighlightedTextEditingController extends TextEditingController {
   Color _getTagColor(String tagContent) {
     final lower = tagContent.toLowerCase();
 
+    // Pro date tagy s časem: extrahovat jen date část pro TagService lookup
+    // Např: "dnes 15:30" → "dnes", "zítra 9.30" → "zítra"
+    // Poznámka: "dnes15:30" (bez mezery) se nebude hledat, ale to je OK -
+    // validní formát je s mezerou (viz TagParser podporuje oba, ale preferujeme s mezerou)
+    final tagValueForLookup = lower.split(' ').first;
+
     // Pokusit se získat definici z TagService (s error handling)
     try {
-      final definition = _tagService.getDefinition(lower);
+      final definition = _tagService.getDefinition(tagValueForLookup);
 
       // Pokud existuje definice s barvou, použít ji
       if (definition != null && definition.color != null) {
