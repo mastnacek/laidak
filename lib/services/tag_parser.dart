@@ -97,21 +97,25 @@ class TagParser {
   /// - dnes 14:00, zítra 14:30 (PREFEROVÁNO: s mezerou a dvojtečkou)
   /// - dnes 14.30, zítra 9.45 (s mezerou a tečkou místo dvojtečky)
   /// - dnes14:00, zítra14.30 (backward compatibility: bez mezery)
+  /// - dnes9, zítra14 (zkrácený formát: jen hodiny → automaticky :00)
+  /// - dnes 9, zítra 14 (zkrácený formát s mezerou)
   /// - DD.MM.YYYY (bez času)
   /// - DD.MM.YYYY 14:00 (s časem)
   static DateTime? _parseDateTag(String tagValue) {
     final now = DateTime.now();
 
     // 1. Zkusit extrahovat čas z tagu (pokud existuje)
-    // Pattern: volitelná mezera + hodiny + dvojtečka/tečka + minuty
-    // Podporuje: "dnes 14:00", "dnes14:00", "dnes 14.30", "dnes14.30"
-    final timeMatch = RegExp(r'\s?(\d{1,2})[:.](\d{2})$').firstMatch(tagValue);
     int? hour;
     int? minute;
     String datePartOnly = tagValue;
 
+    // 1a. Zkusit plný formát: hodiny + dvojtečka/tečka + minuty
+    // Pattern: volitelná mezera + hodiny + dvojtečka/tečka + minuty
+    // Podporuje: "dnes 14:00", "dnes14:00", "dnes 14.30", "dnes14.30"
+    final timeMatch = RegExp(r'\s?(\d{1,2})[:.](\d{2})$').firstMatch(tagValue);
+
     if (timeMatch != null) {
-      // Našli jsme čas na konci → extrahovat
+      // Našli jsme plný čas na konci → extrahovat
       hour = int.tryParse(timeMatch.group(1)!);
       minute = int.tryParse(timeMatch.group(2)!);
 
@@ -122,6 +126,24 @@ class TagParser {
 
       // Odstranit časovou část z tagu pro další parsing (včetně mezery)
       datePartOnly = tagValue.substring(0, timeMatch.start).trim();
+    } else {
+      // 1b. Zkusit zkrácený formát: jen hodiny (automaticky :00)
+      // Pattern: volitelná mezera + 1-2 číslice na konci
+      // Podporuje: "dnes9", "dnes 14", "zítra8", "zítra 23"
+      final shortTimeMatch = RegExp(r'\s?(\d{1,2})$').firstMatch(tagValue);
+
+      if (shortTimeMatch != null) {
+        hour = int.tryParse(shortTimeMatch.group(1)!);
+        minute = 0; // Implicitně 00 minut
+
+        // Validace hodin
+        if (hour == null || hour > 23) {
+          return null; // Nevalidní hodiny
+        }
+
+        // Odstranit časovou část z tagu pro další parsing (včetně mezery)
+        datePartOnly = tagValue.substring(0, shortTimeMatch.start).trim();
+      }
     }
 
     // 2. Parsovat datum (bez času)
