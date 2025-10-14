@@ -135,7 +135,7 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       emit(currentState.copyWith(
         currentView: event.mode,
         customViewId: event.customViewId,
-        customViewTagFilter: event.customViewId, // Zatím použijeme ID jako tag (upravíme později v FoldersTabBar)
+        customViewTagFilter: event.tagFilter, // Použít tagFilter z eventu
       ));
     }
   }

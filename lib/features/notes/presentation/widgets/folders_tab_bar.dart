@@ -155,25 +155,12 @@ class FoldersTabBar extends StatelessWidget {
     if (isSelected && item.mode != ViewMode.allNotes) {
       bloc.add(const ChangeViewModeEvent(ViewMode.allNotes));
     } else {
-      // Dispatch event s tagFilter pro custom views
+      // Dispatch event s customViewId a tagFilter
       bloc.add(ChangeViewModeEvent(
         item.mode,
         customViewId: item.customViewId,
+        tagFilter: item.tagFilter, // Předat tagFilter do eventu
       ));
-
-      // Update customViewTagFilter v NotesBloc state (oprava - musí předat i tagFilter)
-      // TODO: Upravit ChangeViewModeEvent aby přijímal tagFilter přímo
-      if (item.mode == ViewMode.customTag && item.tagFilter != null) {
-        final notesState = bloc.state;
-        if (notesState is NotesLoaded) {
-          // Emit state s tagFilter (aktualizace přes copyWith)
-          bloc.emit(notesState.copyWith(
-            currentView: item.mode,
-            customViewId: item.customViewId,
-            customViewTagFilter: item.tagFilter,
-          ));
-        }
-      }
     }
   }
 }

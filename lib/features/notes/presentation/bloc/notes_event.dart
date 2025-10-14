@@ -55,11 +55,12 @@ class DeleteNoteEvent extends NotesEvent {
 class ChangeViewModeEvent extends NotesEvent {
   final ViewMode mode;
   final String? customViewId; // Pokud mode == customTag, ID custom view
+  final String? tagFilter; // Pokud mode == customTag, tag pro filtrování (např. "projekt")
 
-  const ChangeViewModeEvent(this.mode, {this.customViewId});
+  const ChangeViewModeEvent(this.mode, {this.customViewId, this.tagFilter});
 
   @override
-  List<Object?> get props => [mode, customViewId];
+  List<Object?> get props => [mode, customViewId, tagFilter];
 }
 
 /// Event: Toggle expand poznámky (zobrazit celý obsah)
