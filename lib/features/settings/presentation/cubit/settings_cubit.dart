@@ -356,7 +356,9 @@ class SettingsCubit extends Cubit<SettingsState> {
       'name': view.name,
       'tag_filter': view.tagFilter.toLowerCase(),
       'emoji': view.emoji,
+      'sort_order': currentState.notesConfig.customViews.length,
       'enabled': 1,
+      'created_at': DateTime.now().millisecondsSinceEpoch,
     });
 
     // Update state
