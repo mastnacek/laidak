@@ -528,7 +528,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Zadej tag BEZ oddělovačů (např. "projekt", ne "*projekt*")',
+              'Jeden nebo více tagů oddělených čárkou (bez oddělovačů *)',
               style: TextStyle(
                 color: theme.appColors.yellow,
                 fontSize: 11,
@@ -543,9 +543,9 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
                 fontFamily: 'monospace',
               ),
               decoration: InputDecoration(
-                hintText: 'projekt',
+                hintText: 'programovani,todoapp',
                 hintStyle: TextStyle(color: theme.appColors.base5),
-                helperText: 'Pouze holý tag (lowercase)',
+                helperText: 'Single: "projekt" | Multi: "work,home" (OR logika)',
                 helperStyle: TextStyle(
                   color: theme.appColors.base5,
                   fontSize: 11,

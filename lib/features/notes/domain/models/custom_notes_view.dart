@@ -13,7 +13,10 @@ class CustomNotesView extends Equatable {
   /// Název view (zobrazený v InfoDialog)
   final String name;
 
-  /// Tag pro filtrování (např. "projekt", "nakup", "sport" - bez oddělovačů)
+  /// Tag(y) pro filtrování
+  /// - Single tag: "projekt"
+  /// - Multiple tags (CSV): "programovani,todoapp"
+  /// Poznámky se zobrazí pokud obsahují JAKÝKOLIV z těchto tagů (OR logika)
   final String tagFilter;
 
   /// Emoji ikona (např. "📁", "🛒", "⚽")
@@ -67,6 +70,20 @@ class CustomNotesView extends Equatable {
       emoji: emoji ?? this.emoji,
       isEnabled: isEnabled ?? this.isEnabled,
     );
+  }
+
+  /// Helper: Rozdělit tagFilter na seznam jednotlivých tagů
+  ///
+  /// Příklady:
+  /// - "projekt" → ["projekt"]
+  /// - "programovani,todoapp" → ["programovani", "todoapp"]
+  /// - "  work , home  " → ["work", "home"] (trimuje whitespace)
+  List<String> get tags {
+    return tagFilter
+        .split(',')
+        .map((tag) => tag.trim().toLowerCase())
+        .where((tag) => tag.isNotEmpty)
+        .toList();
   }
 
   @override

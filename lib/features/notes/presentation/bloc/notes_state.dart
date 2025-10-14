@@ -51,14 +51,26 @@ class NotesLoaded extends NotesState {
         return notes.where((note) => note.createdAt.isAfter(cutoff)).toList();
 
       case ViewMode.customTag:
-        // Tag-based filtrování
+        // Multi-tag filtrování (OR logika)
         if (customViewTagFilter == null || customViewTagFilter!.isEmpty) {
           return notes; // Fallback pokud chybí tag
         }
-        // Filtruj poznámky které obsahují *tag* v content
-        final tagPattern = '*${customViewTagFilter!.toLowerCase()}*';
+
+        // Rozdělit tagFilter na jednotlivé tagy (CSV)
+        final tags = customViewTagFilter!
+            .split(',')
+            .map((tag) => tag.trim().toLowerCase())
+            .where((tag) => tag.isNotEmpty)
+            .toList();
+
+        // Filtruj poznámky které obsahují JAKÝKOLIV z tagů (OR logika)
         return notes.where((note) {
-          return note.content.toLowerCase().contains(tagPattern);
+          final noteContent = note.content.toLowerCase();
+          // Poznámka projde filtrem pokud obsahuje alespoň jeden z tagů
+          return tags.any((tag) {
+            final tagPattern = '*$tag*';
+            return noteContent.contains(tagPattern);
+          });
         }).toList();
     }
   }
