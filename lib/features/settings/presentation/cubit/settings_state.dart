@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import '../../domain/models/agenda_view_config.dart';
+import '../../../notes/domain/models/notes_view_config.dart';
 
 /// Immutable state pro Settings feature
 ///
@@ -33,6 +34,9 @@ final class SettingsLoaded extends SettingsState {
   /// Konfigurace Agenda Views (built-in + custom views)
   final AgendaViewConfig agendaConfig;
 
+  /// Konfigurace Notes Views (built-in + custom views)
+  final NotesViewConfig notesConfig;
+
   // --- AI Settings ---
   /// OpenRouter API klíč
   final String? openRouterApiKey;
@@ -60,6 +64,7 @@ final class SettingsLoaded extends SettingsState {
     required this.currentTheme,
     this.hasSeenGestureHint = false,
     AgendaViewConfig? agendaConfig,
+    NotesViewConfig? notesConfig,
     this.openRouterApiKey,
     this.aiMotivationModel = 'mistralai/mistral-medium',
     this.aiMotivationTemperature = 0.9,
@@ -67,7 +72,8 @@ final class SettingsLoaded extends SettingsState {
     this.aiTaskModel = 'anthropic/claude-3.5-sonnet',
     this.aiTaskTemperature = 0.3,
     this.aiTaskMaxTokens = 1000,
-  }) : agendaConfig = agendaConfig ?? const AgendaViewConfig();
+  }) : agendaConfig = agendaConfig ?? const AgendaViewConfig(),
+       notesConfig = notesConfig ?? const NotesViewConfig();
 
   /// copyWith pro immutable updates
   SettingsLoaded copyWith({
@@ -75,6 +81,7 @@ final class SettingsLoaded extends SettingsState {
     ThemeData? currentTheme,
     bool? hasSeenGestureHint,
     AgendaViewConfig? agendaConfig,
+    NotesViewConfig? notesConfig,
     String? openRouterApiKey,
     String? aiMotivationModel,
     double? aiMotivationTemperature,
@@ -88,6 +95,7 @@ final class SettingsLoaded extends SettingsState {
       currentTheme: currentTheme ?? this.currentTheme,
       hasSeenGestureHint: hasSeenGestureHint ?? this.hasSeenGestureHint,
       agendaConfig: agendaConfig ?? this.agendaConfig,
+      notesConfig: notesConfig ?? this.notesConfig,
       openRouterApiKey: openRouterApiKey ?? this.openRouterApiKey,
       aiMotivationModel: aiMotivationModel ?? this.aiMotivationModel,
       aiMotivationTemperature: aiMotivationTemperature ?? this.aiMotivationTemperature,
@@ -104,6 +112,7 @@ final class SettingsLoaded extends SettingsState {
         currentTheme,
         hasSeenGestureHint,
         agendaConfig,
+        notesConfig,
         openRouterApiKey,
         aiMotivationModel,
         aiMotivationTemperature,
