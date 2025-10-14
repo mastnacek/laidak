@@ -1,7 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/database_helper.dart';
 import '../../../../models/note.dart';
-import '../../domain/models/smart_folder.dart';
 import 'notes_event.dart';
 import 'notes_state.dart';
 
@@ -10,7 +9,7 @@ import 'notes_state.dart';
 /// Zodpovědnosti:
 /// - Načítání notes z databáze
 /// - Vytváření, aktualizace, mazání notes
-/// - Smart Folders - filtrování podle FilterRules (PHASE 2)
+/// - Změna ViewMode (filtrování je computed v NotesState)
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
   final DatabaseHelper _db;
 
@@ -20,16 +19,11 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<CreateNoteEvent>(_onCreateNote);
     on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
-    on<ChangeSmartFolderEvent>(_onChangeSmartFolder); // PHASE 2
+    on<ChangeViewModeEvent>(_onChangeViewMode);
     on<ToggleExpandNoteEvent>(_onToggleExpandNote);
-
-    // Smart Folder CRUD (PHASE 3)
-    on<CreateSmartFolderEvent>(_onCreateSmartFolder);
-    on<UpdateSmartFolderEvent>(_onUpdateSmartFolder);
-    on<DeleteSmartFolderEvent>(_onDeleteSmartFolder);
   }
 
-  /// Handler: Načíst všechny poznámky + Smart Folders
+  /// Handler: Načíst všechny poznámky
   Future<void> _onLoadNotes(
     LoadNotesEvent event,
     Emitter<NotesState> emit,
@@ -37,24 +31,13 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     emit(const NotesLoading());
 
     try {
-      // Načíst poznámky
+      // Načíst poznámky z DB
       final notesData = await _db.getAllNotes();
       final notes = notesData.map((data) => Note.fromMap(data)).toList();
 
-      // Načíst Smart Folders
-      final foldersData = await _db.getAllSmartFolders();
-      final smartFolders = foldersData.map((data) => SmartFolder.fromMap(data)).toList();
-
-      // Najít default "All Notes" folder (is_system=1, display_order=0)
-      final defaultFolder = smartFolders.firstWhere(
-        (folder) => folder.isSystem && folder.displayOrder == 0,
-        orElse: () => smartFolders.first, // Fallback na první folder
-      );
-
       emit(NotesLoaded(
         notes: notes,
-        smartFolders: smartFolders,
-        currentFolder: defaultFolder,
+        currentView: ViewMode.allNotes, // Default view
       ));
     } catch (e) {
       emit(NotesError('Chyba při načítání poznámek: $e'));
@@ -140,16 +123,20 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     }
   }
 
-  /// Handler: Změnit Smart Folder (PHASE 2)
-  void _onChangeSmartFolder(
-    ChangeSmartFolderEvent event,
+  /// Handler: Změnit view mode
+  void _onChangeViewMode(
+    ChangeViewModeEvent event,
     Emitter<NotesState> emit,
   ) {
-    // Pouze změnit currentFolder, notes zůstávají stejné
-    // Filtering se dělá v NotesState.displayedNotes pomocí FilterRules
+    // Pouze změnit view mode, notes zůstávají stejné
+    // Filtering se dělá v NotesState.displayedNotes (computed property)
     if (state is NotesLoaded) {
       final currentState = state as NotesLoaded;
-      emit(currentState.copyWith(currentFolder: event.folder));
+      emit(currentState.copyWith(
+        currentView: event.mode,
+        customViewId: event.customViewId,
+        customViewTagFilter: event.customViewId, // Zatím použijeme ID jako tag (upravíme později v FoldersTabBar)
+      ));
     }
   }
 
@@ -168,93 +155,6 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           : event.noteId;
 
       emit(currentState.copyWith(expandedNoteId: newExpandedId));
-    }
-  }
-
-  // ==================== SMART FOLDER CRUD HANDLERS (PHASE 3) ====================
-
-  /// Handler: Vytvořit nový Smart Folder
-  Future<void> _onCreateSmartFolder(
-    CreateSmartFolderEvent event,
-    Emitter<NotesState> emit,
-  ) async {
-    // Fail Fast: validace
-    if (event.folder.name.trim().isEmpty) {
-      emit(const NotesError('Název složky nesmí být prázdný'));
-      return;
-    }
-
-    try {
-      await _db.insertSmartFolder(event.folder.toMap());
-
-      // Reload notes + folders
-      add(const LoadNotesEvent());
-    } catch (e) {
-      emit(NotesError('Chyba při vytváření složky: $e'));
-    }
-  }
-
-  /// Handler: Aktualizovat Smart Folder
-  Future<void> _onUpdateSmartFolder(
-    UpdateSmartFolderEvent event,
-    Emitter<NotesState> emit,
-  ) async {
-    // Fail Fast: validace
-    if (event.folder.id == null) {
-      emit(const NotesError('Nelze aktualizovat složku bez ID'));
-      return;
-    }
-
-    if (event.folder.name.trim().isEmpty) {
-      emit(const NotesError('Název složky nesmí být prázdný'));
-      return;
-    }
-
-    try {
-      // Update updated_at timestamp
-      final updatedFolder = event.folder.copyWith(
-        updatedAt: DateTime.now(),
-      );
-
-      await _db.updateSmartFolder(updatedFolder.id!, updatedFolder.toMap());
-
-      // Reload notes + folders
-      add(const LoadNotesEvent());
-    } catch (e) {
-      emit(NotesError('Chyba při aktualizaci složky: $e'));
-    }
-  }
-
-  /// Handler: Smazat Smart Folder
-  Future<void> _onDeleteSmartFolder(
-    DeleteSmartFolderEvent event,
-    Emitter<NotesState> emit,
-  ) async {
-    // Fail Fast: validace
-    if (event.folderId <= 0) {
-      emit(NotesError('Neplatné ID složky: ${event.folderId}'));
-      return;
-    }
-
-    try {
-      // Pokud je mazaná složka aktuálně vybraná, přepni na All Notes
-      if (state is NotesLoaded) {
-        final currentState = state as NotesLoaded;
-        if (currentState.currentFolder?.id == event.folderId) {
-          final allNotesFolder = currentState.smartFolders.firstWhere(
-            (f) => f.isSystem && f.displayOrder == 0,
-            orElse: () => currentState.smartFolders.first,
-          );
-          emit(currentState.copyWith(currentFolder: allNotesFolder));
-        }
-      }
-
-      await _db.deleteSmartFolder(event.folderId);
-
-      // Reload notes + folders
-      add(const LoadNotesEvent());
-    } catch (e) {
-      emit(NotesError('Chyba při mazání složky: $e'));
     }
   }
 }

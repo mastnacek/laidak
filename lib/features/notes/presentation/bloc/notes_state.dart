@@ -1,7 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../../models/note.dart';
-import '../../domain/models/smart_folder.dart';
-import '../../domain/models/filter_rules.dart';
+import 'notes_event.dart'; // Pro ViewMode enum
 
 /// Base state pro NotesBloc
 abstract class NotesState extends Equatable {
@@ -24,50 +23,42 @@ class NotesLoading extends NotesState {
 /// State: Poznámky načteny
 class NotesLoaded extends NotesState {
   final List<Note> notes; // Všechny poznámky (unfiltered)
-  final List<SmartFolder> smartFolders; // Všechny Smart Folders
-  final SmartFolder? currentFolder; // Aktuální folder (null = All Notes)
+  final ViewMode currentView; // Aktuální view mode
+  final String? customViewId; // ID custom view (pokud currentView == customTag)
+  final String? customViewTagFilter; // Tag filter pro custom view (např. "projekt")
   final int? expandedNoteId; // ID rozbalené poznámky (pro expand/collapse)
 
   const NotesLoaded({
     required this.notes,
-    required this.smartFolders,
-    this.currentFolder,
+    this.currentView = ViewMode.allNotes,
+    this.customViewId,
+    this.customViewTagFilter,
     this.expandedNoteId,
   });
 
   @override
-  List<Object?> get props => [notes, smartFolders, currentFolder, expandedNoteId];
+  List<Object?> get props => [notes, currentView, customViewId, customViewTagFilter, expandedNoteId];
 
-  /// Computed: Filtrované poznámky podle currentFolder.filterRules
+  /// Computed: Filtrované poznámky podle currentView
   List<Note> get displayedNotes {
-    // Pokud není vybraný folder, zobraz všechny
-    if (currentFolder == null) return notes;
-
-    // Aplikuj FilterRules
-    return _applyFilterRules(notes, currentFolder!.filterRules);
-  }
-
-  /// Aplikovat FilterRules na seznam poznámek
-  List<Note> _applyFilterRules(List<Note> notes, FilterRules rules) {
-    switch (rules.type) {
-      case FilterType.all:
+    switch (currentView) {
+      case ViewMode.allNotes:
         return notes;
 
-      case FilterType.recent:
-        if (rules.recentDays == null) return notes;
-        final cutoff = DateTime.now().subtract(Duration(days: rules.recentDays!));
+      case ViewMode.recentNotes:
+        // Poslední týden (7 dní)
+        final cutoff = DateTime.now().subtract(const Duration(days: 7));
         return notes.where((note) => note.createdAt.isAfter(cutoff)).toList();
 
-      case FilterType.tags:
-        // TODO: Implementovat tags filtering v MILESTONE 3 (Note.tags field ještě neexistuje)
-        // Zatím vrátit všechny poznámky
-        return notes;
-
-      case FilterType.dateRange:
-        if (rules.dateRange == null) return notes;
+      case ViewMode.customTag:
+        // Tag-based filtrování
+        if (customViewTagFilter == null || customViewTagFilter!.isEmpty) {
+          return notes; // Fallback pokud chybí tag
+        }
+        // Filtruj poznámky které obsahují *tag* v content
+        final tagPattern = '*${customViewTagFilter!.toLowerCase()}*';
         return notes.where((note) {
-          return note.createdAt.isAfter(rules.dateRange!.from) &&
-              note.createdAt.isBefore(rules.dateRange!.to);
+          return note.content.toLowerCase().contains(tagPattern);
         }).toList();
     }
   }
@@ -75,14 +66,16 @@ class NotesLoaded extends NotesState {
   /// Copy with pro immutable updates
   NotesLoaded copyWith({
     List<Note>? notes,
-    List<SmartFolder>? smartFolders,
-    SmartFolder? currentFolder,
+    ViewMode? currentView,
+    String? customViewId,
+    String? customViewTagFilter,
     int? expandedNoteId,
   }) {
     return NotesLoaded(
       notes: notes ?? this.notes,
-      smartFolders: smartFolders ?? this.smartFolders,
-      currentFolder: currentFolder ?? this.currentFolder,
+      currentView: currentView ?? this.currentView,
+      customViewId: customViewId ?? this.customViewId,
+      customViewTagFilter: customViewTagFilter ?? this.customViewTagFilter,
       expandedNoteId: expandedNoteId,
     );
   }

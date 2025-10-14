@@ -1,6 +1,12 @@
 import 'package:equatable/equatable.dart';
 import '../../../../models/note.dart';
-import '../../domain/models/smart_folder.dart';
+
+/// ViewMode - typ pohledu na poznámky (místo SmartFolder)
+enum ViewMode {
+  allNotes,      // Všechny poznámky
+  recentNotes,   // Poslední týden
+  customTag,     // Custom tag-based view (ID z SettingsCubit.notesConfig.customViews)
+}
 
 /// Base event pro NotesBloc
 abstract class NotesEvent extends Equatable {
@@ -10,7 +16,7 @@ abstract class NotesEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event: Načíst všechny poznámky + Smart Folders
+/// Event: Načíst všechny poznámky
 class LoadNotesEvent extends NotesEvent {
   const LoadNotesEvent();
 }
@@ -45,14 +51,15 @@ class DeleteNoteEvent extends NotesEvent {
   List<Object?> get props => [id];
 }
 
-/// Event: Změnit Smart Folder (PHASE 2)
-class ChangeSmartFolderEvent extends NotesEvent {
-  final SmartFolder? folder; // null = All Notes
+/// Event: Změnit view mode
+class ChangeViewModeEvent extends NotesEvent {
+  final ViewMode mode;
+  final String? customViewId; // Pokud mode == customTag, ID custom view
 
-  const ChangeSmartFolderEvent(this.folder);
+  const ChangeViewModeEvent(this.mode, {this.customViewId});
 
   @override
-  List<Object?> get props => [folder];
+  List<Object?> get props => [mode, customViewId];
 }
 
 /// Event: Toggle expand poznámky (zobrazit celý obsah)
@@ -63,36 +70,4 @@ class ToggleExpandNoteEvent extends NotesEvent {
 
   @override
   List<Object?> get props => [noteId];
-}
-
-// ==================== SMART FOLDER CRUD EVENTS (PHASE 3) ====================
-
-/// Event: Vytvořit nový Smart Folder
-class CreateSmartFolderEvent extends NotesEvent {
-  final SmartFolder folder;
-
-  const CreateSmartFolderEvent(this.folder);
-
-  @override
-  List<Object?> get props => [folder];
-}
-
-/// Event: Aktualizovat Smart Folder
-class UpdateSmartFolderEvent extends NotesEvent {
-  final SmartFolder folder;
-
-  const UpdateSmartFolderEvent(this.folder);
-
-  @override
-  List<Object?> get props => [folder];
-}
-
-/// Event: Smazat Smart Folder
-class DeleteSmartFolderEvent extends NotesEvent {
-  final int folderId;
-
-  const DeleteSmartFolderEvent(this.folderId);
-
-  @override
-  List<Object?> get props => [folderId];
 }
