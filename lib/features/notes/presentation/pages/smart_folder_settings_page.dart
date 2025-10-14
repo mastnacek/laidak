@@ -186,16 +186,18 @@ class _SmartFolderListItem extends StatelessWidget {
   String _getFilterDescription(SmartFolder folder) {
     final rules = folder.filterRules;
 
-    switch (rules.type) {
-      case FilterType.all:
-        return 'Všechny poznámky';
-      case FilterType.recent:
-        return 'Poslední ${rules.recentDays} dní';
-      case FilterType.tags:
-        return 'Tagy: ${rules.includeTags.join(", ")}';
-      case FilterType.dateRange:
-        return 'Custom date range';
+    // Použít if-else místo switch (FilterType není konstanta)
+    if (rules.type == FilterType.all) {
+      return 'Všechny poznámky';
+    } else if (rules.type == FilterType.recent) {
+      return 'Poslední ${rules.recentDays} dní';
+    } else if (rules.type == FilterType.tags) {
+      return 'Tagy: ${rules.includeTags.join(", ")}';
+    } else if (rules.type == FilterType.dateRange) {
+      return 'Custom date range';
     }
+
+    return 'Neznámý filtr';
   }
 
   /// Zobrazit edit bottom sheet

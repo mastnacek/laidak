@@ -126,7 +126,7 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          _buildIconPicker(theme),
+          _buildIconPicker(context),
           const SizedBox(height: 16),
 
           // Filter type selector
@@ -139,12 +139,12 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          _buildFilterTypeSelector(theme),
+          _buildFilterTypeSelector(context),
 
           // Filter options (recent days)
           if (_filterType == FilterType.recent) ...[
             const SizedBox(height: 16),
-            _buildRecentDaysSlider(theme),
+            _buildRecentDaysSlider(context),
           ],
 
           const SizedBox(height: 24),
@@ -177,7 +177,8 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
   }
 
   /// Icon picker - horizontal scroll s emoji
-  Widget _buildIconPicker(ThemeColors theme) {
+  Widget _buildIconPicker(BuildContext context) {
+    final theme = Theme.of(context);
     const icons = ['📁', '📝', '⭐', '🕐', '📊', '💼', '🎯', '🔥', '✨', '📌'];
 
     return SizedBox(
@@ -203,11 +204,11 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
                 height: 56,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? theme.blue.withOpacity(0.2)
-                      : theme.base2,
+                      ? theme.appColors.blue.withOpacity(0.2)
+                      : theme.appColors.base2,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: isSelected ? theme.blue : theme.base4,
+                    color: isSelected ? theme.appColors.blue : theme.appColors.base4,
                     width: isSelected ? 2 : 1,
                   ),
                 ),
@@ -225,17 +226,18 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
   }
 
   /// Filter type selector - radio buttons
-  Widget _buildFilterTypeSelector(ThemeColors theme) {
+  Widget _buildFilterTypeSelector(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         _buildRadioOption(
-          theme,
+          context,
           FilterType.all,
           'Všechny poznámky',
           'Zobrazí všechny poznámky bez filtru',
         ),
         _buildRadioOption(
-          theme,
+          context,
           FilterType.recent,
           'Poslední dny',
           'Zobrazí poznámky za poslední X dní',
@@ -246,11 +248,12 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
   }
 
   Widget _buildRadioOption(
-    ThemeColors theme,
+    BuildContext context,
     FilterType type,
     String title,
     String subtitle,
   ) {
+    final theme = Theme.of(context);
     final isSelected = _filterType == type;
 
     return InkWell(
@@ -263,10 +266,10 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
-          color: isSelected ? theme.blue.withOpacity(0.1) : theme.base2,
+          color: isSelected ? theme.appColors.blue.withOpacity(0.1) : theme.appColors.base2,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? theme.blue : theme.base4,
+            color: isSelected ? theme.appColors.blue : theme.appColors.base4,
             width: isSelected ? 2 : 1,
           ),
         ),
@@ -274,7 +277,7 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
           children: [
             Icon(
               isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: isSelected ? theme.blue : theme.base5,
+              color: isSelected ? theme.appColors.blue : theme.appColors.base5,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -286,7 +289,7 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: theme.fg,
+                      color: theme.appColors.fg,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -294,7 +297,7 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: theme.base5,
+                      color: theme.appColors.base5,
                     ),
                   ),
                 ],
@@ -307,7 +310,8 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
   }
 
   /// Recent days slider (pro FilterType.recent)
-  Widget _buildRecentDaysSlider(ThemeColors theme) {
+  Widget _buildRecentDaysSlider(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -315,7 +319,7 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
           'Počet dní: $_recentDays',
           style: TextStyle(
             fontSize: 14,
-            color: theme.fg,
+            color: theme.appColors.fg,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -324,8 +328,8 @@ class _SmartFolderFormSheetState extends State<SmartFolderFormSheet> {
           min: 1,
           max: 30,
           divisions: 29,
-          activeColor: theme.blue,
-          inactiveColor: theme.base4,
+          activeColor: theme.appColors.blue,
+          inactiveColor: theme.appColors.base4,
           onChanged: (value) {
             setState(() {
               _recentDays = value.toInt();
