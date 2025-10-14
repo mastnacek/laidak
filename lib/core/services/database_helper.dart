@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 19,  // ← Notes + note_tags tabulka (MILESTONE 3)
+      version: 20,  // ← Smart Folders pro Notes (PHASE 1)
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -250,10 +250,28 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_note_tags_note_id ON note_tags(note_id)');
     await db.execute('CREATE INDEX idx_note_tags_tag ON note_tags(tag)');
 
+    // Tabulka Smart Folders pro Notes (PHASE 1)
+    await db.execute('''
+      CREATE TABLE note_smart_folders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        icon TEXT NOT NULL,
+        is_system INTEGER DEFAULT 0,
+        filter_rules TEXT NOT NULL,
+        display_order INTEGER NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('CREATE INDEX idx_smart_folders_display_order ON note_smart_folders(display_order)');
+    await db.execute('CREATE INDEX idx_smart_folders_system ON note_smart_folders(is_system)');
+
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
     await _insertDefaultPrompts(db);
     await _insertDefaultTagDefinitions(db);
+    await _seedDefaultSmartFolders(db);
   }
 
   /// Upgrade databáze na novou verzi
@@ -483,6 +501,28 @@ class DatabaseHelper {
       await db.execute('CREATE INDEX idx_note_tags_note_id ON note_tags(note_id)');
       await db.execute('CREATE INDEX idx_note_tags_tag ON note_tags(tag)');
     }
+
+    if (oldVersion < 20) {
+      // Smart Folders pro Notes - PHASE 1: Tabulka a výchozí foldery
+      await db.execute('''
+        CREATE TABLE note_smart_folders (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          icon TEXT NOT NULL,
+          is_system INTEGER DEFAULT 0,
+          filter_rules TEXT NOT NULL,
+          display_order INTEGER NOT NULL,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        )
+      ''');
+
+      await db.execute('CREATE INDEX idx_smart_folders_display_order ON note_smart_folders(display_order)');
+      await db.execute('CREATE INDEX idx_smart_folders_system ON note_smart_folders(is_system)');
+
+      // Seedovat výchozí Smart Folders
+      await _seedDefaultSmartFolders(db);
+    }
   }
 
   /// Vložit výchozí AI nastavení
@@ -647,6 +687,70 @@ class DatabaseHelper {
       'color': '#ffaa00',
       'sort_order': 2,
       'enabled': 1,
+    });
+  }
+
+  /// Vložit výchozí Smart Folders pro Notes (PHASE 1)
+  ///
+  /// Seeduje 3 systémové foldery:
+  /// 1. All Notes - všechny poznámky (type=all)
+  /// 2. Recent - poslední týden (type=recent, recent_days=7)
+  /// 3. Favorites - poznámky s tagem "oblíbené" nebo "fav" (type=tags)
+  Future<void> _seedDefaultSmartFolders(Database db) async {
+    final now = DateTime.now().toIso8601String();
+
+    // 1. All Notes - systémový folder (zobrazí všechny poznámky)
+    await db.insert('note_smart_folders', {
+      'name': 'All Notes',
+      'icon': '📝',
+      'is_system': 1,
+      'filter_rules': jsonEncode({
+        'type': 'all',
+        'include_tags': [],
+        'exclude_tags': [],
+        'operator': 'and',
+        'recent_days': null,
+        'date_range': null,
+      }),
+      'display_order': 0,
+      'created_at': now,
+      'updated_at': now,
+    });
+
+    // 2. Recent - poslední týden
+    await db.insert('note_smart_folders', {
+      'name': 'Recent',
+      'icon': '🕐',
+      'is_system': 1,
+      'filter_rules': jsonEncode({
+        'type': 'recent',
+        'include_tags': [],
+        'exclude_tags': [],
+        'operator': 'and',
+        'recent_days': 7,
+        'date_range': null,
+      }),
+      'display_order': 1,
+      'created_at': now,
+      'updated_at': now,
+    });
+
+    // 3. Favorites - poznámky s tagem "oblíbené" nebo "fav"
+    await db.insert('note_smart_folders', {
+      'name': 'Favorites',
+      'icon': '⭐',
+      'is_system': 1,
+      'filter_rules': jsonEncode({
+        'type': 'tags',
+        'include_tags': ['oblíbené', 'fav'],
+        'exclude_tags': [],
+        'operator': 'or',  // OR = alespoň jeden tag
+        'recent_days': null,
+        'date_range': null,
+      }),
+      'display_order': 2,
+      'created_at': now,
+      'updated_at': now,
     });
   }
 
@@ -1725,5 +1829,53 @@ class DatabaseHelper {
     ''', ['${query.toLowerCase()}%', limit]);
 
     return results.map((row) => row['tag'] as String).toList();
+  }
+
+  // ==================== SMART FOLDERS CRUD (PHASE 1) ====================
+
+  /// Získat všechny Smart Folders (seřazené podle display_order)
+  Future<List<Map<String, dynamic>>> getAllSmartFolders() async {
+    final db = await database;
+    return await db.query('note_smart_folders', orderBy: 'display_order ASC');
+  }
+
+  /// Získat Smart Folder podle ID
+  Future<Map<String, dynamic>?> getSmartFolderById(int id) async {
+    final db = await database;
+    final results = await db.query(
+      'note_smart_folders',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+
+    return results.isNotEmpty ? results.first : null;
+  }
+
+  /// Vytvořit nový Smart Folder
+  Future<int> insertSmartFolder(Map<String, dynamic> folder) async {
+    final db = await database;
+    return await db.insert('note_smart_folders', folder);
+  }
+
+  /// Aktualizovat Smart Folder
+  Future<int> updateSmartFolder(int id, Map<String, dynamic> folder) async {
+    final db = await database;
+    return await db.update(
+      'note_smart_folders',
+      folder,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Smazat Smart Folder
+  Future<int> deleteSmartFolder(int id) async {
+    final db = await database;
+    return await db.delete(
+      'note_smart_folders',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 }
