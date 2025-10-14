@@ -64,3 +64,35 @@ class ToggleExpandNoteEvent extends NotesEvent {
   @override
   List<Object?> get props => [noteId];
 }
+
+// ==================== SMART FOLDER CRUD EVENTS (PHASE 3) ====================
+
+/// Event: Vytvořit nový Smart Folder
+class CreateSmartFolderEvent extends NotesEvent {
+  final SmartFolder folder;
+
+  const CreateSmartFolderEvent(this.folder);
+
+  @override
+  List<Object?> get props => [folder];
+}
+
+/// Event: Aktualizovat Smart Folder
+class UpdateSmartFolderEvent extends NotesEvent {
+  final SmartFolder folder;
+
+  const UpdateSmartFolderEvent(this.folder);
+
+  @override
+  List<Object?> get props => [folder];
+}
+
+/// Event: Smazat Smart Folder
+class DeleteSmartFolderEvent extends NotesEvent {
+  final int folderId;
+
+  const DeleteSmartFolderEvent(this.folderId);
+
+  @override
+  List<Object?> get props => [folderId];
+}

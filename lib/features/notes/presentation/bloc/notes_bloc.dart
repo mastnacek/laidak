@@ -22,6 +22,11 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<DeleteNoteEvent>(_onDeleteNote);
     on<ChangeSmartFolderEvent>(_onChangeSmartFolder); // PHASE 2
     on<ToggleExpandNoteEvent>(_onToggleExpandNote);
+
+    // Smart Folder CRUD (PHASE 3)
+    on<CreateSmartFolderEvent>(_onCreateSmartFolder);
+    on<UpdateSmartFolderEvent>(_onUpdateSmartFolder);
+    on<DeleteSmartFolderEvent>(_onDeleteSmartFolder);
   }
 
   /// Handler: Načíst všechny poznámky + Smart Folders
@@ -163,6 +168,93 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           : event.noteId;
 
       emit(currentState.copyWith(expandedNoteId: newExpandedId));
+    }
+  }
+
+  // ==================== SMART FOLDER CRUD HANDLERS (PHASE 3) ====================
+
+  /// Handler: Vytvořit nový Smart Folder
+  Future<void> _onCreateSmartFolder(
+    CreateSmartFolderEvent event,
+    Emitter<NotesState> emit,
+  ) async {
+    // Fail Fast: validace
+    if (event.folder.name.trim().isEmpty) {
+      emit(const NotesError('Název složky nesmí být prázdný'));
+      return;
+    }
+
+    try {
+      await _db.insertSmartFolder(event.folder.toMap());
+
+      // Reload notes + folders
+      add(const LoadNotesEvent());
+    } catch (e) {
+      emit(NotesError('Chyba při vytváření složky: $e'));
+    }
+  }
+
+  /// Handler: Aktualizovat Smart Folder
+  Future<void> _onUpdateSmartFolder(
+    UpdateSmartFolderEvent event,
+    Emitter<NotesState> emit,
+  ) async {
+    // Fail Fast: validace
+    if (event.folder.id == null) {
+      emit(const NotesError('Nelze aktualizovat složku bez ID'));
+      return;
+    }
+
+    if (event.folder.name.trim().isEmpty) {
+      emit(const NotesError('Název složky nesmí být prázdný'));
+      return;
+    }
+
+    try {
+      // Update updated_at timestamp
+      final updatedFolder = event.folder.copyWith(
+        updatedAt: DateTime.now(),
+      );
+
+      await _db.updateSmartFolder(updatedFolder.id!, updatedFolder.toMap());
+
+      // Reload notes + folders
+      add(const LoadNotesEvent());
+    } catch (e) {
+      emit(NotesError('Chyba při aktualizaci složky: $e'));
+    }
+  }
+
+  /// Handler: Smazat Smart Folder
+  Future<void> _onDeleteSmartFolder(
+    DeleteSmartFolderEvent event,
+    Emitter<NotesState> emit,
+  ) async {
+    // Fail Fast: validace
+    if (event.folderId <= 0) {
+      emit(NotesError('Neplatné ID složky: ${event.folderId}'));
+      return;
+    }
+
+    try {
+      // Pokud je mazaná složka aktuálně vybraná, přepni na All Notes
+      if (state is NotesLoaded) {
+        final currentState = state as NotesLoaded;
+        if (currentState.currentFolder?.id == event.folderId) {
+          final allNotesFolder = currentState.smartFolders.firstWhere(
+            (f) => f.isSystem && f.displayOrder == 0,
+            orElse: () => currentState.smartFolders.first,
+          );
+          emit(currentState.copyWith(currentFolder: allNotesFolder));
+        }
+      }
+
+      await _db.deleteSmartFolder(event.folderId);
+
+      // Reload notes + folders
+      add(const LoadNotesEvent());
+    } catch (e) {
+      emit(NotesError('Chyba při mazání složky: $e'));
     }
   }
 }
