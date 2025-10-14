@@ -833,92 +833,166 @@ class _DelimiterSelector extends StatelessWidget {
         color: theme.appColors.base2,
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Náhled: ',
-            style: TextStyle(
-              color: theme.appColors.base5,
-              fontSize: 12,
-            ),
+          // Řádek 1: Základní příklad (priority, datum, action)
+          Wrap(
+            spacing: 4,
+            children: [
+              Text(
+                'Náhled: ',
+                style: TextStyle(
+                  color: theme.appColors.base5,
+                  fontSize: 12,
+                ),
+              ),
+              Text(
+                tagDelimiterStart,
+                style: TextStyle(
+                  color: theme.appColors.cyan,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                'a',
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                '$tagDelimiterEnd ',
+                style: TextStyle(
+                  color: theme.appColors.cyan,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                tagDelimiterStart,
+                style: TextStyle(
+                  color: theme.appColors.yellow,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                'dnes',
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                '$tagDelimiterEnd ',
+                style: TextStyle(
+                  color: theme.appColors.yellow,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                tagDelimiterStart,
+                style: TextStyle(
+                  color: theme.appColors.magenta,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                'udelat',
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                tagDelimiterEnd,
+                style: TextStyle(
+                  color: theme.appColors.magenta,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
-          Text(
-            tagDelimiterStart,
-            style: TextStyle(
-              color: theme.appColors.cyan,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            'a',
-            style: TextStyle(
-              color: theme.appColors.fg,
-              fontSize: 14,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            '$tagDelimiterEnd ',
-            style: TextStyle(
-              color: theme.appColors.cyan,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            tagDelimiterStart,
-            style: TextStyle(
-              color: theme.appColors.yellow,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            'dnes',
-            style: TextStyle(
-              color: theme.appColors.fg,
-              fontSize: 14,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            '$tagDelimiterEnd ',
-            style: TextStyle(
-              color: theme.appColors.yellow,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            tagDelimiterStart,
-            style: TextStyle(
-              color: theme.appColors.magenta,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            'udelat',
-            style: TextStyle(
-              color: theme.appColors.fg,
-              fontSize: 14,
-              fontFamily: 'monospace',
-            ),
-          ),
-          Text(
-            tagDelimiterEnd,
-            style: TextStyle(
-              color: theme.appColors.magenta,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
-            ),
+          const SizedBox(height: 8),
+
+          // Řádek 2: DateTime příklad
+          Wrap(
+            spacing: 4,
+            children: [
+              Text(
+                'Čas: ',
+                style: TextStyle(
+                  color: theme.appColors.base5,
+                  fontSize: 12,
+                ),
+              ),
+              Text(
+                tagDelimiterStart,
+                style: TextStyle(
+                  color: theme.appColors.yellow,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                'dnes14:00',
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                '$tagDelimiterEnd ',
+                style: TextStyle(
+                  color: theme.appColors.yellow,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                tagDelimiterStart,
+                style: TextStyle(
+                  color: theme.appColors.yellow,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                'zítra9.30',
+                style: TextStyle(
+                  color: theme.appColors.fg,
+                  fontSize: 14,
+                  fontFamily: 'monospace',
+                ),
+              ),
+              Text(
+                tagDelimiterEnd,
+                style: TextStyle(
+                  color: theme.appColors.yellow,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
         ],
       ),
