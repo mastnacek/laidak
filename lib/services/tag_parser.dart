@@ -44,8 +44,12 @@ class TagParser {
       final tagValue = match.group(1)?.toLowerCase();
       if (tagValue == null) continue;
 
+      // Pro date tagy s časem: extrahovat jen date část pro TagService lookup
+      // Např: "dnes 15:30" → lookup "dnes", "zítra 9.30" → lookup "zítra"
+      final tagValueForLookup = tagValue.split(' ').first;
+
       // O(1) lookup z TagService cache
-      final definition = _tagService.getDefinition(tagValue);
+      final definition = _tagService.getDefinition(tagValueForLookup);
 
       if (definition != null && definition.enabled) {
         // Tag je definovaný v databázi a je povolen
