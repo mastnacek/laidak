@@ -247,10 +247,9 @@ class HighlightedTextEditingController extends TextEditingController {
     final lower = tagContent.toLowerCase();
 
     // Pro date tagy s časem: extrahovat jen date část pro TagService lookup
-    // Např: "dnes 15:30" → "dnes", "zítra 9.30" → "zítra"
-    // Poznámka: "dnes15:30" (bez mezery) se nebude hledat, ale to je OK -
-    // validní formát je s mezerou (viz TagParser podporuje oba, ale preferujeme s mezerou)
-    final tagValueForLookup = lower.split(' ').first;
+    // Např: "dnes 15:30" → "dnes", "zítra 9.30" → "zítra", "dnes15:30" → "dnes"
+    // Pattern: text před mezerou nebo před číslicí (pro podporu "dnes15:30")
+    final tagValueForLookup = lower.split(RegExp(r'[\s\d]')).first;
 
     // Pokusit se získat definici z TagService (s error handling)
     try {

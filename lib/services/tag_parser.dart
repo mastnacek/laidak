@@ -45,8 +45,9 @@ class TagParser {
       if (tagValue == null) continue;
 
       // Pro date tagy s časem: extrahovat jen date část pro TagService lookup
-      // Např: "dnes 15:30" → lookup "dnes", "zítra 9.30" → lookup "zítra"
-      final tagValueForLookup = tagValue.split(' ').first;
+      // Např: "dnes 15:30" → "dnes", "zítra 9.30" → "zítra", "dnes15:30" → "dnes"
+      // Pattern: text před mezerou nebo před číslicí (pro podporu "dnes15:30")
+      final tagValueForLookup = tagValue.split(RegExp(r'[\s\d]')).first;
 
       // O(1) lookup z TagService cache
       final definition = _tagService.getDefinition(tagValueForLookup);
