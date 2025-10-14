@@ -428,17 +428,86 @@ if (oldVersion < 21) {
 
 ## ✅ Checklist
 
-- [ ] Database verze 21 + migrace
+- [x] Database verze 21 + migrace ✅ (commit: 94eb116)
+- [x] Vytvořit nové modely (custom_notes_view, notes_view_config) ✅ (commit: 94eb116)
+- [x] DatabaseHelper - CRUD pro custom_notes_views ✅ (commit: 94eb116)
+- [x] SettingsState - rozšířit o notesConfig ✅ (commit: 94eb116)
+- [ ] SettingsCubit - přidat CRUD metody pro Notes Views ⏳ (in progress)
+- [ ] SettingsCubit - načítat notesConfig v loadSettings() ⏳ (in progress)
 - [ ] Smazat staré modely (smart_folder, filter_rules)
-- [ ] Vytvořit nové modely (custom_notes_view, notes_view_config)
-- [ ] SettingsCubit - rozšířit o notesConfig
-- [ ] DatabaseHelper - CRUD pro custom_notes_views
 - [ ] NotesBloc - zjednodušit (smazat CRUD eventy)
 - [ ] FoldersTabBar - renderovat z SettingsCubit
 - [ ] NotesTab - nový tab v Settings (kopie AgendaTab)
 - [ ] Smazat staré soubory (SmartFolderSettingsPage, SmartFolderFormSheet)
 - [ ] Remove "NOTES SLOŽKY" tab z settings_page.dart
 - [ ] Git commit + test
+
+---
+
+## 📊 Progress Log
+
+### 🚀 Session 1 (2025-10-14 - Claude Code)
+
+**Commit: `94eb116` - WIP: Smart Folders → Custom Notes Views refactoring (částečný)**
+
+✅ **Hotovo:**
+1. Database migrace verze 21
+   - Dropnuta `note_smart_folders` tabulka
+   - Vytvořena `custom_notes_views` (identická s `custom_agenda_views`)
+   - Přidány `show_all_notes`, `show_recent_notes` do `settings`
+
+2. Domain modely vytvořeny
+   - `lib/features/notes/domain/models/custom_notes_view.dart`
+   - `lib/features/notes/domain/models/notes_view_config.dart`
+
+3. DatabaseHelper CRUD metody
+   - `getAllCustomNotesViews()`
+   - `getEnabledCustomNotesViews()`
+   - `insertCustomNotesView()`
+   - `updateCustomNotesView()`
+   - `deleteCustomNotesView()`
+   - `toggleCustomNotesView()`
+   - `updateBuiltInNotesViewSettings()`
+   - Smazány staré Smart Folders CRUD metody
+
+4. SettingsState rozšířen
+   - Přidán `notesConfig: NotesViewConfig`
+   - Import `notes_view_config.dart`
+   - copyWith aktualizováno
+   - props rozšířeny
+
+⏳ **Zbývá (pro další session):**
+1. SettingsCubit - dokončit
+   - Přidat `_loadNotesConfig()` metodu
+   - Přidat `toggleBuiltInNotesView()` metodu
+   - Přidat `addCustomNotesView()`, `updateCustomNotesView()`, `deleteCustomNotesView()`, `toggleCustomNotesView()` metody
+   - Volat `notesConfig` v `loadSettings()`
+
+2. Smazat staré soubory
+   - `lib/features/notes/domain/models/smart_folder.dart`
+   - `lib/features/notes/domain/models/filter_rules.dart`
+   - `lib/features/notes/presentation/pages/smart_folder_settings_page.dart`
+   - `lib/features/notes/presentation/widgets/smart_folder_form_sheet.dart`
+
+3. NotesBloc zjednodušení
+   - Smazat `CreateSmartFolderEvent`, `UpdateSmartFolderEvent`, `DeleteSmartFolderEvent`
+   - Změnit `ChangeSmartFolderEvent` → `ChangeNotesViewModeEvent`
+   - Upravit `NotesState` (ViewMode místo SmartFolder objektu)
+
+4. FoldersTabBar refaktor
+   - Přepsat na `BlocBuilder<SettingsCubit>`
+   - Renderovat z `settingsState.notesConfig`
+
+5. NotesTab v Settings
+   - Vytvořit `lib/features/settings/presentation/pages/notes_tab.dart`
+   - Zkopírovat strukturu z `agenda_tab.dart`
+   - Přidat do `settings_page.dart` jako nový tab
+
+6. Finální cleanup + test
+   - Odstranit "NOTES SLOŽKY" tab ze `settings_page.dart`
+   - Commit + test kompilace
+
+**Token budget na konci session:** 73k/200k (doporučuji novou konverzaci)
 
 ---
 

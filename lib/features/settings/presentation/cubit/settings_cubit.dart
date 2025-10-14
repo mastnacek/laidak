@@ -9,6 +9,8 @@ import '../../../../core/theme/osaka_jade_theme.dart';
 import '../../../../core/theme/amoled_theme.dart';
 import '../../domain/models/agenda_view_config.dart';
 import '../../domain/models/custom_agenda_view.dart';
+import '../../../notes/domain/models/notes_view_config.dart';
+import '../../../notes/domain/models/custom_notes_view.dart';
 import 'settings_state.dart';
 
 /// Cubit pro správu nastavení aplikace (themes, preferences)
@@ -43,8 +45,11 @@ class SettingsCubit extends Cubit<SettingsState> {
 
       final theme = _getThemeDataById(themeId);
 
-      // Načíst agenda config ze SharedPreferences
+      // Načíst agenda config z databáze
       final agendaConfig = await _loadAgendaConfig();
+
+      // Načíst notes config z databáze
+      final notesConfig = await _loadNotesConfig();
 
       // Načíst AI settings z databáze
       final openRouterApiKey = settings['openrouter_api_key'] as String?;
@@ -60,6 +65,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         currentTheme: theme,
         hasSeenGestureHint: hasSeenGestureHint,
         agendaConfig: agendaConfig,
+        notesConfig: notesConfig,
         openRouterApiKey: openRouterApiKey,
         aiMotivationModel: aiMotivationModel,
         aiMotivationTemperature: aiMotivationTemperature,
@@ -303,6 +309,148 @@ class SettingsCubit extends Cubit<SettingsState> {
     AppLogger.info('✅ Custom view smazán: $id');
   }
 
+  // ========== NOTES VIEW CONFIG MANAGEMENT ==========
+
+  /// Zapnout/vypnout built-in notes view
+  Future<void> toggleBuiltInNotesView(String viewName, bool enabled) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace viewName
+    const validViews = ['all_notes', 'recent_notes'];
+    if (!validViews.contains(viewName)) {
+      AppLogger.error('❌ Neplatný název notes view: $viewName');
+      return;
+    }
+
+    final updated = switch (viewName) {
+      'all_notes' => currentState.notesConfig.copyWith(showAllNotes: enabled),
+      'recent_notes' => currentState.notesConfig.copyWith(showRecentNotes: enabled),
+      _ => currentState.notesConfig,
+    };
+
+    await _saveBuiltInNotesViews(updated);
+    emit(currentState.copyWith(notesConfig: updated));
+
+    AppLogger.info('✅ Built-in notes view "$viewName" nastaven na: $enabled');
+  }
+
+  /// Přidat custom notes view
+  Future<void> addCustomNotesView(CustomNotesView view) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (view.name.trim().isEmpty) {
+      AppLogger.error('❌ Název custom notes view nesmí být prázdný');
+      return;
+    }
+    if (view.tagFilter.trim().isEmpty) {
+      AppLogger.error('❌ Tag filter nesmí být prázdný');
+      return;
+    }
+
+    // ✅ Uložit do DB
+    await _db.insertCustomNotesView({
+      'id': view.id,
+      'name': view.name,
+      'tag_filter': view.tagFilter.toLowerCase(),
+      'emoji': view.emoji,
+      'enabled': 1,
+    });
+
+    // Update state
+    final updated = currentState.notesConfig.copyWith(
+      customViews: [...currentState.notesConfig.customViews, view],
+    );
+
+    emit(currentState.copyWith(notesConfig: updated));
+
+    AppLogger.info('✅ Custom notes view přidán: ${view.name}');
+  }
+
+  /// Aktualizovat custom notes view
+  Future<void> updateCustomNotesView(CustomNotesView view) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (view.name.trim().isEmpty || view.tagFilter.trim().isEmpty) {
+      AppLogger.error('❌ Název a tag filter nesmí být prázdné');
+      return;
+    }
+
+    // ✅ Uložit do DB
+    await _db.updateCustomNotesView(view.id, {
+      'name': view.name,
+      'tag_filter': view.tagFilter.toLowerCase(),
+      'emoji': view.emoji,
+    });
+
+    // Update state
+    final updated = currentState.notesConfig.copyWith(
+      customViews: currentState.notesConfig.customViews
+          .map((v) => v.id == view.id ? view : v)
+          .toList(),
+    );
+
+    emit(currentState.copyWith(notesConfig: updated));
+
+    AppLogger.info('✅ Custom notes view aktualizován: ${view.name}');
+  }
+
+  /// Zapnout/vypnout custom notes view
+  Future<void> toggleCustomNotesView(String id, bool enabled) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (id.trim().isEmpty) {
+      AppLogger.error('❌ ID custom notes view nesmí být prázdné');
+      return;
+    }
+
+    // ✅ Update v DB
+    await _db.toggleCustomNotesView(id, enabled);
+
+    // Update state
+    final updated = currentState.notesConfig.copyWith(
+      customViews: currentState.notesConfig.customViews
+          .map((v) => v.id == id ? v.copyWith(isEnabled: enabled) : v)
+          .toList(),
+    );
+
+    emit(currentState.copyWith(notesConfig: updated));
+
+    AppLogger.info('✅ Custom notes view "$id" nastaven na: $enabled');
+  }
+
+  /// Smazat custom notes view
+  Future<void> deleteCustomNotesView(String id) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    // ✅ Fail Fast: validace
+    if (id.trim().isEmpty) {
+      AppLogger.error('❌ ID custom notes view nesmí být prázdné');
+      return;
+    }
+
+    // ✅ Smazat z DB
+    await _db.deleteCustomNotesView(id);
+
+    // Update state
+    final updated = currentState.notesConfig.copyWith(
+      customViews: currentState.notesConfig.customViews
+          .where((v) => v.id != id)
+          .toList(),
+    );
+
+    emit(currentState.copyWith(notesConfig: updated));
+
+    AppLogger.info('✅ Custom notes view smazán: $id');
+  }
+
   // ========== PRIVATE HELPERS ==========
 
   /// Načíst AgendaViewConfig z DATABASE (ne SharedPrefs!)
@@ -369,6 +517,53 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> _saveAgendaConfig(AgendaViewConfig config) async {
     await _saveBuiltInViews(config);
     // Custom views se ukládají přes CRUD metody
+  }
+
+  /// Načíst NotesViewConfig z DATABASE
+  Future<NotesViewConfig> _loadNotesConfig() async {
+    try {
+      // Načíst built-in view settings ze settings table
+      final settings = await _db.getSettings();
+
+      final showAllNotes = (settings['show_all_notes'] as int? ?? 1) == 1;
+      final showRecentNotes = (settings['show_recent_notes'] as int? ?? 1) == 1;
+
+      // Načíst VŠECHNY custom notes views z custom_notes_views table (včetně disabled)
+      final customViewsMaps = await _db.getAllCustomNotesViews();
+
+      final customViews = customViewsMaps.map((map) {
+        return CustomNotesView(
+          id: map['id'] as String,
+          name: map['name'] as String,
+          tagFilter: map['tag_filter'] as String,
+          emoji: map['emoji'] as String? ?? '📁',
+          isEnabled: (map['enabled'] as int? ?? 1) == 1,
+        );
+      }).toList();
+
+      return NotesViewConfig(
+        showAllNotes: showAllNotes,
+        showRecentNotes: showRecentNotes,
+        customViews: customViews,
+      );
+    } catch (e) {
+      AppLogger.error('Chyba při načítání notes config: $e');
+      return NotesViewConfig.defaultConfig();
+    }
+  }
+
+  /// Uložit built-in notes views do DATABASE
+  Future<void> _saveBuiltInNotesViews(NotesViewConfig config) async {
+    try {
+      // Update built-in views v settings table
+      await _db.updateBuiltInNotesViewSettings(
+        showAllNotes: config.showAllNotes,
+        showRecentNotes: config.showRecentNotes,
+      );
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání built-in notes views: $e');
+      rethrow;
+    }
   }
 
   // ========== AI SETTINGS MANAGEMENT ==========
