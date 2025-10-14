@@ -233,7 +233,10 @@ class TodoCard extends StatelessWidget {
                         if (todo.dueDate != null) ...[
                           () {
                             final dateText = TagParser.formatDate(todo.dueDate!);
-                            final dateDef = TagService().getDefinition(dateText);
+                            // Extrahovat jen date část (bez času) pro TagService lookup
+                            // Např: "dnes 13:00" → "dnes", "zítra 9:30" → "zítra"
+                            final datePart = dateText.split(' ').first;
+                            final dateDef = TagService().getDefinition(datePart);
                             return TodoTagChip(
                               text: '📅 $dateText',
                               color: dateDef?.color != null
