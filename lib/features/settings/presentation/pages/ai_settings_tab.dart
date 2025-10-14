@@ -120,6 +120,12 @@ class _AISettingsTabState extends State<AISettingsTab> {
         return priceA.compareTo(priceB);
       });
 
+      // ✅ Fail Fast: Check mounted PŘED setState
+      if (!mounted) {
+        client.close();
+        return;
+      }
+
       setState(() {
         _availableModels = models;
         _isLoadingModels = false;
@@ -127,6 +133,9 @@ class _AISettingsTabState extends State<AISettingsTab> {
 
       client.close();
     } catch (e) {
+      // ✅ Fail Fast: Check mounted PŘED setState
+      if (!mounted) return;
+
       setState(() => _isLoadingModels = false);
 
       // Fallback na doporučené modely jako OpenRouterModel objekty (bez pricing)
