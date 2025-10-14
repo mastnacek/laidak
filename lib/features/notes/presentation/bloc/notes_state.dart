@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../../models/note.dart';
-import '../../domain/enums/folder_mode.dart';
+import '../../domain/models/smart_folder.dart';
+import '../../domain/models/filter_rules.dart';
 
 /// Base state pro NotesBloc
 abstract class NotesState extends Equatable {
@@ -23,41 +24,64 @@ class NotesLoading extends NotesState {
 /// State: Poznámky načteny
 class NotesLoaded extends NotesState {
   final List<Note> notes; // Všechny poznámky (unfiltered)
-  final FolderMode currentFolder; // Aktuální folder (MILESTONE 4)
+  final List<SmartFolder> smartFolders; // Všechny Smart Folders
+  final SmartFolder? currentFolder; // Aktuální folder (null = All Notes)
   final int? expandedNoteId; // ID rozbalené poznámky (pro expand/collapse)
 
   const NotesLoaded({
     required this.notes,
-    this.currentFolder = FolderMode.all,
+    required this.smartFolders,
+    this.currentFolder,
     this.expandedNoteId,
   });
 
   @override
-  List<Object?> get props => [notes, currentFolder, expandedNoteId];
+  List<Object?> get props => [notes, smartFolders, currentFolder, expandedNoteId];
 
-  /// Computed: Filtrované poznámky podle currentFolder
+  /// Computed: Filtrované poznámky podle currentFolder.filterRules
   List<Note> get displayedNotes {
-    switch (currentFolder) {
-      case FolderMode.all:
+    // Pokud není vybraný folder, zobraz všechny
+    if (currentFolder == null) return notes;
+
+    // Aplikuj FilterRules
+    return _applyFilterRules(notes, currentFolder!.filterRules);
+  }
+
+  /// Aplikovat FilterRules na seznam poznámek
+  List<Note> _applyFilterRules(List<Note> notes, FilterRules rules) {
+    switch (rules.type) {
+      case FilterType.all:
         return notes;
-      case FolderMode.recent:
-        // Poslední týden
-        final weekAgo = DateTime.now().subtract(const Duration(days: 7));
-        return notes.where((note) => note.createdAt.isAfter(weekAgo)).toList();
-      case FolderMode.favorites:
-        // TODO: Implementovat favorites v MILESTONE 4.1
-        return [];
+
+      case FilterType.recent:
+        if (rules.recentDays == null) return notes;
+        final cutoff = DateTime.now().subtract(Duration(days: rules.recentDays!));
+        return notes.where((note) => note.createdAt.isAfter(cutoff)).toList();
+
+      case FilterType.tags:
+        // TODO: Implementovat tags filtering v MILESTONE 3 (Note.tags field ještě neexistuje)
+        // Zatím vrátit všechny poznámky
+        return notes;
+
+      case FilterType.dateRange:
+        if (rules.dateRange == null) return notes;
+        return notes.where((note) {
+          return note.createdAt.isAfter(rules.dateRange!.from) &&
+              note.createdAt.isBefore(rules.dateRange!.to);
+        }).toList();
     }
   }
 
   /// Copy with pro immutable updates
   NotesLoaded copyWith({
     List<Note>? notes,
-    FolderMode? currentFolder,
+    List<SmartFolder>? smartFolders,
+    SmartFolder? currentFolder,
     int? expandedNoteId,
   }) {
     return NotesLoaded(
       notes: notes ?? this.notes,
+      smartFolders: smartFolders ?? this.smartFolders,
       currentFolder: currentFolder ?? this.currentFolder,
       expandedNoteId: expandedNoteId,
     );

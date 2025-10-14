@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../../../models/note.dart';
-import '../../domain/enums/folder_mode.dart';
+import '../../domain/models/smart_folder.dart';
 
 /// Base event pro NotesBloc
 abstract class NotesEvent extends Equatable {
@@ -10,7 +10,7 @@ abstract class NotesEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event: Načíst všechny poznámky
+/// Event: Načíst všechny poznámky + Smart Folders
 class LoadNotesEvent extends NotesEvent {
   const LoadNotesEvent();
 }
@@ -45,14 +45,14 @@ class DeleteNoteEvent extends NotesEvent {
   List<Object?> get props => [id];
 }
 
-/// Event: Změnit folder (MILESTONE 4)
-class ChangeFolderEvent extends NotesEvent {
-  final FolderMode mode;
+/// Event: Změnit Smart Folder (PHASE 2)
+class ChangeSmartFolderEvent extends NotesEvent {
+  final SmartFolder? folder; // null = All Notes
 
-  const ChangeFolderEvent(this.mode);
+  const ChangeSmartFolderEvent(this.folder);
 
   @override
-  List<Object?> get props => [mode];
+  List<Object?> get props => [folder];
 }
 
 /// Event: Toggle expand poznámky (zobrazit celý obsah)

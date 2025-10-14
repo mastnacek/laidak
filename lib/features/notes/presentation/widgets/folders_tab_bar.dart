@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../domain/enums/folder_mode.dart';
+import '../../domain/models/smart_folder.dart';
 import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
 import '../bloc/notes_state.dart';
 
-/// FoldersTabBar - Horizontal scroll tabs pro Notes folders (MILESTONE 4)
+/// FoldersTabBar - Horizontal scroll tabs pro Notes Smart Folders (PHASE 2)
 ///
-/// Inspired by ViewBar (TODO), but simplified:
-/// - Pouze 3 basic folders (All, Recent, Favorites)
-/// - BEZ custom folders (zatím)
+/// Zobrazuje všechny Smart Folders z databáze (default + custom):
+/// - All Notes (📝)
+/// - Recent (🕐)
+/// - Favorites (⭐)
+/// - Custom folders (phase 3+)
 /// - Height: 56dp
 /// - Icon size: 20dp (emoji)
 /// - Touch target: 44x44dp
@@ -41,22 +43,26 @@ class FoldersTabBar extends StatelessWidget {
               Expanded(
                 child: BlocBuilder<NotesBloc, NotesState>(
                   builder: (context, notesState) {
-                    final currentFolder = notesState is NotesLoaded
-                        ? notesState.currentFolder
-                        : FolderMode.all;
+                    // Načíst SmartFolders a currentFolder ze state
+                    if (notesState is! NotesLoaded) {
+                      return const SizedBox.shrink();
+                    }
+
+                    final smartFolders = notesState.smartFolders;
+                    final currentFolder = notesState.currentFolder;
 
                     return SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
-                        children: FolderMode.values.map((folder) {
-                          final isSelected = currentFolder == folder;
+                        children: smartFolders.map((folder) {
+                          final isSelected = currentFolder?.id == folder.id;
 
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: InkWell(
                               onTap: () {
-                                _handleFolderTap(context, folder, isSelected);
+                                _handleFolderTap(context, folder, isSelected, smartFolders);
                               },
                               borderRadius: BorderRadius.circular(22),
                               child: Container(
@@ -93,14 +99,22 @@ class FoldersTabBar extends StatelessWidget {
 
   /// Handle tap na folder item
   void _handleFolderTap(
-      BuildContext context, FolderMode folder, bool isSelected) {
+    BuildContext context,
+    SmartFolder folder,
+    bool isSelected,
+    List<SmartFolder> allFolders,
+  ) {
     final bloc = context.read<NotesBloc>();
 
-    // Toggle behavior: Tap na vybraný folder → vrátit na All
-    if (isSelected && folder != FolderMode.all) {
-      bloc.add(const ChangeFolderEvent(FolderMode.all));
+    // Toggle behavior: Tap na vybraný folder → vrátit na All Notes (první systémový folder)
+    if (isSelected && folder.displayOrder != 0) {
+      final allNotesFolder = allFolders.firstWhere(
+        (f) => f.isSystem && f.displayOrder == 0,
+        orElse: () => allFolders.first,
+      );
+      bloc.add(ChangeSmartFolderEvent(allNotesFolder));
     } else {
-      bloc.add(ChangeFolderEvent(folder));
+      bloc.add(ChangeSmartFolderEvent(folder));
     }
   }
 }

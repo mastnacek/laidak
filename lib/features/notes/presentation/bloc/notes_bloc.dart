@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/database_helper.dart';
 import '../../../../models/note.dart';
+import '../../domain/models/smart_folder.dart';
 import 'notes_event.dart';
 import 'notes_state.dart';
 
@@ -9,7 +10,7 @@ import 'notes_state.dart';
 /// Zodpovědnosti:
 /// - Načítání notes z databáze
 /// - Vytváření, aktualizace, mazání notes
-/// - MILESTONE 1: Základní CRUD operace
+/// - Smart Folders - filtrování podle FilterRules (PHASE 2)
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
   final DatabaseHelper _db;
 
@@ -19,11 +20,11 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     on<CreateNoteEvent>(_onCreateNote);
     on<UpdateNoteEvent>(_onUpdateNote);
     on<DeleteNoteEvent>(_onDeleteNote);
-    on<ChangeFolderEvent>(_onChangeFolder); // MILESTONE 4
+    on<ChangeSmartFolderEvent>(_onChangeSmartFolder); // PHASE 2
     on<ToggleExpandNoteEvent>(_onToggleExpandNote);
   }
 
-  /// Handler: Načíst všechny poznámky
+  /// Handler: Načíst všechny poznámky + Smart Folders
   Future<void> _onLoadNotes(
     LoadNotesEvent event,
     Emitter<NotesState> emit,
@@ -31,10 +32,25 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     emit(const NotesLoading());
 
     try {
+      // Načíst poznámky
       final notesData = await _db.getAllNotes();
       final notes = notesData.map((data) => Note.fromMap(data)).toList();
 
-      emit(NotesLoaded(notes: notes));
+      // Načíst Smart Folders
+      final foldersData = await _db.getAllSmartFolders();
+      final smartFolders = foldersData.map((data) => SmartFolder.fromMap(data)).toList();
+
+      // Najít default "All Notes" folder (is_system=1, display_order=0)
+      final defaultFolder = smartFolders.firstWhere(
+        (folder) => folder.isSystem && folder.displayOrder == 0,
+        orElse: () => smartFolders.first, // Fallback na první folder
+      );
+
+      emit(NotesLoaded(
+        notes: notes,
+        smartFolders: smartFolders,
+        currentFolder: defaultFolder,
+      ));
     } catch (e) {
       emit(NotesError('Chyba při načítání poznámek: $e'));
     }
@@ -119,16 +135,16 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
     }
   }
 
-  /// Handler: Změnit folder (MILESTONE 4)
-  Future<void> _onChangeFolder(
-    ChangeFolderEvent event,
+  /// Handler: Změnit Smart Folder (PHASE 2)
+  void _onChangeSmartFolder(
+    ChangeSmartFolderEvent event,
     Emitter<NotesState> emit,
-  ) async {
+  ) {
     // Pouze změnit currentFolder, notes zůstávají stejné
-    // Filtering se dělá v NotesState.displayedNotes
+    // Filtering se dělá v NotesState.displayedNotes pomocí FilterRules
     if (state is NotesLoaded) {
       final currentState = state as NotesLoaded;
-      emit(currentState.copyWith(currentFolder: event.mode));
+      emit(currentState.copyWith(currentFolder: event.folder));
     }
   }
 
