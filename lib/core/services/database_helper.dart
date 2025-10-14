@@ -523,8 +523,7 @@ class DatabaseHelper {
       await db.execute('CREATE INDEX idx_smart_folders_display_order ON note_smart_folders(display_order)');
       await db.execute('CREATE INDEX idx_smart_folders_system ON note_smart_folders(is_system)');
 
-      // Seedovat výchozí Smart Folders
-      await _seedDefaultSmartFolders(db);
+      // NOTE: _seedDefaultSmartFolders již není potřeba - migrace v21 nahrazuje Smart Folders
     }
 
     if (oldVersion < 21) {
