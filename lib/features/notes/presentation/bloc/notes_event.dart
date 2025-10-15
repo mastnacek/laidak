@@ -18,7 +18,16 @@ abstract class NotesEvent extends Equatable {
 
 /// Event: Načíst všechny poznámky
 class LoadNotesEvent extends NotesEvent {
-  const LoadNotesEvent();
+  final String tagDelimiterStart;
+  final String tagDelimiterEnd;
+
+  const LoadNotesEvent({
+    this.tagDelimiterStart = '*',
+    this.tagDelimiterEnd = '*',
+  });
+
+  @override
+  List<Object?> get props => [tagDelimiterStart, tagDelimiterEnd];
 }
 
 /// Event: Vytvořit novou poznámku

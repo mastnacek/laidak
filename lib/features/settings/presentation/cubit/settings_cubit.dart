@@ -32,10 +32,12 @@ class SettingsCubit extends Cubit<SettingsState> {
     emit(const SettingsLoading());
 
     try {
-      // Načíst theme + onboarding z databáze
+      // Načíst theme + onboarding + tag delimiters z databáze
       final settings = await _db.getSettings();
       final themeId = settings['selected_theme'] as String? ?? 'doom_one';
       final hasSeenGestureHint = (settings['has_seen_gesture_hint'] as int? ?? 0) == 1;
+      final tagDelimiterStart = settings['tag_delimiter_start'] as String? ?? '*';
+      final tagDelimiterEnd = settings['tag_delimiter_end'] as String? ?? '*';
 
       // ✅ Fail Fast: validace themeId
       if (!_isValidThemeId(themeId)) {
@@ -66,6 +68,8 @@ class SettingsCubit extends Cubit<SettingsState> {
         hasSeenGestureHint: hasSeenGestureHint,
         agendaConfig: agendaConfig,
         notesConfig: notesConfig,
+        tagDelimiterStart: tagDelimiterStart,
+        tagDelimiterEnd: tagDelimiterEnd,
         openRouterApiKey: openRouterApiKey,
         aiMotivationModel: aiMotivationModel,
         aiMotivationTemperature: aiMotivationTemperature,

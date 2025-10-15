@@ -38,6 +38,8 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       emit(NotesLoaded(
         notes: notes,
         currentView: ViewMode.allNotes, // Default view
+        tagDelimiterStart: event.tagDelimiterStart,
+        tagDelimiterEnd: event.tagDelimiterEnd,
       ));
     } catch (e) {
       emit(NotesError('Chyba při načítání poznámek: $e'));

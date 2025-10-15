@@ -83,8 +83,9 @@ void main() async {
           )..add(const LoadTodosEvent()), // Automaticky načíst todos
         ),
         // NotesBloc pro notes management
+        // POZNÁMKA: LoadNotesEvent bude dispatchován až po načtení SettingsCubit v TodoApp
         BlocProvider(
-          create: (_) => NotesBloc(db)..add(const LoadNotesEvent()), // Automaticky načíst notes
+          create: (_) => NotesBloc(db),
         ),
         // MotivationCubit pro AI motivaci
         BlocProvider(
@@ -110,6 +111,7 @@ class TodoApp extends StatefulWidget {
 class _TodoAppState extends State<TodoApp> {
   late final ClipboardMonitorService _clipboardMonitor;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  bool _hasDispatchedLoadNotes = false;
 
   @override
   void initState() {
@@ -129,6 +131,24 @@ class _TodoAppState extends State<TodoApp> {
     // Spustit monitoring
     _clipboardMonitor.start();
     AppLogger.info('✅ ClipboardMonitor started');
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Dispatch LoadNotesEvent pouze jednou po načtení SettingsCubit
+    if (!_hasDispatchedLoadNotes) {
+      final settingsState = context.read<SettingsCubit>().state;
+      if (settingsState is SettingsLoaded) {
+        context.read<NotesBloc>().add(LoadNotesEvent(
+          tagDelimiterStart: settingsState.tagDelimiterStart,
+          tagDelimiterEnd: settingsState.tagDelimiterEnd,
+        ));
+        _hasDispatchedLoadNotes = true;
+        AppLogger.info('✅ LoadNotesEvent dispatched with delimiters: ${settingsState.tagDelimiterStart}...${settingsState.tagDelimiterEnd}');
+      }
+    }
   }
 
   @override

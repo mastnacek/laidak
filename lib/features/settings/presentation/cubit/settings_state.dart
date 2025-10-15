@@ -37,6 +37,13 @@ final class SettingsLoaded extends SettingsState {
   /// Konfigurace Notes Views (built-in + custom views)
   final NotesViewConfig notesConfig;
 
+  // --- Tag Delimiters ---
+  /// Počáteční oddělovač tagů (např. '*', '#', '@')
+  final String tagDelimiterStart;
+
+  /// Koncový oddělovač tagů (např. '*', '#', '@')
+  final String tagDelimiterEnd;
+
   // --- AI Settings ---
   /// OpenRouter API klíč
   final String? openRouterApiKey;
@@ -65,6 +72,8 @@ final class SettingsLoaded extends SettingsState {
     this.hasSeenGestureHint = false,
     AgendaViewConfig? agendaConfig,
     NotesViewConfig? notesConfig,
+    this.tagDelimiterStart = '*',
+    this.tagDelimiterEnd = '*',
     this.openRouterApiKey,
     this.aiMotivationModel = 'mistralai/mistral-medium',
     this.aiMotivationTemperature = 0.9,
@@ -82,6 +91,8 @@ final class SettingsLoaded extends SettingsState {
     bool? hasSeenGestureHint,
     AgendaViewConfig? agendaConfig,
     NotesViewConfig? notesConfig,
+    String? tagDelimiterStart,
+    String? tagDelimiterEnd,
     String? openRouterApiKey,
     String? aiMotivationModel,
     double? aiMotivationTemperature,
@@ -96,6 +107,8 @@ final class SettingsLoaded extends SettingsState {
       hasSeenGestureHint: hasSeenGestureHint ?? this.hasSeenGestureHint,
       agendaConfig: agendaConfig ?? this.agendaConfig,
       notesConfig: notesConfig ?? this.notesConfig,
+      tagDelimiterStart: tagDelimiterStart ?? this.tagDelimiterStart,
+      tagDelimiterEnd: tagDelimiterEnd ?? this.tagDelimiterEnd,
       openRouterApiKey: openRouterApiKey ?? this.openRouterApiKey,
       aiMotivationModel: aiMotivationModel ?? this.aiMotivationModel,
       aiMotivationTemperature: aiMotivationTemperature ?? this.aiMotivationTemperature,
@@ -113,6 +126,8 @@ final class SettingsLoaded extends SettingsState {
         hasSeenGestureHint,
         agendaConfig,
         notesConfig,
+        tagDelimiterStart,
+        tagDelimiterEnd,
         openRouterApiKey,
         aiMotivationModel,
         aiMotivationTemperature,

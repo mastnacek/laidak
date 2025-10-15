@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../settings/presentation/cubit/settings_cubit.dart';
+import '../../../settings/presentation/cubit/settings_state.dart';
 import '../bloc/notes_bloc.dart';
 import '../bloc/notes_event.dart';
 import '../bloc/notes_state.dart';
@@ -85,7 +87,19 @@ class _NotesListPageState extends State<NotesListPage> {
                         const SizedBox(height: 24),
                         ElevatedButton.icon(
                           onPressed: () {
-                            context.read<NotesBloc>().add(const LoadNotesEvent());
+                            // Získat delimiters z SettingsCubit
+                            final settingsState = context.read<SettingsCubit>().state;
+                            final delimiters = settingsState is SettingsLoaded
+                                ? (
+                                    start: settingsState.tagDelimiterStart,
+                                    end: settingsState.tagDelimiterEnd,
+                                  )
+                                : (start: '*', end: '*'); // Fallback
+
+                            context.read<NotesBloc>().add(LoadNotesEvent(
+                              tagDelimiterStart: delimiters.start,
+                              tagDelimiterEnd: delimiters.end,
+                            ));
                           },
                           icon: const Icon(Icons.refresh),
                           label: const Text('Zkusit znovu'),

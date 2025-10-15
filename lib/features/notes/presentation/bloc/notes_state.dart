@@ -28,16 +28,22 @@ class NotesLoaded extends NotesState {
   final String? customViewTagFilter; // Tag filter pro custom view (např. "projekt")
   final int? expandedNoteId; // ID rozbalené poznámky (pro expand/collapse)
 
+  // Tag delimiters (ze settings)
+  final String tagDelimiterStart;
+  final String tagDelimiterEnd;
+
   const NotesLoaded({
     required this.notes,
     this.currentView = ViewMode.allNotes,
     this.customViewId,
     this.customViewTagFilter,
     this.expandedNoteId,
+    this.tagDelimiterStart = '*',
+    this.tagDelimiterEnd = '*',
   });
 
   @override
-  List<Object?> get props => [notes, currentView, customViewId, customViewTagFilter, expandedNoteId];
+  List<Object?> get props => [notes, currentView, customViewId, customViewTagFilter, expandedNoteId, tagDelimiterStart, tagDelimiterEnd];
 
   /// Computed: Filtrované poznámky podle currentView
   List<Note> get displayedNotes {
@@ -64,11 +70,12 @@ class NotesLoaded extends NotesState {
             .toList();
 
         // Filtruj poznámky které obsahují JAKÝKOLIV z tagů (OR logika)
+        // Použij uživatelské delimitery místo hardcoded '*'
         return notes.where((note) {
           final noteContent = note.content.toLowerCase();
           // Poznámka projde filtrem pokud obsahuje alespoň jeden z tagů
           return tags.any((tag) {
-            final tagPattern = '*$tag*';
+            final tagPattern = '$tagDelimiterStart$tag$tagDelimiterEnd';
             return noteContent.contains(tagPattern);
           });
         }).toList();
@@ -82,6 +89,8 @@ class NotesLoaded extends NotesState {
     String? customViewId,
     String? customViewTagFilter,
     int? expandedNoteId,
+    String? tagDelimiterStart,
+    String? tagDelimiterEnd,
   }) {
     return NotesLoaded(
       notes: notes ?? this.notes,
@@ -89,6 +98,8 @@ class NotesLoaded extends NotesState {
       customViewId: customViewId ?? this.customViewId,
       customViewTagFilter: customViewTagFilter ?? this.customViewTagFilter,
       expandedNoteId: expandedNoteId,
+      tagDelimiterStart: tagDelimiterStart ?? this.tagDelimiterStart,
+      tagDelimiterEnd: tagDelimiterEnd ?? this.tagDelimiterEnd,
     );
   }
 }
