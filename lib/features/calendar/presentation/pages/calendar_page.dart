@@ -378,26 +378,26 @@ class _CalendarPageState extends State<CalendarPage> {
 
   /// Navigovat na TodoListPage s předvyplněným textem
   void _navigateToTodoListWithTag(BuildContext context, String dateTag) {
-    // 1. Najít MainPageState a získat PageController
+    // 1. KRITICKÉ: Získat BLoC referenci PŘED navigací
+    // Context může být disposed během animace!
+    final todoListBloc = context.read<TodoListBloc>();
+
+    // 2. Najít MainPageState a získat PageController
     final mainPageState = context.findAncestorStateOfType<MainPageState>();
     if (mainPageState != null) {
-      // 2. Přepnout na TodoListPage (index 1)
+      // 3. Přepnout na TodoListPage (index 1)
       final animationFuture = mainPageState.pageController.animateToPage(
         1,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
 
-      // 3. KRITICKÉ: Počkat až se dokončí animace pomocí Future.then
-      // místo Future.delayed - eliminuje race condition
+      // 4. Počkat až se dokončí animace a odeslat event
+      // Použijeme uloženou BLoC referenci (ne context.read!)
       animationFuture.then((_) {
-        // Použít addPostFrameCallback pro jistotu, že widget tree je ready
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (context.mounted) {
-            context.read<TodoListBloc>().add(
-                  PrepopulateInputEvent(text: dateTag),
-                );
-          }
+          // Nepoužíváme context.mounted check - máme přímou referenci
+          todoListBloc.add(PrepopulateInputEvent(text: dateTag));
         });
       });
     }
