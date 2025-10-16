@@ -145,6 +145,9 @@ class _InputBarState extends State<InputBar> {
       listener: (context, state) {
         // Reagovat na předvyplněný text z kalendáře
         if (state is TodoListLoaded && state.prepopulatedText != null) {
+          // KRITICKÉ: Zkontrolovat, zda je widget stále mounted
+          if (!mounted) return;
+
           // Nastavit text a focus
           _controller.text = state.prepopulatedText!;
           _controller.selection = TextSelection.fromPosition(
@@ -155,13 +158,15 @@ class _InputBarState extends State<InputBar> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
               _focusNode.requestFocus();
+
+              // Vyčistit prepopulated text ve state POUZE pokud je widget stále mounted
+              if (mounted) {
+                context.read<TodoListBloc>().add(
+                      const ClearPrepopulatedTextEvent(),
+                    );
+              }
             }
           });
-
-          // Vyčistit prepopulated text ve state
-          context.read<TodoListBloc>().add(
-                const ClearPrepopulatedTextEvent(),
-              );
         }
       },
       child: Semantics(

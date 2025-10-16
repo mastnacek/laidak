@@ -360,6 +360,7 @@ class _CalendarPageState extends State<CalendarPage> {
     final selectedDateOnly = DateTime(date.year, date.month, date.day);
 
     // Použít sémantické tagy kde to dává smysl
+    // DŮLEŽITÉ: Mezera JE MIMO tag, aby uživatel mohl hned psát text úkolu
     if (selectedDateOnly == today) {
       return '${startDelim}dnes$endDelim ';
     } else if (selectedDateOnly == tomorrow) {
