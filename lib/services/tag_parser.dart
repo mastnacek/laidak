@@ -104,7 +104,7 @@ class TagParser {
   /// Parsovat datum tag a převést na DateTime
   ///
   /// Podporované formáty:
-  /// - dnes, zítra, zatyden, zamesic, zarok
+  /// - dnes, zítra, pozítří, zatyden, zamesic, zarok
   /// - dnes 14:00, zítra 14:30 (PREFEROVÁNO: s mezerou a dvojtečkou)
   /// - dnes 14.30, zítra 9.45 (s mezerou a tečkou místo dvojtečky)
   /// - dnes14:00, zítra14.30 (backward compatibility: bez mezery)
@@ -168,6 +168,11 @@ class TagParser {
       case 'zitra':
         baseDate = DateTime(now.year, now.month, now.day)
             .add(const Duration(days: 1));
+        break;
+
+      case 'pozitri':
+        baseDate = DateTime(now.year, now.month, now.day)
+            .add(const Duration(days: 2));
         break;
 
       case 'zatyden':
@@ -234,11 +239,13 @@ class TagParser {
   /// Vrací:
   /// - "dnes" nebo "dnes 14:00" (pokud má čas)
   /// - "zítra" nebo "zítra 9:30" (pokud má čas)
+  /// - "pozítří" nebo "pozítří 16:00" (pokud má čas)
   /// - "14.10.2025" nebo "14.10.2025 16:45" (pokud má čas)
   static String formatDate(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tomorrow = today.add(const Duration(days: 1));
+    final dayAfterTomorrow = today.add(const Duration(days: 2));
     final dateOnly = DateTime(date.year, date.month, date.day);
 
     // Zkontrolovat, zda datum má čas (ne 00:00)
@@ -249,6 +256,8 @@ class TagParser {
       return 'dnes$timeStr';
     } else if (dateOnly == tomorrow) {
       return 'zítra$timeStr';
+    } else if (dateOnly == dayAfterTomorrow) {
+      return 'pozítří$timeStr';
     } else {
       return '${DateFormat('d.M.yyyy').format(date)}$timeStr';
     }
