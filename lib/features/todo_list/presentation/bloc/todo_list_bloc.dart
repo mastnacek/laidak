@@ -3,6 +3,7 @@ import '../../domain/entities/todo.dart';
 import '../../domain/repositories/todo_repository.dart';
 import '../../domain/enums/view_mode.dart';
 import '../../domain/enums/sort_mode.dart';
+import '../../domain/enums/completion_filter.dart';
 import '../../../ai_brief/domain/repositories/ai_brief_repository.dart';
 import '../../../ai_brief/domain/entities/brief_response.dart';
 import '../../../ai_brief/domain/entities/brief_config.dart';
@@ -85,9 +86,9 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     final aiBriefData = previousState is TodoListLoaded
         ? previousState.aiBriefData
         : null;
-    final showCompleted = previousState is TodoListLoaded
-        ? previousState.showCompleted
-        : false;
+    final completionFilter = previousState is TodoListLoaded
+        ? previousState.completionFilter
+        : CompletionFilter.incomplete; // Výchozí: jen nehotové
 
     emit(const TodoListLoading());
 
@@ -106,7 +107,7 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
         sortDirection: sortDirection, // Zachovat sort direction
         currentCustomView: currentCustomView, // Zachovat custom view
         aiBriefData: aiBriefData, // ✅ Zachovat Brief data
-        showCompleted: showCompleted, // Zachovat showCompleted flag
+        completionFilter: completionFilter, // Zachovat completion filter
         briefConfig: briefConfig, // Načíst uložený config
       ));
     } catch (e) {
@@ -213,7 +214,8 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     }
   }
 
-  /// Handler: Přepnout zobrazení hotových úkolů
+  /// Handler: Přepnout zobrazení hotových úkolů (cycle mezi 3 stavy)
+  /// incomplete → completed → all → incomplete
   Future<void> _onToggleShowCompleted(
     ToggleShowCompletedEvent event,
     Emitter<TodoListState> emit,
@@ -223,9 +225,9 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     // Pouze pokud jsme ve stavu Loaded
     if (currentState is! TodoListLoaded) return;
 
-    // Toggle showCompleted flag
+    // Cycle na další stav
     emit(currentState.copyWith(
-      showCompleted: !currentState.showCompleted,
+      completionFilter: currentState.completionFilter.next,
     ));
   }
 

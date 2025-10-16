@@ -4,6 +4,7 @@ import '../../../../core/theme/theme_colors.dart';
 import '../../../settings/presentation/cubit/settings_cubit.dart';
 import '../../../settings/presentation/cubit/settings_state.dart';
 import '../../domain/enums/view_mode.dart';
+import '../../domain/enums/completion_filter.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
@@ -246,11 +247,15 @@ class _TodoListPageState extends State<TodoListPage> {
     final displayedTodos = state.displayedTodos;
 
     if (displayedTodos.isEmpty) {
+      final emptyMessage = switch (state.completionFilter) {
+        CompletionFilter.completed => 'Žádné hotové úkoly.',
+        CompletionFilter.incomplete => 'Zatím žádné úkoly.\nPřidej první úkol!',
+        CompletionFilter.all => 'Zatím žádné úkoly.',
+      };
+
       return Center(
         child: Text(
-          state.showCompleted
-              ? 'Žádné hotové úkoly.'
-              : 'Zatím žádné úkoly.\nPřidej první úkol!',
+          emptyMessage,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 16,

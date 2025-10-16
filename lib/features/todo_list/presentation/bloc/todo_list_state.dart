@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/todo.dart';
 import '../../domain/enums/view_mode.dart';
 import '../../domain/enums/sort_mode.dart';
+import '../../domain/enums/completion_filter.dart';
 import '../../domain/extensions/todo_filtering.dart';
 import '../../domain/models/brief_section_with_todos.dart';
 import '../../../../features/settings/domain/models/custom_agenda_view.dart';
@@ -33,8 +34,8 @@ final class TodoListLoaded extends TodoListState {
   /// Všechny todos z databáze (nezfiltrované)
   final List<Todo> allTodos;
 
-  /// Zobrazit hotové úkoly?
-  final bool showCompleted;
+  /// Filtrování podle completion stavu (incomplete/completed/all)
+  final CompletionFilter completionFilter;
 
   /// ID expandovaného úkolu (pro detail view)
   final int? expandedTodoId;
@@ -80,7 +81,7 @@ final class TodoListLoaded extends TodoListState {
 
   const TodoListLoaded({
     required this.allTodos,
-    this.showCompleted = false,
+    this.completionFilter = CompletionFilter.incomplete, // Výchozí: jen nehotové
     this.expandedTodoId,
     this.searchQuery = '',
     this.viewMode = ViewMode.all,
@@ -127,7 +128,7 @@ final class TodoListLoaded extends TodoListState {
   /// Pipeline:
   /// 1. Filter by search query
   /// 2. Filter by view mode (built-in nebo custom)
-  /// 3. Filter by showCompleted
+  /// 3. Filter by completion status (incomplete/completed/all)
   /// 4. Sort (podle sortMode nebo default)
   ///
   /// Memoizováno díky Equatable.
@@ -148,9 +149,17 @@ final class TodoListLoaded extends TodoListState {
       todos = todos.filterByViewMode(viewMode);
     }
 
-    // 3. Filter by showCompleted
-    if (!showCompleted) {
-      todos = todos.where((t) => !t.isCompleted).toList();
+    // 3. Filter by completion status
+    switch (completionFilter) {
+      case CompletionFilter.incomplete:
+        todos = todos.where((t) => !t.isCompleted).toList();
+        break;
+      case CompletionFilter.completed:
+        todos = todos.where((t) => t.isCompleted).toList();
+        break;
+      case CompletionFilter.all:
+        // Zobrazit vše - žádný filter
+        break;
     }
 
     // 4. Sort
@@ -167,7 +176,7 @@ final class TodoListLoaded extends TodoListState {
   /// copyWith pro immutable updates
   TodoListLoaded copyWith({
     List<Todo>? allTodos,
-    bool? showCompleted,
+    CompletionFilter? completionFilter,
     int? expandedTodoId,
     bool clearExpandedTodoId = false,
     String? searchQuery,
@@ -188,7 +197,7 @@ final class TodoListLoaded extends TodoListState {
   }) {
     return TodoListLoaded(
       allTodos: allTodos ?? this.allTodos,
-      showCompleted: showCompleted ?? this.showCompleted,
+      completionFilter: completionFilter ?? this.completionFilter,
       expandedTodoId:
           clearExpandedTodoId ? null : (expandedTodoId ?? this.expandedTodoId),
       searchQuery: searchQuery ?? this.searchQuery,
@@ -207,7 +216,7 @@ final class TodoListLoaded extends TodoListState {
   @override
   List<Object?> get props => [
         allTodos,
-        showCompleted,
+        completionFilter,
         expandedTodoId,
         searchQuery,
         viewMode,

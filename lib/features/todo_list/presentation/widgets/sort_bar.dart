@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/widgets/info_dialog.dart';
 import '../../domain/enums/sort_mode.dart';
+import '../../domain/enums/completion_filter.dart';
 import '../bloc/todo_list_bloc.dart';
 import '../bloc/todo_list_event.dart';
 import '../bloc/todo_list_state.dart';
@@ -115,23 +116,36 @@ class SortBar extends StatelessWidget {
                   color: theme.appColors.base3,
                 ),
 
-                // Visibility toggle (eye icon úplně vpravo)
+                // Visibility toggle (eye icon úplně vpravo - 3 stavy)
                 BlocBuilder<TodoListBloc, TodoListState>(
                   builder: (context, state) {
-                    final showCompleted =
-                        state is TodoListLoaded ? state.showCompleted : false;
+                    final filter = state is TodoListLoaded
+                        ? state.completionFilter
+                        : CompletionFilter.incomplete;
+
+                    // Ikony a barvy podle filtru
+                    final icon = switch (filter) {
+                      CompletionFilter.incomplete => Icons.visibility_off, // 👁️ Nehotové
+                      CompletionFilter.completed => Icons.check_circle, // ✅ Hotové
+                      CompletionFilter.all => Icons.visibility, // 👀 Vše
+                    };
+
+                    final color = switch (filter) {
+                      CompletionFilter.incomplete => theme.appColors.base5, // Šedá
+                      CompletionFilter.completed => theme.appColors.green, // Zelená
+                      CompletionFilter.all => theme.appColors.cyan, // Cyan
+                    };
+
+                    final tooltip = switch (filter) {
+                      CompletionFilter.incomplete => 'Ke splnění',
+                      CompletionFilter.completed => 'Hotové',
+                      CompletionFilter.all => 'Vše',
+                    };
 
                     return IconButton(
-                      icon: Icon(
-                        showCompleted ? Icons.visibility : Icons.visibility_off,
-                        size: 24,
-                      ),
-                      tooltip: showCompleted
-                          ? 'Skrýt hotové úkoly'
-                          : 'Zobrazit hotové úkoly',
-                      color: showCompleted
-                          ? theme.appColors.green
-                          : theme.appColors.base5,
+                      icon: Icon(icon, size: 24),
+                      tooltip: tooltip,
+                      color: color,
                       constraints: const BoxConstraints(
                         minWidth: 44,
                         minHeight: 44,
