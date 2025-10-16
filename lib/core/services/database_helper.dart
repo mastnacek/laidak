@@ -9,6 +9,9 @@ class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
 
+  /// FTS5 support flag (Android nativní SQLite nemá FTS5!)
+  bool _fts5Available = false;
+
   factory DatabaseHelper() => _instance;
 
   DatabaseHelper._internal();
@@ -271,9 +274,16 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX idx_custom_notes_views_enabled ON custom_notes_views(enabled)');
     await db.execute('CREATE INDEX idx_custom_notes_views_sort ON custom_notes_views(sort_order)');
 
-    // FTS5 Full-Text Search virtual tables (verze 22)
-    await _createFTS5Tables(db);
-    await _createFTS5Triggers(db);
+    // FTS5 Full-Text Search virtual tables (verze 22) - pokud dostupné
+    try {
+      await _createFTS5Tables(db);
+      await _createFTS5Triggers(db);
+      _fts5Available = true;
+      print('✅ FTS5 Full-Text Search je dostupné');
+    } catch (e) {
+      _fts5Available = false;
+      print('⚠️ FTS5 není dostupné, fallback na Dart-side filtering: $e');
+    }
 
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
@@ -560,15 +570,26 @@ class DatabaseHelper {
     }
 
     if (oldVersion < 22) {
-      // FTS5 Full-Text Search pro TODOs a Notes
-      // 1. Vytvořit FTS5 virtual tables
-      await _createFTS5Tables(db);
+      // FTS5 Full-Text Search pro TODOs a Notes (pokud je FTS5 dostupné)
+      try {
+        // 1. Vytvořit FTS5 virtual tables
+        await _createFTS5Tables(db);
 
-      // 2. Vytvořit triggers pro automatickou synchronizaci FTS5 indexů
-      await _createFTS5Triggers(db);
+        // 2. Vytvořit triggers pro automatickou synchronizaci FTS5 indexů
+        await _createFTS5Triggers(db);
 
-      // 3. Naplnit FTS5 indexy existujícími daty (rebuild)
-      await rebuildFTS5Indexes();
+        // 3. Naplnit FTS5 indexy existujícími daty (rebuild)
+        await rebuildFTS5Indexes();
+
+        // ✅ FTS5 je dostupné
+        _fts5Available = true;
+        print('✅ FTS5 Full-Text Search je dostupné');
+      } catch (e) {
+        // ❌ FTS5 není dostupné (Android nativní SQLite)
+        // Fallback na Dart-side filtering
+        _fts5Available = false;
+        print('⚠️ FTS5 není dostupné, fallback na Dart-side filtering: $e');
+      }
     }
   }
 
@@ -1979,20 +2000,36 @@ class DatabaseHelper {
     ''');
   }
 
-  /// Full-text search v TODOs (FTS5)
+  /// Full-text search v TODOs (FTS5 nebo Dart fallback)
   ///
-  /// Query syntax:
+  /// Query syntax (pouze pokud FTS5 dostupné):
   /// - "prezentaci" → simple keyword
   /// - "dokončit prezentaci" → phrase search (exact match)
   /// - "dokončit OR připravit" → boolean OR
   /// - "prezentaci NOT hotovo" → boolean NOT
   /// - "prog*" → prefix search (programming, programmer...)
   ///
-  /// Vrací: List<TodoItem> seřazené podle relevance (BM25 rank)
+  /// Vrací: List<TodoItem> seřazené podle relevance (BM25 rank) nebo podle match score
   Future<List<TodoItem>> fullTextSearchTodos(String query) async {
     final db = await database;
 
-    // FTS5 query s JOINem zpět do todos tabulky
+    // Check pokud FTS5 je dostupné
+    if (!_fts5Available) {
+      // ❌ Fallback: Dart-side filtering (case-insensitive LIKE)
+      final allTodos = await db.query('todos');
+      final queryLower = query.toLowerCase();
+
+      return allTodos
+          .where((map) {
+            final task = (map['task'] as String).toLowerCase();
+            final tags = (map['tags'] as String? ?? '').toLowerCase();
+            return task.contains(queryLower) || tags.contains(queryLower);
+          })
+          .map((map) => TodoItem.fromMap(map))
+          .toList();
+    }
+
+    // ✅ FTS5 query s JOINem zpět do todos tabulky
     // rank → BM25 relevance score (nižší = relevantnější)
     final results = await db.rawQuery('''
       SELECT t.*
@@ -2005,7 +2042,7 @@ class DatabaseHelper {
     return results.map((map) => TodoItem.fromMap(map)).toList();
   }
 
-  /// Full-text search v Notes (FTS5)
+  /// Full-text search v Notes (FTS5 nebo Dart fallback)
   ///
   /// Query syntax: stejná jako fullTextSearchTodos
   ///
@@ -2013,6 +2050,21 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> fullTextSearchNotes(String query) async {
     final db = await database;
 
+    // Check pokud FTS5 je dostupné
+    if (!_fts5Available) {
+      // ❌ Fallback: Dart-side filtering (case-insensitive LIKE)
+      final allNotes = await db.query('notes');
+      final queryLower = query.toLowerCase();
+
+      return allNotes
+          .where((map) {
+            final content = (map['content'] as String).toLowerCase();
+            return content.contains(queryLower);
+          })
+          .toList();
+    }
+
+    // ✅ FTS5 query
     final results = await db.rawQuery('''
       SELECT n.*
       FROM notes n
@@ -2031,6 +2083,12 @@ class DatabaseHelper {
   /// - Migrace z verze < 22 (naplnit FTS5 existujícími daty)
   /// - Performance degradace (OPTIMIZE FTS5)
   Future<void> rebuildFTS5Indexes() async {
+    // Skip pokud FTS5 není dostupné
+    if (!_fts5Available) {
+      print('⚠️ Skip FTS5 rebuild - FTS5 není dostupné');
+      return;
+    }
+
     final db = await database;
 
     // Rebuild todos_fts
