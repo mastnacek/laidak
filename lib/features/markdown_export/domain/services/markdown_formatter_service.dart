@@ -1,6 +1,5 @@
 import '../../../todo_list/domain/entities/todo.dart';
-// TODO: Uncomment when Notes entity is implemented
-// import '../../../notes/domain/entities/note.dart';
+import '../../../../models/note.dart';
 import '../entities/export_format.dart';
 
 /// Service pro konverzi TODO a Notes do markdown formátů
@@ -103,9 +102,7 @@ class MarkdownFormatterService {
   }
 
   // ==================== NOTE FORMATTING ====================
-  // TODO: Uncomment when Notes entity is implemented
 
-  /*
   /// Konvertuje Note do markdown formátu
   String formatNote(Note note, ExportFormat format) {
     if (format == ExportFormat.obsidian) {
@@ -121,32 +118,19 @@ class MarkdownFormatterService {
     // YAML Frontmatter
     buffer.writeln('---');
     buffer.writeln('id: ${note.id}');
-    buffer.writeln('title: ${_escapeYaml(note.displayTitle)}');
+    buffer.writeln('title: ${_escapeYaml(_getNoteTitle(note))}');
     buffer.writeln('created: ${_formatIso8601(note.createdAt)}');
-
-    if (note.tags.isNotEmpty) {
-      buffer.writeln('tags:');
-      for (final tag in note.tags) {
-        buffer.writeln('  - $tag');
-      }
-    }
-
+    buffer.writeln('updated: ${_formatIso8601(note.updatedAt)}');
     buffer.writeln('---');
     buffer.writeln();
 
     // Note title jako H1
-    buffer.writeln('# ${note.displayTitle}');
+    buffer.writeln('# ${_getNoteTitle(note)}');
     buffer.writeln();
 
     // Note content
     buffer.writeln(note.content);
     buffer.writeln();
-
-    // Tags jako hashtags
-    if (note.tags.isNotEmpty) {
-      buffer.writeln(note.tags.map((t) => '#$t').join(' '));
-      buffer.writeln();
-    }
 
     // Backlinks (TODO IDs + Note IDs)
     final todoLinks = _extractTodoLinks(note.content);
@@ -172,22 +156,28 @@ class MarkdownFormatterService {
     final buffer = StringBuffer();
 
     // Title
-    buffer.writeln('# ${note.displayTitle}');
+    buffer.writeln('# ${_getNoteTitle(note)}');
     buffer.writeln();
 
     // Content (ponechat original s našimi tagy)
     buffer.writeln(note.content);
     buffer.writeln();
 
-    // Tags
-    if (note.tags.isNotEmpty) {
-      buffer.write('Tags: ');
-      buffer.writeln(note.tags.map((t) => '*$t*').join(' '));
-    }
-
     return buffer.toString();
   }
-  */
+
+  /// Získat title z Note (první řádek nebo timestamp)
+  String _getNoteTitle(Note note) {
+    final firstLine = note.content.split('\n').first.trim();
+    if (firstLine.isNotEmpty) {
+      // Omezit délku titlu na 50 znaků
+      return firstLine.length > 50
+          ? '${firstLine.substring(0, 50)}...'
+          : firstLine;
+    }
+    // Fallback na timestamp
+    return 'Note ${_formatDateTag(note.createdAt)}';
+  }
 
   // ==================== HELPER METHODS ====================
 

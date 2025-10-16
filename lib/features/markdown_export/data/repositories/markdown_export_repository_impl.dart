@@ -71,21 +71,17 @@ class MarkdownExportRepositoryImpl implements MarkdownExportRepository {
     }
 
     try {
-      // TODO: Uncomment když bude Notes formatter hotový
-      // final markdown = _formatter.formatNote(note, config.format);
-
-      // TEMPORARY: Placeholder pro Note export
-      AppLogger.debug('⚠️ Note export zatím není implementován (čeká na Milestone 6)');
-      return;
+      // Format note do markdown
+      final markdown = _formatter.formatNote(note, config.format);
 
       // Zapsat do souboru
-      // await _fileWriter.writeNoteFile(
-      //   targetDirectory: config.targetDirectory!,
-      //   note: note,
-      //   markdownContent: markdown,
-      // );
+      await _fileWriter.writeNoteFile(
+        targetDirectory: config.targetDirectory!,
+        note: note,
+        markdownContent: markdown,
+      );
 
-      // AppLogger.debug('✅ Exportována Note ${note.id} → ${config.targetDirectory}/notes/');
+      AppLogger.debug('✅ Exportována Note ${note.id} → ${config.targetDirectory}/notes/');
     } catch (e) {
       throw ExportException('Failed to export Note ${note.id}: $e');
     }

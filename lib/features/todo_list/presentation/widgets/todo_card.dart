@@ -1129,6 +1129,9 @@ class TodoCard extends StatelessWidget {
     final scrollController = ScrollController();
     final ttsService = TtsService();
 
+    // Vyčistit markdown syntaxi PŘED zobrazením (user uvidí čistý text)
+    final cleanMotivation = TtsService.stripMarkdown(motivation);
+
     return StatefulBuilder(
       builder: (context, setState) {
         return Dialog(
@@ -1202,7 +1205,7 @@ class TodoCard extends StatelessWidget {
                   child: SingleChildScrollView(
                     controller: scrollController,
                     child: TypewriterText(
-                      text: motivation,
+                      text: cleanMotivation, // Zobrazit čistý text (bez markdown)
                       style: TextStyle(
                         color: theme.appColors.fg,
                         fontSize: 16,
@@ -1230,7 +1233,7 @@ class TodoCard extends StatelessWidget {
                         if (ttsService.isSpeaking) {
                           await ttsService.stop();
                         } else {
-                          await ttsService.speak(motivation);
+                          await ttsService.speak(cleanMotivation); // Číst čistý text
                         }
                         setState(() {}); // Rebuild pro změnu ikony
                       },
@@ -1246,7 +1249,7 @@ class TodoCard extends StatelessWidget {
                     // Copy to clipboard button
                     OutlinedButton.icon(
                       onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: motivation));
+                        await Clipboard.setData(ClipboardData(text: cleanMotivation)); // Kopírovat čistý text
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(

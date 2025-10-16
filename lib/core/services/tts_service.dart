@@ -73,7 +73,7 @@ class TtsService {
       }
 
       // Očistit text od markdown syntaxe
-      final cleanText = _stripMarkdown(text);
+      final cleanText = stripMarkdown(text);
 
       // Začni mluvit
       final result = await _flutterTts.speak(cleanText);
@@ -90,7 +90,9 @@ class TtsService {
   ///
   /// Odstraní: *, **, ***, #, ##, ###, -, bullet points, etc.
   /// Zachová: čitelný text bez formátování
-  String _stripMarkdown(String text) {
+  ///
+  /// Použití: Vyčistit AI výstup před zobrazením nebo čtením
+  static String stripMarkdown(String text) {
     var clean = text;
 
     // Odstranit headings (# Nadpis)

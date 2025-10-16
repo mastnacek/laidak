@@ -3,8 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import '../../../../core/services/saf_file_writer.dart';
 import '../../../todo_list/domain/entities/todo.dart';
-// TODO: Uncomment when Notes entity is implemented
-// import '../../../notes/domain/entities/note.dart';
+import '../../../../models/note.dart';
 
 /// Service pro zápis markdown souborů do file systemu
 ///
@@ -53,11 +52,11 @@ class FileWriterService {
     }
   }
 
-  // TODO: Uncomment when Notes entity is implemented
-  /*
   /// Zapíše Note jako markdown soubor
   ///
   /// File path: {targetDirectory}/notes/Note-{id}.md
+  ///
+  /// Podporuje Android SAF i desktop file systém
   ///
   /// Throws [FileWriterException] pokud selže zápis
   Future<void> writeNoteFile({
@@ -68,19 +67,29 @@ class FileWriterService {
     try {
       // Název souboru: Note-{id}.md (konzistentní, bez sanitizace)
       final fileName = 'Note-${note.id}';
-      final filePath = '$targetDirectory/notes/$fileName.md';
+      final relativePath = 'notes/$fileName.md';
 
-      // Vytvořit notes/ složku pokud neexistuje
-      final file = File(filePath);
-      await file.create(recursive: true);
-
-      // Zapsat markdown content s UTF-8 encoding
-      await file.writeAsString(markdownContent, encoding: utf8);
+      // Android SAF vs Desktop File API
+      if (SafFileWriter.isSafUri(targetDirectory)) {
+        // Android: použij SAF přes Platform Channel
+        final contentBytes = Uint8List.fromList(utf8.encode(markdownContent));
+        await SafFileWriter.writeFile(
+          directoryUri: targetDirectory,
+          relativePath: relativePath,
+          content: contentBytes,
+          mimeType: 'text/markdown',
+        );
+      } else {
+        // Desktop: klasické dart:io File API
+        final filePath = '$targetDirectory/$relativePath';
+        final file = File(filePath);
+        await file.create(recursive: true);
+        await file.writeAsString(markdownContent, encoding: utf8);
+      }
     } catch (e) {
       throw FileWriterException('Failed to write Note file: $e');
     }
   }
-  */
 
   /// Vymaže všechny exportované soubory (pro clean re-export)
   ///
