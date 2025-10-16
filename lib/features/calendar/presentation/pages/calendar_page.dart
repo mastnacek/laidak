@@ -144,6 +144,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   color: theme.appColors.fg,
                 ),
                 formatButtonVisible: true, // Zobrazit format switch button
+                formatButtonShowsNext: false, // Zobrazit AKTUÁLNÍ formát (ne další v cyklu)
                 formatButtonTextStyle: TextStyle(
                   color: theme.appColors.cyan,
                   fontSize: 14,
