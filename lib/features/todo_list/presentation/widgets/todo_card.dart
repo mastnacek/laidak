@@ -1156,8 +1156,7 @@ class TodoCard extends StatelessWidget {
                   // Header
                   Row(
                     children: [
-                      Icon(Icons.auto_awesome,
-                          color: theme.appColors.magenta, size: 24),
+                      Icon(Icons.auto_awesome, color: theme.appColors.magenta, size: 24),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -1286,6 +1285,7 @@ class TodoCard extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
             ),
           ),
         );
