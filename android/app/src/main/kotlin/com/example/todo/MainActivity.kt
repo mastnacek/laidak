@@ -1,5 +1,7 @@
 package com.example.todo
 
+import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import io.flutter.embedding.android.FlutterActivity
@@ -8,12 +10,19 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.todo.markdown_export/saf"
+    private val PICK_DIRECTORY_REQUEST = 1001
+    private var pendingResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
+                "pickDirectory" -> {
+                    pendingResult = result
+                    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                    startActivityForResult(intent, PICK_DIRECTORY_REQUEST)
+                }
                 "writeFile" -> {
                     val directoryUri = call.argument<String>("directoryUri")
                     val relativePath = call.argument<String>("relativePath")
@@ -141,5 +150,29 @@ class MainActivity : FlutterActivity() {
 
         // Smaž složku rekurzivně
         return currentDir.delete()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PICK_DIRECTORY_REQUEST) {
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                val uri = data.data
+                if (uri != null) {
+                    // Persistovat permission pro tuto složku
+                    contentResolver.takePersistableUriPermission(
+                        uri,
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                    pendingResult?.success(uri.toString())
+                } else {
+                    pendingResult?.success(null)
+                }
+            } else {
+                // User zrušil picker
+                pendingResult?.success(null)
+            }
+            pendingResult = null
+        }
     }
 }

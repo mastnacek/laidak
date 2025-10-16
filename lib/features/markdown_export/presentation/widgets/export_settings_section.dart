@@ -1,7 +1,9 @@
+import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../../core/theme/theme_colors.dart';
+import '../../../../core/services/saf_file_writer.dart';
 import '../../domain/entities/export_config.dart';
 import '../../domain/entities/export_format.dart';
 import '../../domain/repositories/markdown_export_repository.dart';
@@ -137,8 +139,28 @@ class ExportSettingsSection extends StatelessWidget {
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () async {
-                  final directory =
-                      await FilePicker.platform.getDirectoryPath();
+                  String? directory;
+
+                  // Android: použij SAF picker (vrací content:// URI)
+                  // Desktop: použij file_picker (vrací file path)
+                  if (Platform.isAndroid) {
+                    try {
+                      directory = await SafFileWriter.pickDirectory();
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('❌ Výběr složky selhal: $e'),
+                            backgroundColor: theme.appColors.red,
+                          ),
+                        );
+                      }
+                      return;
+                    }
+                  } else {
+                    directory = await FilePicker.platform.getDirectoryPath();
+                  }
+
                   if (directory != null && context.mounted) {
                     context.read<SettingsCubit>().updateExportConfig(
                           config.copyWith(targetDirectory: directory),

@@ -96,4 +96,33 @@ class SafFileWriter {
   static bool isSafUri(String path) {
     return path.startsWith('content://');
   }
+
+  /// Otevře SAF directory picker a vrátí content URI (Android)
+  ///
+  /// Throws [UnsupportedError] pokud není Android
+  /// Throws [PlatformException] pokud user zruší picker nebo selže
+  static Future<String?> pickDirectory() async {
+    try {
+      if (Platform.isAndroid) {
+        AppLogger.debug('📱 Android: Otevírám SAF directory picker');
+
+        final result = await _channel.invokeMethod<String>('pickDirectory');
+
+        if (result != null) {
+          AppLogger.debug('✅ Android: Vybrána složka: $result');
+        } else {
+          AppLogger.debug('⚠️ Android: Picker zrušen uživatelem');
+        }
+
+        return result;
+      } else {
+        throw UnsupportedError(
+          'SafFileWriter.pickDirectory() je určen pouze pro Android.',
+        );
+      }
+    } on PlatformException catch (e) {
+      AppLogger.error('❌ SAF picker failed: ${e.message}');
+      throw Exception('SAF picker failed: ${e.message}');
+    }
+  }
 }
