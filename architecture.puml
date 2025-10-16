@@ -1,0 +1,242 @@
+@startuml
+' Model Layer
+class Task {
+  +String id
+  +String rawText
+  +String displayText
+  +DateTime createdAt
+  +DateTime? dueDate
+  +TaskStatus status
+  +List<String> userTags
+  +Map<String, dynamic> metadata
+  +toJson()
+  +fromJson()
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  ARCHIVED
+}
+
+class ParsedTag {
+  +TagType type
+  +String value
+  +int startIndex
+  +int endIndex
+}
+
+enum TagType {
+  USER_DEFAULT
+  USER_CUSTOM
+  DATE
+  STATUS
+}
+
+' Parser
+class TaskParser {
+  +String defaultDelimiter
+  +String customDelimiter
+  +parse(String rawText): Task
+  -extractTags(String text): List<ParsedTag>
+  -extractDates(String text): DateTime?
+  -extractStatus(String text): TaskStatus
+  -cleanDisplayText(String text): String
+}
+
+class UserSettings {
+  +String customDelimiter
+  +List<String> customTags
+  +saveSettings()
+  +loadSettings()
+}
+
+' Repository Layer
+class TaskRepository {
+  +Database db
+  +Future<List<Task>> getAllTasks()
+  +Future<Task> createTask(Task task)
+  +Future<void> updateTask(Task task)
+  +Future<void> deleteTask(String id)
+  +Future<List<Task>> searchByTag(String tag)
+}
+
+' Business Logic
+class TaskBloc {
+  +TaskRepository repository
+  +TaskParser parser
+  +Stream<List<Task>> tasksStream
+  +addTask(String rawText)
+  +updateTask(Task task)
+  +deleteTask(String id)
+  +filterByTag(String tag)
+}
+
+' UI Layer
+class HomeScreen {
+  +TextEditingController inputController
+  +build()
+}
+
+class TaskListWidget {
+  +List<Task> tasks
+  +onTaskTap()
+  +build()
+}
+
+class TaskInputWidget {
+  +onSubmit()
+  +showTagSuggestions()
+  +build()
+}
+
+' Relationships
+HomeScreen --> TaskInputWidget
+HomeScreen --> TaskListWidget
+TaskListWidget --> Task
+
+TaskBloc --> TaskRepository
+TaskBloc --> TaskParser
+TaskParser --> ParsedTag
+TaskParser --> UserSettings
+
+TaskRepository --> Task
+Task --> TaskStatus
+ParsedTag --> TagType
+
+@enduml
+
+@startuml
+actor User
+participant TaskInputWidget
+participant TaskBloc
+participant TaskParser
+participant TaskRepository
+participant Database
+
+User -> TaskInputWidget: Zadá "Koupit mléko *urgent* !osobní! @zítra"
+activate TaskInputWidget
+
+TaskInputWidget -> TaskBloc: addTask(rawText)
+activate TaskBloc
+
+TaskBloc -> TaskParser: parse(rawText)
+activate TaskParser
+
+TaskParser -> TaskParser: extractTags()
+note right: Najde: *urgent*, !osobní!
+
+TaskParser -> TaskParser: extractDates()
+note right: Parsuje @zítra → DateTime
+
+TaskParser -> TaskParser: extractStatus()
+note right: Detekuje status z tagů
+
+TaskParser -> TaskParser: cleanDisplayText()
+note right: "Koupit mléko"
+
+TaskParser --> TaskBloc: Task object
+deactivate TaskParser
+
+TaskBloc -> TaskRepository: createTask(task)
+activate TaskRepository
+
+TaskRepository -> Database: INSERT INTO tasks
+activate Database
+Database --> TaskRepository: Success
+deactivate Database
+
+TaskRepository --> TaskBloc: Task saved
+deactivate TaskRepository
+
+TaskBloc --> TaskInputWidget: Success
+deactivate TaskBloc
+
+TaskInputWidget -> TaskInputWidget: Clear input
+TaskInputWidget -> User: Zobrazí úkol v seznamu
+deactivate TaskInputWidget
+
+@enduml
+
+@startuml
+package "Presentation Layer" {
+  [HomeScreen]
+  [TaskInputWidget]
+  [TaskListWidget]
+  [TaskDetailScreen]
+  [SettingsScreen]
+}
+
+package "Business Logic Layer" {
+  [TaskBloc]
+  [SettingsBloc]
+}
+
+package "Domain Layer" {
+  [TaskParser]
+  [TagDetector]
+  [DateParser]
+}
+
+package "Data Layer" {
+  [TaskRepository]
+  [SettingsRepository]
+}
+
+package "Database" {
+  database "SQLite" {
+    [tasks]
+    [settings]
+  }
+}
+
+[HomeScreen] --> [TaskInputWidget]
+[HomeScreen] --> [TaskListWidget]
+[TaskInputWidget] --> [TaskBloc]
+[TaskListWidget] --> [TaskBloc]
+
+[TaskBloc] --> [TaskParser]
+[TaskBloc] --> [TaskRepository]
+
+[TaskParser] --> [TagDetector]
+[TaskParser] --> [DateParser]
+
+[TaskRepository] --> [tasks]
+[SettingsRepository] --> [settings]
+
+[SettingsScreen] --> [SettingsBloc]
+[SettingsBloc] --> [SettingsRepository]
+
+@enduml
+
+@startuml
+entity "tasks" {
+  * id : TEXT <<PK>>
+  --
+  * raw_text : TEXT
+  * display_text : TEXT
+  * created_at : INTEGER
+  due_date : INTEGER
+  status : TEXT
+  * metadata_json : TEXT
+}
+
+entity "task_tags" {
+  * id : INTEGER <<PK>>
+  * task_id : TEXT <<FK>>
+  * tag : TEXT
+  * tag_type : TEXT
+  --
+}
+
+entity "user_settings" {
+  * id : INTEGER <<PK>>
+  custom_delimiter : TEXT
+  custom_tags_json : TEXT
+  theme : TEXT
+}
+
+tasks ||--o{ task_tags
+@enduml
+
