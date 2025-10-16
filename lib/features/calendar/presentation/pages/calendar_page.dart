@@ -6,6 +6,7 @@ import '../../../todo_list/presentation/bloc/todo_list_bloc.dart';
 import '../../../todo_list/presentation/bloc/todo_list_event.dart';
 import '../../../todo_list/presentation/bloc/todo_list_state.dart';
 import '../../../todo_list/domain/entities/todo.dart';
+import '../../../todo_list/domain/enums/completion_filter.dart';
 import '../../../todo_list/presentation/widgets/todo_card.dart';
 import '../../../settings/presentation/cubit/settings_cubit.dart';
 import '../../../settings/presentation/cubit/settings_state.dart';
@@ -100,7 +101,7 @@ class _CalendarPageState extends State<CalendarPage> {
           flex: 1,
           child: SingleChildScrollView(
             child: TableCalendar(
-              key: ValueKey(state.allTodos.length), // Force rebuild při změně dat
+              key: ValueKey('${state.allTodos.length}_${state.completionFilter}'), // Force rebuild při změně dat nebo filtru
               firstDay: DateTime(2020),
               lastDay: DateTime(2030),
               focusedDay: _focusedDay,
@@ -108,9 +109,13 @@ class _CalendarPageState extends State<CalendarPage> {
               selectedDayPredicate: (day) {
                 return isSameDay(_selectedDay, day);
               },
-              // Event loader - načíst úkoly pro tento den
+              // Event loader - načíst úkoly pro tento den (respektuje completion filter)
               eventLoader: (day) {
-                return _getTodosForDate(state.allTodos, day);
+                return _getTodosForDate(
+                  state.allTodos,
+                  day,
+                  state.completionFilter,
+                );
               },
               // User tap na den
               onDaySelected: (selectedDay, focusedDay) {
@@ -208,7 +213,11 @@ class _CalendarPageState extends State<CalendarPage> {
               calendarBuilders: CalendarBuilders(
                 // Custom rendering pro přetížené dny
                 defaultBuilder: (context, day, focusedDay) {
-                  final todosForDay = _getTodosForDate(state.allTodos, day);
+                  final todosForDay = _getTodosForDate(
+                    state.allTodos,
+                    day,
+                    state.completionFilter,
+                  );
                   final todosCount = todosForDay.length;
 
                   // Vizuální indikace podle počtu úkolů
@@ -265,9 +274,13 @@ class _CalendarPageState extends State<CalendarPage> {
     );
   }
 
-  /// Načíst úkoly pro zadaný den
-  List<Todo> _getTodosForDate(List<Todo> allTodos, DateTime date) {
-    return allTodos.where((todo) {
+  /// Načíst úkoly pro zadaný den (respektuje completion filter)
+  List<Todo> _getTodosForDate(
+    List<Todo> allTodos,
+    DateTime date,
+    CompletionFilter filter,
+  ) {
+    var todos = allTodos.where((todo) {
       if (todo.dueDate == null) return false;
 
       // Porovnat pouze datum (ignorovat čas)
@@ -281,6 +294,21 @@ class _CalendarPageState extends State<CalendarPage> {
 
       return todoDate == targetDate;
     }).toList();
+
+    // Aplikovat completion filter
+    switch (filter) {
+      case CompletionFilter.incomplete:
+        todos = todos.where((t) => !t.isCompleted).toList();
+        break;
+      case CompletionFilter.completed:
+        todos = todos.where((t) => t.isCompleted).toList();
+        break;
+      case CompletionFilter.all:
+        // Zobrazit vše - žádný filter
+        break;
+    }
+
+    return todos;
   }
 
   /// Vytvořit barevné tečky podle priority úkolů
@@ -343,7 +371,11 @@ class _CalendarPageState extends State<CalendarPage> {
       );
     }
 
-    final tasksForDay = _getTodosForDate(state.allTodos, _selectedDay!);
+    final tasksForDay = _getTodosForDate(
+      state.allTodos,
+      _selectedDay!,
+      state.completionFilter,
+    );
 
     if (tasksForDay.isEmpty) {
       return Center(

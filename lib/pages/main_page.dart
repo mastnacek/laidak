@@ -8,6 +8,10 @@ import '../features/ai_chat/presentation/pages/ai_chat_page.dart';
 import '../features/ai_chat/presentation/bloc/ai_chat_bloc.dart';
 import '../features/ai_chat/presentation/bloc/ai_chat_event.dart';
 import '../features/todo_list/presentation/widgets/stats_row.dart';
+import '../features/todo_list/presentation/bloc/todo_list_bloc.dart';
+import '../features/todo_list/presentation/bloc/todo_list_event.dart';
+import '../features/todo_list/presentation/bloc/todo_list_state.dart';
+import '../features/todo_list/domain/enums/completion_filter.dart';
 import '../features/notes/presentation/pages/notes_list_page.dart';
 import '../features/calendar/presentation/pages/calendar_page.dart';
 import 'settings_page.dart';
@@ -164,7 +168,59 @@ class MainPageState extends State<MainPage> {
       ];
     }
 
-    // TODO List (index 1), Notes (index 2), Pomodoro (index 3): Jen Settings
+    // Calendar (index 3): Eye button + Settings
+    if (_currentPageIndex == 3) {
+      return [
+        // Completion filter toggle (eye button)
+        BlocBuilder<TodoListBloc, TodoListState>(
+          builder: (context, state) {
+            final filter = state is TodoListLoaded
+                ? state.completionFilter
+                : CompletionFilter.incomplete;
+
+            // Ikony a barvy podle filtru
+            final icon = switch (filter) {
+              CompletionFilter.incomplete => Icons.visibility_off,
+              CompletionFilter.completed => Icons.check_circle,
+              CompletionFilter.all => Icons.visibility,
+            };
+
+            final color = switch (filter) {
+              CompletionFilter.incomplete => theme.appColors.base5,
+              CompletionFilter.completed => theme.appColors.green,
+              CompletionFilter.all => theme.appColors.cyan,
+            };
+
+            final tooltip = switch (filter) {
+              CompletionFilter.incomplete => 'Ke splnění',
+              CompletionFilter.completed => 'Hotové',
+              CompletionFilter.all => 'Vše',
+            };
+
+            return IconButton(
+              icon: Icon(icon),
+              tooltip: tooltip,
+              color: color,
+              onPressed: () {
+                context.read<TodoListBloc>().add(const ToggleShowCompletedEvent());
+              },
+            );
+          },
+        ),
+        // Settings
+        IconButton(
+          icon: const Icon(Icons.settings),
+          tooltip: 'Nastavení',
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => const SettingsPage()),
+            );
+          },
+        ),
+      ];
+    }
+
+    // TODO List (index 1), Notes (index 2), Pomodoro (index 4): Jen Settings
     return [
       IconButton(
         icon: const Icon(Icons.settings),
