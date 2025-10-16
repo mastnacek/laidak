@@ -143,7 +143,7 @@ Tento projekt je licencován pod [MIT License](LICENSE).
 
 ## 👨‍💻 Autor
 
-**Jaroslav Maštanec**
+**Jaroslav Havel**
 - GitHub: [@mastancek](https://github.com/mastancek)
 - Email: mastnacek@gmail.com
 
