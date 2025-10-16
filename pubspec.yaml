@@ -78,6 +78,7 @@ dependencies:
 
   # URL launcher (telefon, SMS, WhatsApp, email)
   url_launcher: ^6.3.1
+  table_calendar: ^3.2.0
 
 dev_dependencies:
   flutter_test:

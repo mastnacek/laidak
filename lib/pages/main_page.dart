@@ -9,21 +9,23 @@ import '../features/ai_chat/presentation/bloc/ai_chat_bloc.dart';
 import '../features/ai_chat/presentation/bloc/ai_chat_event.dart';
 import '../features/todo_list/presentation/widgets/stats_row.dart';
 import '../features/notes/presentation/pages/notes_list_page.dart';
+import '../features/calendar/presentation/pages/calendar_page.dart';
 import 'settings_page.dart';
 
 /// MainPage - Hlavní stránka s PageView pro swipeable obrazovky
 ///
 /// Layout:
 /// - AppBar (Help + Stats/Title + Settings) - sdílený pro všechny stránky
-/// - PageView s 4 stránkami:
+/// - PageView s 5 stránkami:
 ///   0. AiChatPage (standalone mode) - vlevo
 ///   1. TodoListPage (střed, initial)
 ///   2. NotesListPage - vpravo
-///   3. PomodoroPage - vpravo
+///   3. CalendarPage - vpravo
+///   4. PomodoroPage - vpravo
 ///
 /// Gesture:
 /// - Swipe doprava → AI Chat
-/// - Swipe doleva → Notes → Pomodoro
+/// - Swipe doleva → Notes → Calendar → Pomodoro
 /// - Initial page: TodoListPage (index 1)
 ///
 /// AppBar je fixní a nescrolluje se s obsahem.
@@ -81,7 +83,7 @@ class _MainPageState extends State<MainPage> {
         actions: _buildAppBarActions(),
       ),
 
-      // PageView s 4 stránkami (swipeable)
+      // PageView s 5 stránkami (swipeable)
       body: PageView(
         controller: _pageController,
         onPageChanged: _onPageChanged,
@@ -95,7 +97,10 @@ class _MainPageState extends State<MainPage> {
           // Stránka 2: Notes
           NotesListPage(),
 
-          // Stránka 3: Pomodoro Timer
+          // Stránka 3: Calendar (nový tab!)
+          CalendarPage(),
+
+          // Stránka 4: Pomodoro Timer
           PomodoroPage(),
         ],
       ),
@@ -112,6 +117,8 @@ class _MainPageState extends State<MainPage> {
       case 2:
         return const Text('📝 Notes');
       case 3:
+        return const Text('📅 Kalendář');
+      case 4:
         return const Text('🍅 Pomodoro Timer');
       default:
         return const Text('TODO');
