@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'core/theme/doom_one_theme.dart';
 import 'core/observers/simple_bloc_observer.dart';
 import 'core/utils/app_logger.dart';
@@ -30,6 +31,10 @@ import 'services/tag_service.dart';
 void main() async {
   // Ensure Flutter bindings
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializovat lokalizaci pro date formatting (měsíce, dny v češtině)
+  await initializeDateFormatting('cs_CZ', null);
+  AppLogger.info('✅ Date formatting initialized (cs_CZ)');
 
   // 🔧 Registrovat BlocObserver pro debugging
   Bloc.observer = SimpleBlocObserver();
@@ -170,6 +175,7 @@ class _TodoAppState extends State<TodoApp> {
           title: 'TODO Doom',
           theme: theme,
           navigatorKey: _navigatorKey, // Pro přístup k contextu z clipboard monitoru
+          locale: const Locale('cs', 'CZ'), // Česká lokalizace
           home: const MainPage(),
         );
       },

@@ -103,6 +103,7 @@ class _CalendarPageState extends State<CalendarPage> {
               firstDay: DateTime(2020),
               lastDay: DateTime(2030),
               focusedDay: _focusedDay,
+              locale: 'cs_CZ', // Česká lokalizace (měsíce + dny v češtině)
               selectedDayPredicate: (day) {
                 return isSameDay(_selectedDay, day);
               },
