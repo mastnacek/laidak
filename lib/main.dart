@@ -80,9 +80,11 @@ void main() async {
   // Inicializovat Markdown Export dependencies
   final markdownFormatterService = MarkdownFormatterService();
   final fileWriterService = FileWriterService();
+  final todoRepository = TodoRepositoryImpl(db);
   final markdownExportRepository = MarkdownExportRepositoryImpl(
     formatter: markdownFormatterService,
     fileWriter: fileWriterService,
+    todoRepository: todoRepository,
     db: db,
   );
   AppLogger.info('✅ Markdown Export services initialized');
@@ -103,7 +105,7 @@ void main() async {
           create: (context) {
             final settingsCubit = context.read<SettingsCubit>();
             return TodoListBloc(
-              TodoRepositoryImpl(db),
+              todoRepository,
               aiBriefRepository,
               briefSettingsService,
               markdownExportRepository,

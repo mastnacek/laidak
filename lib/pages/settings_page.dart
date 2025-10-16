@@ -83,13 +83,13 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          AISettingsTab(),
-          PromptsTab(),
-          TagManagementPage(),
-          ThemesTab(),
-          AgendaTab(),
-          NotesTab(),
+        children: [
+          const AISettingsTab(),
+          const PromptsTab(),
+          const TagManagementPage(),
+          const ThemesTab(),
+          const AgendaTab(),
+          const NotesTab(),
           SingleChildScrollView(
             child: ExportSettingsSection(
               exportRepository: context.read<MarkdownExportRepository>(),

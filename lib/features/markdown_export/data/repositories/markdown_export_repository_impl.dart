@@ -2,8 +2,9 @@ import '../../domain/repositories/markdown_export_repository.dart';
 import '../../domain/entities/export_config.dart';
 import '../../domain/services/markdown_formatter_service.dart';
 import '../../domain/services/file_writer_service.dart';
-import '../../../../core/services/database_helper.dart';
+import '../../../todo_list/domain/repositories/todo_repository.dart';
 import '../../../todo_list/domain/entities/todo.dart';
+import '../../../../core/services/database_helper.dart';
 import '../../../../models/note.dart';
 import '../../../../core/utils/app_logger.dart';
 
@@ -12,18 +13,22 @@ import '../../../../core/utils/app_logger.dart';
 /// Dependencies:
 /// - MarkdownFormatterService - konverze do markdown formátů
 /// - FileWriterService - zápis souborů
-/// - DatabaseHelper - načítání všech TODOs/Notes
+/// - TodoRepository - načítání všech TODOs
+/// - DatabaseHelper - načítání všech Notes
 class MarkdownExportRepositoryImpl implements MarkdownExportRepository {
   final MarkdownFormatterService _formatter;
   final FileWriterService _fileWriter;
+  final TodoRepository _todoRepository;
   final DatabaseHelper _db;
 
   MarkdownExportRepositoryImpl({
     required MarkdownFormatterService formatter,
     required FileWriterService fileWriter,
+    required TodoRepository todoRepository,
     required DatabaseHelper db,
   })  : _formatter = formatter,
         _fileWriter = fileWriter,
+        _todoRepository = todoRepository,
         _db = db;
 
   @override
@@ -101,8 +106,7 @@ class MarkdownExportRepositoryImpl implements MarkdownExportRepository {
       // Export všech TODOs
       if (config.exportTodos) {
         AppLogger.debug('📝 Exportuji TODOs...');
-        final todosData = await _db.getAllTodos();
-        final todos = todosData.map((data) => Todo.fromMap(data)).toList();
+        final todos = await _todoRepository.getAllTodos();
 
         for (final todo in todos) {
           await exportTodo(todo, config);
