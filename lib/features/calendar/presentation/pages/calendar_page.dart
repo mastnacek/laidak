@@ -31,6 +31,7 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   late DateTime _focusedDay;
   DateTime? _selectedDay;
+  CalendarFormat _calendarFormat = CalendarFormat.month; // Výchozí formát: měsíc
 
   @override
   void initState() {
@@ -122,8 +123,19 @@ class _CalendarPageState extends State<CalendarPage> {
               onDayLongPressed: (selectedDay, focusedDay) {
                 _handleDayLongPress(context, selectedDay);
               },
+              // Format switching callback
+              onFormatChanged: (format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              },
               // Výchozí nastavení calendáře
-              calendarFormat: CalendarFormat.month,
+              calendarFormat: _calendarFormat,
+              availableCalendarFormats: const {
+                CalendarFormat.month: 'Měsíc',
+                CalendarFormat.twoWeeks: '2 Týdny',
+                CalendarFormat.week: 'Týden',
+              },
               startingDayOfWeek: StartingDayOfWeek.monday,
               headerStyle: HeaderStyle(
                 titleTextStyle: TextStyle(
@@ -131,7 +143,15 @@ class _CalendarPageState extends State<CalendarPage> {
                   fontWeight: FontWeight.bold,
                   color: theme.appColors.fg,
                 ),
-                formatButtonVisible: false,
+                formatButtonVisible: true, // Zobrazit format switch button
+                formatButtonTextStyle: TextStyle(
+                  color: theme.appColors.cyan,
+                  fontSize: 14,
+                ),
+                formatButtonDecoration: BoxDecoration(
+                  border: Border.all(color: theme.appColors.cyan),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 leftChevronIcon: Icon(
                   Icons.chevron_left,
                   color: theme.appColors.cyan,
@@ -183,8 +203,42 @@ class _CalendarPageState extends State<CalendarPage> {
                   color: theme.appColors.base5.withOpacity(0.5),
                 ),
               ),
-              // Custom marker builder - barevné tečky podle priority
+              // Custom builders - vizuální indikace přetížených dní + priority markers
               calendarBuilders: CalendarBuilders(
+                // Custom rendering pro přetížené dny
+                defaultBuilder: (context, day, focusedDay) {
+                  final todosForDay = _getTodosForDate(state.allTodos, day);
+                  final todosCount = todosForDay.length;
+
+                  // Vizuální indikace podle počtu úkolů
+                  Color? backgroundColor;
+                  if (todosCount >= 5) {
+                    // 5+ úkolů = červená (přetížený den!)
+                    backgroundColor = theme.appColors.red.withOpacity(0.3);
+                  } else if (todosCount >= 3) {
+                    // 3-4 úkoly = žlutá (náročný den)
+                    backgroundColor = theme.appColors.yellow.withOpacity(0.2);
+                  }
+
+                  if (backgroundColor != null) {
+                    return Container(
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${day.day}',
+                          style: TextStyle(color: theme.appColors.fg),
+                        ),
+                      ),
+                    );
+                  }
+
+                  return null; // Použít default rendering
+                },
+                // Priority markers (barevné tečky)
                 markerBuilder: (context, date, events) {
                   if (events.isEmpty) return const SizedBox.shrink();
                   return _buildPriorityMarkers(
