@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:convert';
+import 'dart:typed_data';
+import '../../../../core/services/saf_file_writer.dart';
 import '../../../todo_list/domain/entities/todo.dart';
 // TODO: Uncomment when Notes entity is implemented
 // import '../../../notes/domain/entities/note.dart';
@@ -16,6 +18,8 @@ class FileWriterService {
   ///
   /// File path: {targetDirectory}/tasks/{sanitized_task_name}.md
   ///
+  /// Podporuje Android SAF i desktop file systém
+  ///
   /// Throws [FileWriterException] pokud selže zápis
   Future<void> writeTodoFile({
     required String targetDirectory,
@@ -25,14 +29,25 @@ class FileWriterService {
     try {
       // Sanitizovat název souboru z task textu
       final fileName = _sanitizeFileName(todo.task);
-      final filePath = '$targetDirectory/tasks/$fileName.md';
+      final relativePath = 'tasks/$fileName.md';
 
-      // Vytvořit tasks/ složku pokud neexistuje
-      final file = File(filePath);
-      await file.create(recursive: true);
-
-      // Zapsat markdown content s UTF-8 encoding
-      await file.writeAsString(markdownContent, encoding: utf8);
+      // Android SAF vs Desktop File API
+      if (SafFileWriter.isSafUri(targetDirectory)) {
+        // Android: použij SAF přes Platform Channel
+        final contentBytes = Uint8List.fromList(utf8.encode(markdownContent));
+        await SafFileWriter.writeFile(
+          directoryUri: targetDirectory,
+          relativePath: relativePath,
+          content: contentBytes,
+          mimeType: 'text/markdown',
+        );
+      } else {
+        // Desktop: klasické dart:io File API
+        final filePath = '$targetDirectory/$relativePath';
+        final file = File(filePath);
+        await file.create(recursive: true);
+        await file.writeAsString(markdownContent, encoding: utf8);
+      }
     } catch (e) {
       throw FileWriterException('Failed to write TODO file: $e');
     }
@@ -70,17 +85,33 @@ class FileWriterService {
   /// Vymaže všechny exportované soubory (pro clean re-export)
   ///
   /// Smaže tasks/ a notes/ složky včetně obsahu
+  ///
+  /// Podporuje Android SAF i desktop file systém
   Future<void> clearExportedFiles(String targetDirectory) async {
     try {
-      final tasksDir = Directory('$targetDirectory/tasks');
-      final notesDir = Directory('$targetDirectory/notes');
+      // Android SAF vs Desktop File API
+      if (SafFileWriter.isSafUri(targetDirectory)) {
+        // Android: použij SAF přes Platform Channel
+        await SafFileWriter.deleteDirectory(
+          directoryUri: targetDirectory,
+          relativePath: 'tasks',
+        );
+        await SafFileWriter.deleteDirectory(
+          directoryUri: targetDirectory,
+          relativePath: 'notes',
+        );
+      } else {
+        // Desktop: klasické dart:io File API
+        final tasksDir = Directory('$targetDirectory/tasks');
+        final notesDir = Directory('$targetDirectory/notes');
 
-      if (await tasksDir.exists()) {
-        await tasksDir.delete(recursive: true);
-      }
+        if (await tasksDir.exists()) {
+          await tasksDir.delete(recursive: true);
+        }
 
-      if (await notesDir.exists()) {
-        await notesDir.delete(recursive: true);
+        if (await notesDir.exists()) {
+          await notesDir.delete(recursive: true);
+        }
       }
     } catch (e) {
       throw FileWriterException('Failed to clear exported files: $e');
