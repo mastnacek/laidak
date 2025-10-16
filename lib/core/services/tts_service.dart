@@ -60,6 +60,7 @@ class TtsService {
   /// Přečíst text nahlas
   ///
   /// Pokud už něco mluví, automaticky to zastaví a začne nový text.
+  /// Text je automaticky očištěn od markdown syntaxe (*, **, #, etc.)
   Future<void> speak(String text) async {
     if (!_isInitialized) {
       await init();
@@ -71,15 +72,61 @@ class TtsService {
         await _flutterTts.stop();
       }
 
+      // Očistit text od markdown syntaxe
+      final cleanText = _stripMarkdown(text);
+
       // Začni mluvit
-      final result = await _flutterTts.speak(text);
+      final result = await _flutterTts.speak(cleanText);
       if (result == 1) {
-        AppLogger.debug('🔊 TTS: Začínám mluvit (${text.length} znaků)');
+        AppLogger.debug('🔊 TTS: Začínám mluvit (${cleanText.length} znaků)');
       }
     } catch (e) {
       AppLogger.error('❌ TTS speak failed: $e');
       _isSpeaking = false;
     }
+  }
+
+  /// Odstranit markdown syntaxi z textu
+  ///
+  /// Odstraní: *, **, ***, #, ##, ###, -, bullet points, etc.
+  /// Zachová: čitelný text bez formátování
+  String _stripMarkdown(String text) {
+    var clean = text;
+
+    // Odstranit headings (# Nadpis)
+    clean = clean.replaceAll(RegExp(r'^#{1,6}\s+', multiLine: true), '');
+
+    // Odstranit bold (**text** nebo __text__)
+    clean = clean.replaceAll(RegExp(r'\*\*([^*]+)\*\*'), r'$1');
+    clean = clean.replaceAll(RegExp(r'__([^_]+)__'), r'$1');
+
+    // Odstranit italic (*text* nebo _text_)
+    clean = clean.replaceAll(RegExp(r'\*([^*]+)\*'), r'$1');
+    clean = clean.replaceAll(RegExp(r'_([^_]+)_'), r'$1');
+
+    // Odstranit bullet points (- item nebo * item)
+    clean = clean.replaceAll(RegExp(r'^[\s]*[-*]\s+', multiLine: true), '');
+
+    // Odstranit numbered lists (1. item)
+    clean = clean.replaceAll(RegExp(r'^\s*\d+\.\s+', multiLine: true), '');
+
+    // Odstranit links [text](url)
+    clean = clean.replaceAll(RegExp(r'\[([^\]]+)\]\([^)]+\)'), r'$1');
+
+    // Odstranit code blocks (``` nebo `)
+    clean = clean.replaceAll(RegExp(r'```[^`]*```'), '');
+    clean = clean.replaceAll(RegExp(r'`([^`]+)`'), r'$1');
+
+    // Odstranit horizontal rules (---, ***)
+    clean = clean.replaceAll(RegExp(r'^[\s]*[-*]{3,}[\s]*$', multiLine: true), '');
+
+    // Odstranit excess whitespace (multiple newlines → single)
+    clean = clean.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+
+    // Trim
+    clean = clean.trim();
+
+    return clean;
   }
 
   /// Zastavit mluvení
