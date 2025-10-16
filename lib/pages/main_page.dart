@@ -174,6 +174,7 @@ class MainPageState extends State<MainPage> {
         // Completion filter toggle (eye button)
         BlocBuilder<TodoListBloc, TodoListState>(
           builder: (context, state) {
+            final theme = Theme.of(context);
             final filter = state is TodoListLoaded
                 ? state.completionFilter
                 : CompletionFilter.incomplete;
