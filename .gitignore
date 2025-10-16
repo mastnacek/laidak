@@ -10,6 +10,12 @@
 .svn/
 migrate_working_dir/
 
+# Local log files
+flutter_log.txt
+flutter_logs.txt
+build_output.log
+flutter_*.log
+
 # IntelliJ related
 *.iml
 *.ipr
