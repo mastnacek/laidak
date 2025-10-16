@@ -37,10 +37,10 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return BlocBuilder<TodoListBloc, TodoListState>(
       builder: (context, state) {
+        final theme = Theme.of(context);
+
         return switch (state) {
           TodoListInitial() => const Center(
               child: Text('Inicializace kalendáře...'),
@@ -48,7 +48,7 @@ class _CalendarPageState extends State<CalendarPage> {
           TodoListLoading() => const Center(
               child: CircularProgressIndicator(),
             ),
-          TodoListLoaded() => _buildCalendarView(context, state, theme),
+          TodoListLoaded() => _buildCalendarView(context, state),
           TodoListError() => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -85,8 +85,9 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget _buildCalendarView(
     BuildContext context,
     TodoListLoaded state,
-    ThemeColors theme,
   ) {
+    final theme = Theme.of(context);
+
     return Column(
       children: [
         // TableCalendar
@@ -179,7 +180,6 @@ class _CalendarPageState extends State<CalendarPage> {
                   return _buildPriorityMarkers(
                     context,
                     events.cast<Todo>(),
-                    theme,
                   );
                 },
               ),
@@ -194,7 +194,7 @@ class _CalendarPageState extends State<CalendarPage> {
         // Tasks for selected day
         Expanded(
           flex: 1,
-          child: _buildTasksForDay(context, state, theme),
+          child: _buildTasksForDay(context, state),
         ),
       ],
     );
@@ -222,8 +222,9 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget _buildPriorityMarkers(
     BuildContext context,
     List<Todo> todos,
-    ThemeColors theme,
   ) {
+    final theme = Theme.of(context);
+
     // Grupovat podle priority
     final priorities = <String, int>{};
     for (final todo in todos) {
@@ -236,17 +237,17 @@ class _CalendarPageState extends State<CalendarPage> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (priorities['a'] != null)
-          _buildDot(context, theme.appColors.red, priorities['a']!),
+          _buildDot(theme.appColors.red, priorities['a']!),
         if (priorities['b'] != null)
-          _buildDot(context, theme.appColors.yellow, priorities['b']!),
+          _buildDot(theme.appColors.yellow, priorities['b']!),
         if (priorities['c'] != null)
-          _buildDot(context, theme.appColors.green, priorities['c']!),
+          _buildDot(theme.appColors.green, priorities['c']!),
       ],
     );
   }
 
   /// Vytvořit jednu tečku s počtem úkolů
-  Widget _buildDot(BuildContext context, Color color, int count) {
+  Widget _buildDot(Color color, int count) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 2),
       width: 6,
@@ -262,8 +263,9 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget _buildTasksForDay(
     BuildContext context,
     TodoListLoaded state,
-    ThemeColors theme,
   ) {
+    final theme = Theme.of(context);
+
     if (_selectedDay == null) {
       return Center(
         child: Text(
