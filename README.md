@@ -1,123 +1,160 @@
-# 📱 Flutter TODO App
+# lAidak 🤖
 
-Modern TODO application with AI-powered features, built with Flutter and BLoC architecture.
+> **AI asistent pro chytré lajdáky** - Motivuje, rozděluje úkoly a radí jak dosáhnout cílů
 
-## ✨ Features
-
-- ✅ **Task Management** - Create, edit, complete and delete tasks
-- 🏷️ **Smart Tags** - Priority (🔴🟡🟢), deadlines (📅⏰), custom categories
-- 🎨 **Multiple Themes** - Doom One, Monokai Pro, Dracula, etc.
-- 🤖 **AI Integration** - Task splitting and motivational prompts (requires OpenRouter API)
-- 📊 **Views & Filters** - Today, Week, Upcoming, Overdue
-- 🔍 **Search & Sort** - Fast search with multiple sorting options
-- 🎯 **Mobile-First UI** - Thumb zone optimized for one-handed use
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) (3.0+)
-- Android Studio / VS Code with Flutter plugin
-- Android SDK (for Android builds)
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/flutter-todo.git
-cd flutter-todo/todo
-```
-
-2. Install dependencies:
-```bash
-flutter pub get
-```
-
-3. Run the app:
-```bash
-flutter run
-```
-
-## 🤖 AI Features Setup (Optional)
-
-The app includes AI-powered features:
-- **Task Splitting** - Break down complex tasks into subtasks
-- **Motivational Prompts** - Get AI-generated motivation for tasks
-
-To enable AI features:
-
-1. Get your **OpenRouter API key** from [openrouter.ai](https://openrouter.ai)
-
-2. Open the app and navigate to **Settings → AI Settings**
-
-3. Enter your API key and configure:
-   - Model (default: `mistralai/mistral-medium-3.1`)
-   - Temperature (0.0-2.0)
-   - Max Tokens (100-2000)
-
-4. (Optional) Create custom motivational prompts in **Settings → Motivační Prompty**
-
-> **Note:** AI features require an active internet connection and will consume OpenRouter credits. The app works perfectly fine without AI features enabled.
-
-## 🏗️ Architecture
-
-This project follows **Feature-First + BLoC** architecture:
-
-```
-lib/
-├── core/                   # Shared utilities, themes, services
-├── features/              # Feature modules (BLoC pattern)
-│   ├── todo_list/        # Main TODO feature
-│   ├── ai_split/         # AI task splitting
-│   ├── ai_motivation/    # AI motivational prompts
-│   └── help/             # Help & onboarding
-└── models/               # Shared data models
-```
-
-Each feature follows Clean Architecture principles:
-- **Presentation**: UI (Pages, Widgets) + BLoC/Cubit
-- **Domain**: Business logic (Entities, Use Cases)
-- **Data**: Repositories, Data Sources
-
-## 🛠️ Building for Release
-
-### Android APK
-
-```bash
-flutter build apk --release
-```
-
-Output: `build/app/outputs/flutter-apk/app-release.apk`
-
-### Android App Bundle (for Google Play)
-
-```bash
-flutter build appbundle --release
-```
-
-Output: `build/app/outputs/bundle/release/app-release.aab`
-
-## 📚 Documentation
-
-- [BLoC Architecture Guide](CLAUDE.md) - Detailed architecture documentation
-- [Feature Implementation](mapa-bloc.md) - Decision tree for adding features
-- [UI Design System](gui.md) - Mobile-first UI guidelines
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with [Flutter](https://flutter.dev/)
-- State management: [flutter_bloc](https://bloclibrary.dev/)
-- Database: [sqflite](https://pub.dev/packages/sqflite)
-- AI powered by [OpenRouter](https://openrouter.ai)
+[![Flutter](https://img.shields.io/badge/Flutter-3.9.2-02569B?logo=flutter)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-3.9.2-0175C2?logo=dart)](https://dart.dev)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 ---
 
-**Note:** This project was developed with assistance from [Claude Code](https://claude.com/claude-code) by Anthropic.
+## 🎯 Co je lAidak?
+
+**lAidak** je inteligentní produktivní asistent, který ti pomůže dosáhnout cílů - i když jsi trochu lajdák! 😄
+
+Kombinuje klasické TODO seznamy, poznámky a Pomodoro timer s **AI-powered funkcemi**, které tě motivují, rozdělují velké úkoly na menší kroky a dávají ti rady jak postupovat.
+
+### ✨ Hlavní AI funkce:
+
+- 🤖 **AI Motivátor** - personalizované motivační texty (s TTS!)
+- 🧠 **AI Brief** - inteligentní prioritizace úkolů
+- ✂️ **AI Task Split** - automatické rozdělení velkých úkolů na podúkoly
+- 💬 **AI Chat** - rady a doporučení k řešení problémů
+
+---
+
+## 📱 Funkce
+
+### 🎯 Úkoly (Tasks)
+- ✅ Smart tagy s custom oddělovači (\`*tag*\`, \`*dnes*\`, \`*a*\`)
+- 📊 Prioritizace (A, B, C) + due dates
+- 🔍 Fulltext search (FTS5 na Androidu)
+- 📅 Kalendář s long-press pro rychlé přidání
+- 📈 Custom Agenda views (Today, Week, Overdue, Custom filters)
+- 🏷️ Tag autocomplete při psaní
+
+### 📝 Poznámky (Notes)
+- 📁 PARA organizace (Projects, Areas, Resources, Archives)
+- 🔗 Bidirectional linking mezi poznámkami
+- 🏷️ Stejný tag systém jako TODO
+- 📤 Markdown export
+
+### ⏱️ Pomodoro Timer
+- ⏰ Konfigurovatelné intervaly
+- 📳 Vibrace při dokončení
+- 📊 Sledování produktivity
+
+### 🤖 AI Asistent
+- **Motivátor**: Generuje personalizované motivační texty podle tvých úkolů
+- **Brief**: AI vybere top 3 úkoly + key insights + motivation
+- **Task Split**: Rozdělí velký úkol na konkrétní kroky
+- **Chat**: Chatbot pro rady a doporučení
+
+### 🎨 Vzhled
+- 🌙 Doom One dark theme (Emacs inspirace)
+- 🎨 Custom barevné tagy s glow efektem
+- 📱 Mobile-first design (Easy Thumb Zone)
+
+### 📤 Export
+- 📄 Markdown export (tasks + notes)
+- 💾 Storage Access Framework na Androidu
+- 📁 Strukturované složky (tasks/, notes/)
+
+---
+
+## 🚀 Instalace
+
+### Prerekvizity
+- Flutter SDK 3.9.2+
+- Dart 3.9.2+
+- Android Studio / VS Code
+
+### Build
+
+\`\`\`bash
+# Clone repository
+git clone https://github.com/mastancek/laidak.git
+cd laidak
+
+# Install dependencies
+flutter pub get
+
+# Run na Android emulátoru
+flutter run
+
+# Produkční build
+flutter build apk --release        # APK
+flutter build appbundle --release  # App Bundle (pro Google Play)
+\`\`\`
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: Flutter 3.9.2
+- **State Management**: BLoC pattern (flutter_bloc)
+- **Database**: SQLite (sqflite) + FTS5 fulltext search
+- **Architecture**: Clean Architecture + Feature-First
+- **AI**: OpenRouter API (GPT-4, Claude, Llama)
+- **TTS**: flutter_tts (Text-to-Speech)
+- **Storage**: Storage Access Framework (Android)
+
+---
+
+## 📂 Struktura Projektu
+
+\`\`\`
+lib/
+├── core/                      # Sdílený kód
+│   ├── services/              # DatabaseHelper, ClipboardMonitor
+│   ├── theme/                 # Doom One theme
+│   └── utils/                 # AppLogger, helpers
+├── features/                  # Feature-First organizace
+│   ├── todo_list/             # TODO management
+│   ├── notes/                 # Notes + PARA system
+│   ├── calendar/              # Calendar integration
+│   ├── pomodoro/              # Pomodoro timer
+│   ├── ai_motivation/         # AI motivátor
+│   ├── ai_brief/              # AI Brief
+│   ├── ai_split/              # AI Task Split
+│   └── settings/              # Nastavení
+└── main.dart                  # Entry point
+\`\`\`
+
+---
+
+## 🤝 Přispívání
+
+Contributions jsou vítány! 🎉
+
+1. Fork repository
+2. Vytvoř feature branch (\`git checkout -b feature/amazing-feature\`)
+3. Commit změny (\`git commit -m '✨ feat: Přidání amazing feature'\`)
+4. Push do branchi (\`git push origin feature/amazing-feature\`)
+5. Otevři Pull Request
+
+---
+
+## 📄 License
+
+Tento projekt je licencován pod [MIT License](LICENSE).
+
+---
+
+## 👨‍💻 Autor
+
+**Jaroslav Maštanec**
+- GitHub: [@mastancek](https://github.com/mastancek)
+- Email: mastnacek@gmail.com
+
+---
+
+## 🙏 Poděkování
+
+- [Flutter](https://flutter.dev) - Amazing framework
+- [OpenRouter](https://openrouter.ai) - AI API access
+- [Doom Emacs](https://github.com/doomemacs/doomemacs) - Theme inspirace
+
+---
+
+**🍺 Užij si produktivitu... i když jsi lajdák!** 😄

@@ -1,4 +1,4 @@
-package com.example.todo
+package com.mastancek.laidak
 
 import android.app.Activity
 import android.content.Intent
@@ -9,7 +9,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.todo.markdown_export/saf"
+    private val CHANNEL = "com.laidak.markdown_export/saf"
     private val PICK_DIRECTORY_REQUEST = 1001
     private var pendingResult: MethodChannel.Result? = null
 

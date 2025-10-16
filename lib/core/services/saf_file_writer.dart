@@ -8,7 +8,7 @@ import '../utils/app_logger.dart';
 /// Umožňuje zápis souborů do user-selected složky přes SAF na Androidu.
 /// Na ostatních platformách (Windows, Linux, macOS) se používá dart:io File API.
 class SafFileWriter {
-  static const MethodChannel _channel = MethodChannel('com.todo.markdown_export/saf');
+  static const MethodChannel _channel = MethodChannel('com.laidak.markdown_export/saf');
 
   /// Zapíše soubor přes SAF (Android) nebo dart:io (ostatní platformy)
   ///
