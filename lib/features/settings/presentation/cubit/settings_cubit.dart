@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/services/database_helper.dart';
 import '../../../../core/utils/app_logger.dart';
@@ -11,6 +12,8 @@ import '../../domain/models/agenda_view_config.dart';
 import '../../domain/models/custom_agenda_view.dart';
 import '../../../notes/domain/models/notes_view_config.dart';
 import '../../../notes/domain/models/custom_notes_view.dart';
+import '../../../markdown_export/domain/entities/export_config.dart';
+import '../../../markdown_export/domain/entities/export_format.dart';
 import 'settings_state.dart';
 
 /// Cubit pro správu nastavení aplikace (themes, preferences)
@@ -62,6 +65,9 @@ class SettingsCubit extends Cubit<SettingsState> {
       final aiTaskTemperature = (settings['ai_task_temperature'] as num?)?.toDouble() ?? 0.3;
       final aiTaskMaxTokens = settings['ai_task_max_tokens'] as int? ?? 1000;
 
+      // Načíst export config ze SharedPreferences
+      final exportConfig = await _loadExportConfig();
+
       emit(SettingsLoaded(
         selectedThemeId: themeId,
         currentTheme: theme,
@@ -77,6 +83,7 @@ class SettingsCubit extends Cubit<SettingsState> {
         aiTaskModel: aiTaskModel,
         aiTaskTemperature: aiTaskTemperature,
         aiTaskMaxTokens: aiTaskMaxTokens,
+        exportConfig: exportConfig,
       ));
     } catch (e) {
       emit(SettingsError('Chyba při načítání nastavení: $e'));
@@ -739,6 +746,74 @@ class SettingsCubit extends Cubit<SettingsState> {
       AppLogger.info('✅ Task max tokens nastaveny: $maxTokens');
     } catch (e) {
       AppLogger.error('Chyba při ukládání task max tokens: $e');
+    }
+  }
+
+  // ========== MARKDOWN EXPORT SETTINGS MANAGEMENT ==========
+
+  /// Aktualizovat export konfiguraci
+  ///
+  /// Ukládá se do SharedPreferences (ne DB - není kritické pro app funkcionalitu)
+  Future<void> updateExportConfig(ExportConfig config) async {
+    final currentState = state;
+    if (currentState is! SettingsLoaded) return;
+
+    try {
+      // Uložit do SharedPreferences
+      await _saveExportConfig(config);
+
+      // Update state
+      emit(currentState.copyWith(exportConfig: config));
+
+      AppLogger.info('✅ Export config aktualizován');
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání export config: $e');
+      // Fallback: emit state bez změny (silent error)
+      emit(currentState);
+    }
+  }
+
+  /// Uložit export config do SharedPreferences
+  Future<void> _saveExportConfig(ExportConfig config) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setString(
+        'export_target_directory',
+        config.targetDirectory ?? '',
+      );
+      await prefs.setString('export_format', config.format.name);
+      await prefs.setBool('export_todos', config.exportTodos);
+      await prefs.setBool('export_notes', config.exportNotes);
+      await prefs.setBool('export_auto_on_save', config.autoExportOnSave);
+    } catch (e) {
+      AppLogger.error('Chyba při ukládání export config do SharedPrefs: $e');
+      rethrow;
+    }
+  }
+
+  /// Načíst export config ze SharedPreferences
+  Future<ExportConfig> _loadExportConfig() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      final targetDir = prefs.getString('export_target_directory');
+      final formatStr = prefs.getString('export_format') ?? 'default_';
+      final format = ExportFormat.values.firstWhere(
+        (e) => e.name == formatStr,
+        orElse: () => ExportFormat.default_,
+      );
+
+      return ExportConfig(
+        targetDirectory: targetDir?.isEmpty ?? true ? null : targetDir,
+        format: format,
+        exportTodos: prefs.getBool('export_todos') ?? true,
+        exportNotes: prefs.getBool('export_notes') ?? true,
+        autoExportOnSave: prefs.getBool('export_auto_on_save') ?? false,
+      );
+    } catch (e) {
+      AppLogger.error('Chyba při načítání export config: $e');
+      return const ExportConfig.initial();
     }
   }
 }

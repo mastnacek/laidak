@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import '../../domain/models/agenda_view_config.dart';
 import '../../../notes/domain/models/notes_view_config.dart';
+import '../../../markdown_export/domain/entities/export_config.dart';
 
 /// Immutable state pro Settings feature
 ///
@@ -66,6 +67,10 @@ final class SettingsLoaded extends SettingsState {
   /// Max tokens pro task rozdělení
   final int aiTaskMaxTokens;
 
+  // --- Markdown Export Settings ---
+  /// Konfigurace pro markdown export
+  final ExportConfig exportConfig;
+
   const SettingsLoaded({
     required this.selectedThemeId,
     required this.currentTheme,
@@ -81,8 +86,10 @@ final class SettingsLoaded extends SettingsState {
     this.aiTaskModel = 'anthropic/claude-3.5-sonnet',
     this.aiTaskTemperature = 0.3,
     this.aiTaskMaxTokens = 1000,
-  }) : agendaConfig = agendaConfig ?? const AgendaViewConfig(),
-       notesConfig = notesConfig ?? const NotesViewConfig();
+    ExportConfig? exportConfig,
+  })  : agendaConfig = agendaConfig ?? const AgendaViewConfig(),
+        notesConfig = notesConfig ?? const NotesViewConfig(),
+        exportConfig = exportConfig ?? const ExportConfig.initial();
 
   /// copyWith pro immutable updates
   SettingsLoaded copyWith({
@@ -100,6 +107,7 @@ final class SettingsLoaded extends SettingsState {
     String? aiTaskModel,
     double? aiTaskTemperature,
     int? aiTaskMaxTokens,
+    ExportConfig? exportConfig,
   }) {
     return SettingsLoaded(
       selectedThemeId: selectedThemeId ?? this.selectedThemeId,
@@ -116,6 +124,7 @@ final class SettingsLoaded extends SettingsState {
       aiTaskModel: aiTaskModel ?? this.aiTaskModel,
       aiTaskTemperature: aiTaskTemperature ?? this.aiTaskTemperature,
       aiTaskMaxTokens: aiTaskMaxTokens ?? this.aiTaskMaxTokens,
+      exportConfig: exportConfig ?? this.exportConfig,
     );
   }
 
@@ -135,6 +144,7 @@ final class SettingsLoaded extends SettingsState {
         aiTaskModel,
         aiTaskTemperature,
         aiTaskMaxTokens,
+        exportConfig,
       ];
 }
 

@@ -6,6 +6,7 @@ import '../features/settings/presentation/pages/themes_tab.dart';
 import '../features/settings/presentation/pages/agenda_tab.dart';
 import '../features/settings/presentation/pages/notes_tab.dart';
 import '../features/tag_management/presentation/pages/tag_management_page.dart';
+import '../features/markdown_export/presentation/widgets/export_settings_section.dart';
 
 /// Stránka s nastavením AI motivace
 class SettingsPage extends StatefulWidget {
@@ -21,7 +22,7 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 7, vsync: this);
   }
 
   @override
@@ -71,6 +72,10 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
               icon: Icon(Icons.folder_special),
               text: 'NOTES VIEWS',
             ),
+            Tab(
+              icon: Icon(Icons.save_alt),
+              text: 'EXPORT',
+            ),
           ],
         ),
       ),
@@ -83,6 +88,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           ThemesTab(),
           AgendaTab(),
           NotesTab(),
+          SingleChildScrollView(
+            child: ExportSettingsSection(),
+          ),
         ],
       ),
     );
