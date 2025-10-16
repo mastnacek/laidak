@@ -434,7 +434,7 @@ class TodoCard extends StatelessWidget {
                   // Share button
                   IconButton(
                     icon: Icon(Icons.share, color: theme.appColors.cyan, size: 24),
-                    tooltip: 'Sdílet úkol',
+                    tooltip: '', // Vypnuto kvůli multiple tickers error při rebuildu dialogu
                     onPressed: () => _shareTodo(context),
                   ),
                   // AI Split button
