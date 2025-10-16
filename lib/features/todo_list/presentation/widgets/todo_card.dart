@@ -1138,60 +1138,64 @@ class TodoCard extends StatelessWidget {
             side: BorderSide(color: theme.appColors.magenta, width: 2),
           ),
           child: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(3), // Minimální okraje (3mm)
             constraints: BoxConstraints(
-              maxWidth: 600,
+              maxWidth: MediaQuery.of(context).size.width - 6, // Celá obrazovka mínus okraje
               maxHeight: MediaQuery.of(context).size.height *
-                  0.8, // Max 80% výšky obrazovky
+                  0.95, // Max 95% výšky obrazovky (větší využití)
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    Icon(Icons.auto_awesome,
-                        color: theme.appColors.magenta, size: 28),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'AI MOTIVACE',
-                        style: TextStyle(
-                          color: theme.appColors.magenta,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+            child: Padding(
+              padding: const EdgeInsets.all(12), // Vnitřní padding pro obsah
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Icon(Icons.auto_awesome,
+                          color: theme.appColors.magenta, size: 24),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'AI MOTIVACE',
+                          style: TextStyle(
+                            color: theme.appColors.magenta,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close, color: theme.appColors.base5),
-                      onPressed: () {
-                        ttsService.stop();
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                Divider(color: theme.appColors.base3, height: 24),
+                      IconButton(
+                        icon: Icon(Icons.close, color: theme.appColors.base5, size: 22),
+                        onPressed: () {
+                          ttsService.stop();
+                          Navigator.of(context).pop();
+                        },
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  Divider(color: theme.appColors.base3, height: 16),
 
-                // Task preview
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: theme.appColors.bgAlt,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: theme.appColors.base3),
-                  ),
-                  child: Text(
-                    '📋 ${todo.task}',
-                    style: TextStyle(
-                      color: theme.appColors.fg,
-                      fontSize: 14,
+                  // Task preview
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: theme.appColors.bgAlt,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: theme.appColors.base3),
+                    ),
+                    child: Text(
+                      '📋 ${todo.task}',
+                      style: TextStyle(
+                        color: theme.appColors.fg,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 12),
 
                 // Motivation text s typewriter efektem - Scrollable
                 Flexible(
@@ -1214,9 +1218,9 @@ class TodoCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
 
-                // Action buttons
+                // Action buttons (kompaktní layout)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1233,9 +1237,11 @@ class TodoCard extends StatelessWidget {
                       icon: Icon(
                         ttsService.isSpeaking ? Icons.stop : Icons.volume_up,
                         color: theme.appColors.green,
-                        size: 28,
+                        size: 24,
                       ),
                       tooltip: ttsService.isSpeaking ? 'Zastavit' : 'Číst nahlas',
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
                     ),
                     // Copy to clipboard button
                     OutlinedButton.icon(
@@ -1251,13 +1257,14 @@ class TodoCard extends StatelessWidget {
                           );
                         }
                       },
-                      icon: Icon(Icons.copy, color: theme.appColors.cyan),
+                      icon: Icon(Icons.copy, color: theme.appColors.cyan, size: 18),
                       label: Text(
                         'Kopírovat',
-                        style: TextStyle(color: theme.appColors.cyan),
+                        style: TextStyle(color: theme.appColors.cyan, fontSize: 13),
                       ),
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: theme.appColors.cyan),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
                     // Close button
@@ -1269,8 +1276,9 @@ class TodoCard extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.appColors.magenta,
                         foregroundColor: theme.appColors.bg,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       ),
-                      child: const Text('Zavřít'),
+                      child: const Text('Zavřít', style: TextStyle(fontSize: 13)),
                     ),
                   ],
                 ),
