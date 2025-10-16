@@ -367,9 +367,9 @@ class _CalendarPageState extends State<CalendarPage> {
     } else if (selectedDateOnly == dayAfterTomorrow) {
       return '${startDelim}pozitri$endDelim ';
     } else {
-      // Pro ostatní dny použít formát YYYY-MM-DD
+      // Pro ostatní dny použít formát DD.MM.YYYY (kompatibilní s TagParser)
       final dateStr =
-          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+          '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
       return '$startDelim$dateStr$endDelim ';
     }
   }
