@@ -27,7 +27,7 @@ class DatabaseHelper {
 
     final db = await openDatabase(
       path,
-      version: 21,  // ← Custom Notes Views (identický princip jako Agenda Views)
+      version: 22,  // ← FTS5 Full-Text Search pro TODOs a Notes
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
@@ -270,6 +270,10 @@ class DatabaseHelper {
 
     await db.execute('CREATE INDEX idx_custom_notes_views_enabled ON custom_notes_views(enabled)');
     await db.execute('CREATE INDEX idx_custom_notes_views_sort ON custom_notes_views(sort_order)');
+
+    // FTS5 Full-Text Search virtual tables (verze 22)
+    await _createFTS5Tables(db);
+    await _createFTS5Triggers(db);
 
     // Vložit výchozí nastavení
     await _insertDefaultSettings(db);
@@ -553,6 +557,18 @@ class DatabaseHelper {
       // 3. Přidat built-in toggles do settings (All Notes, Recent Notes)
       await db.execute('ALTER TABLE settings ADD COLUMN show_all_notes INTEGER NOT NULL DEFAULT 1');
       await db.execute('ALTER TABLE settings ADD COLUMN show_recent_notes INTEGER NOT NULL DEFAULT 1');
+    }
+
+    if (oldVersion < 22) {
+      // FTS5 Full-Text Search pro TODOs a Notes
+      // 1. Vytvořit FTS5 virtual tables
+      await _createFTS5Tables(db);
+
+      // 2. Vytvořit triggers pro automatickou synchronizaci FTS5 indexů
+      await _createFTS5Triggers(db);
+
+      // 3. Naplnit FTS5 indexy existujícími daty (rebuild)
+      await rebuildFTS5Indexes();
     }
   }
 
@@ -1866,5 +1882,165 @@ class DatabaseHelper {
     if (updates.isNotEmpty) {
       await db.update('settings', updates, where: 'id = 1');
     }
+  }
+
+  // ==================== FTS5 FULL-TEXT SEARCH (VERZE 22) ====================
+
+  /// Vytvořit FTS5 virtual tables pro TODOs a Notes
+  ///
+  /// FTS5 je SQLite full-text search engine s podporou:
+  /// - Keyword search s ranking (BM25)
+  /// - Prefix queries ("prog*")
+  /// - Phrase queries ("\"dokončit prezentaci\"")
+  /// - Boolean operators (AND, OR, NOT)
+  /// - Czech diacritics support (díky unicode61 tokenizer)
+  Future<void> _createFTS5Tables(Database db) async {
+    // FTS5 virtual table pro TODOs
+    // Content table: todos (external content) → FTS5 neukládá data, pouze indexuje
+    // Tokenizer: unicode61 (podporuje diakritiku, lowercase folding)
+    await db.execute('''
+      CREATE VIRTUAL TABLE todos_fts USING fts5(
+        task,
+        tags,
+        content=todos,
+        content_rowid=id,
+        tokenize='unicode61 remove_diacritics 0'
+      )
+    ''');
+
+    // FTS5 virtual table pro Notes
+    await db.execute('''
+      CREATE VIRTUAL TABLE notes_fts USING fts5(
+        content,
+        content=notes,
+        content_rowid=id,
+        tokenize='unicode61 remove_diacritics 0'
+      )
+    ''');
+  }
+
+  /// Vytvořit triggers pro automatické update FTS5 indexů
+  ///
+  /// FTS5 external content tables vyžadují triggers pro sync:
+  /// - INSERT → přidat do FTS5
+  /// - UPDATE → update FTS5
+  /// - DELETE → smazat z FTS5
+  Future<void> _createFTS5Triggers(Database db) async {
+    // ==================== TODOS FTS5 TRIGGERS ====================
+
+    // Trigger: INSERT do todos → INSERT do todos_fts
+    await db.execute('''
+      CREATE TRIGGER todos_fts_insert AFTER INSERT ON todos BEGIN
+        INSERT INTO todos_fts(rowid, task, tags)
+        VALUES (new.id, new.task, new.tags);
+      END
+    ''');
+
+    // Trigger: UPDATE todos → UPDATE todos_fts
+    await db.execute('''
+      CREATE TRIGGER todos_fts_update AFTER UPDATE ON todos BEGIN
+        UPDATE todos_fts
+        SET task = new.task, tags = new.tags
+        WHERE rowid = old.id;
+      END
+    ''');
+
+    // Trigger: DELETE z todos → DELETE z todos_fts
+    await db.execute('''
+      CREATE TRIGGER todos_fts_delete AFTER DELETE ON todos BEGIN
+        DELETE FROM todos_fts WHERE rowid = old.id;
+      END
+    ''');
+
+    // ==================== NOTES FTS5 TRIGGERS ====================
+
+    // Trigger: INSERT do notes → INSERT do notes_fts
+    await db.execute('''
+      CREATE TRIGGER notes_fts_insert AFTER INSERT ON notes BEGIN
+        INSERT INTO notes_fts(rowid, content)
+        VALUES (new.id, new.content);
+      END
+    ''');
+
+    // Trigger: UPDATE notes → UPDATE notes_fts
+    await db.execute('''
+      CREATE TRIGGER notes_fts_update AFTER UPDATE ON notes BEGIN
+        UPDATE notes_fts
+        SET content = new.content
+        WHERE rowid = old.id;
+      END
+    ''');
+
+    // Trigger: DELETE z notes → DELETE z notes_fts
+    await db.execute('''
+      CREATE TRIGGER notes_fts_delete AFTER DELETE ON notes BEGIN
+        DELETE FROM notes_fts WHERE rowid = old.id;
+      END
+    ''');
+  }
+
+  /// Full-text search v TODOs (FTS5)
+  ///
+  /// Query syntax:
+  /// - "prezentaci" → simple keyword
+  /// - "dokončit prezentaci" → phrase search (exact match)
+  /// - "dokončit OR připravit" → boolean OR
+  /// - "prezentaci NOT hotovo" → boolean NOT
+  /// - "prog*" → prefix search (programming, programmer...)
+  ///
+  /// Vrací: List<TodoItem> seřazené podle relevance (BM25 rank)
+  Future<List<TodoItem>> fullTextSearchTodos(String query) async {
+    final db = await database;
+
+    // FTS5 query s JOINem zpět do todos tabulky
+    // rank → BM25 relevance score (nižší = relevantnější)
+    final results = await db.rawQuery('''
+      SELECT t.*
+      FROM todos t
+      INNER JOIN todos_fts fts ON t.id = fts.rowid
+      WHERE todos_fts MATCH ?
+      ORDER BY rank
+    ''', [query]);
+
+    return results.map((map) => TodoItem.fromMap(map)).toList();
+  }
+
+  /// Full-text search v Notes (FTS5)
+  ///
+  /// Query syntax: stejná jako fullTextSearchTodos
+  ///
+  /// Vrací: List<Map<String, dynamic>> poznámek seřazených podle relevance
+  Future<List<Map<String, dynamic>>> fullTextSearchNotes(String query) async {
+    final db = await database;
+
+    final results = await db.rawQuery('''
+      SELECT n.*
+      FROM notes n
+      INNER JOIN notes_fts fts ON n.id = fts.rowid
+      WHERE notes_fts MATCH ?
+      ORDER BY rank
+    ''', [query]);
+
+    return results;
+  }
+
+  /// Rebuild FTS5 indexes (pro maintenance)
+  ///
+  /// Použij pokud:
+  /// - FTS5 index je corrupted
+  /// - Migrace z verze < 22 (naplnit FTS5 existujícími daty)
+  /// - Performance degradace (OPTIMIZE FTS5)
+  Future<void> rebuildFTS5Indexes() async {
+    final db = await database;
+
+    // Rebuild todos_fts
+    await db.execute("INSERT INTO todos_fts(todos_fts) VALUES('rebuild')");
+
+    // Rebuild notes_fts
+    await db.execute("INSERT INTO notes_fts(notes_fts) VALUES('rebuild')");
+
+    // Optimize FTS5 (merge b-tree segments)
+    await db.execute("INSERT INTO todos_fts(todos_fts) VALUES('optimize')");
+    await db.execute("INSERT INTO notes_fts(notes_fts) VALUES('optimize')");
   }
 }
