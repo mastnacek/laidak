@@ -1129,9 +1129,6 @@ class TodoCard extends StatelessWidget {
     final scrollController = ScrollController();
     final ttsService = TtsService();
 
-    // Vyčistit markdown syntaxi PŘED zobrazením (user uvidí čistý text)
-    final cleanMotivation = TtsService.stripMarkdown(motivation);
-
     return StatefulBuilder(
       builder: (context, setState) {
         return Dialog(
@@ -1204,7 +1201,7 @@ class TodoCard extends StatelessWidget {
                   child: SingleChildScrollView(
                     controller: scrollController,
                     child: TypewriterText(
-                      text: cleanMotivation, // Zobrazit čistý text (bez markdown)
+                      text: motivation, // Zobrazit markdown (renderuje se jako formátovaný text)
                       style: TextStyle(
                         color: theme.appColors.fg,
                         fontSize: 16,
@@ -1232,7 +1229,9 @@ class TodoCard extends StatelessWidget {
                         if (ttsService.isSpeaking) {
                           await ttsService.stop();
                         } else {
-                          await ttsService.speak(cleanMotivation); // Číst čistý text
+                          // Očistit markdown před čtením (TTS čte jen text, ne syntaxi)
+                          final cleanText = TtsService.stripMarkdown(motivation);
+                          await ttsService.speak(cleanText);
                         }
                         setState(() {}); // Rebuild pro změnu ikony
                       },
@@ -1248,7 +1247,7 @@ class TodoCard extends StatelessWidget {
                     // Copy to clipboard button
                     OutlinedButton.icon(
                       onPressed: () async {
-                        await Clipboard.setData(ClipboardData(text: cleanMotivation)); // Kopírovat čistý text
+                        await Clipboard.setData(ClipboardData(text: motivation)); // Kopírovat markdown
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
