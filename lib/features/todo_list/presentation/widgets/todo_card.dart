@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/sound_manager.dart';
+import '../../../../core/services/tts_service.dart';
 import '../../../../core/services/database_helper.dart';
 import '../../../../core/utils/app_logger.dart';
 import '../../../../utils/color_utils.dart';
@@ -1126,130 +1127,158 @@ class TodoCard extends StatelessWidget {
     final theme = Theme.of(context);
     final soundManager = SoundManager();
     final scrollController = ScrollController();
+    final ttsService = TtsService();
 
-    return Dialog(
-      backgroundColor: theme.appColors.bg,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: theme.appColors.magenta, width: 2),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        constraints: BoxConstraints(
-          maxWidth: 600,
-          maxHeight: MediaQuery.of(context).size.height *
-              0.8, // Max 80% výšky obrazovky
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Dialog(
+          backgroundColor: theme.appColors.bg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: theme.appColors.magenta, width: 2),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            constraints: BoxConstraints(
+              maxWidth: 600,
+              maxHeight: MediaQuery.of(context).size.height *
+                  0.8, // Max 80% výšky obrazovky
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.auto_awesome,
-                    color: theme.appColors.magenta, size: 28),
-                const SizedBox(width: 12),
-                Expanded(
+                // Header
+                Row(
+                  children: [
+                    Icon(Icons.auto_awesome,
+                        color: theme.appColors.magenta, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'AI MOTIVACE',
+                        style: TextStyle(
+                          color: theme.appColors.magenta,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close, color: theme.appColors.base5),
+                      onPressed: () {
+                        ttsService.stop();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+                Divider(color: theme.appColors.base3, height: 24),
+
+                // Task preview
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: theme.appColors.bgAlt,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: theme.appColors.base3),
+                  ),
                   child: Text(
-                    'AI MOTIVACE',
+                    '📋 ${todo.task}',
                     style: TextStyle(
-                      color: theme.appColors.magenta,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                      color: theme.appColors.fg,
+                      fontSize: 14,
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: Icon(Icons.close, color: theme.appColors.base5),
-                  onPressed: () => Navigator.of(context).pop(),
+                const SizedBox(height: 20),
+
+                // Motivation text s typewriter efektem - Scrollable
+                Flexible(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: TypewriterText(
+                      text: motivation,
+                      style: TextStyle(
+                        color: theme.appColors.fg,
+                        fontSize: 16,
+                        height: 1.5,
+                      ),
+                      duration: const Duration(milliseconds: 20),
+                      scrollController: scrollController,
+                      onComplete: () {
+                        // Zastavit zvuk po dokončení typewriter efektu
+                        AppLogger.debug('🎬 Typewriter dokončen - zastavuji zvuk');
+                        soundManager.stop();
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Action buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // TTS button (NEW!)
+                    IconButton(
+                      onPressed: () async {
+                        if (ttsService.isSpeaking) {
+                          await ttsService.stop();
+                        } else {
+                          await ttsService.speak(motivation);
+                        }
+                        setState(() {}); // Rebuild pro změnu ikony
+                      },
+                      icon: Icon(
+                        ttsService.isSpeaking ? Icons.stop : Icons.volume_up,
+                        color: theme.appColors.green,
+                        size: 28,
+                      ),
+                      tooltip: ttsService.isSpeaking ? 'Zastavit' : 'Číst nahlas',
+                    ),
+                    // Copy to clipboard button
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        await Clipboard.setData(ClipboardData(text: motivation));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text('✅ Text zkopírován do schránky'),
+                              backgroundColor: theme.appColors.green,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      icon: Icon(Icons.copy, color: theme.appColors.cyan),
+                      label: Text(
+                        'Kopírovat',
+                        style: TextStyle(color: theme.appColors.cyan),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: theme.appColors.cyan),
+                      ),
+                    ),
+                    // Close button
+                    ElevatedButton(
+                      onPressed: () {
+                        ttsService.stop();
+                        Navigator.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.appColors.magenta,
+                        foregroundColor: theme.appColors.bg,
+                      ),
+                      child: const Text('Zavřít'),
+                    ),
+                  ],
                 ),
               ],
             ),
-            Divider(color: theme.appColors.base3, height: 24),
-
-            // Task preview
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.appColors.bgAlt,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.appColors.base3),
-              ),
-              child: Text(
-                '📋 ${todo.task}',
-                style: TextStyle(
-                  color: theme.appColors.fg,
-                  fontSize: 14,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Motivation text s typewriter efektem - Scrollable
-            Flexible(
-              child: SingleChildScrollView(
-                controller: scrollController,
-                child: TypewriterText(
-                  text: motivation,
-                  style: TextStyle(
-                    color: theme.appColors.fg,
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
-                  duration: const Duration(milliseconds: 20),
-                  scrollController: scrollController,
-                  onComplete: () {
-                    // Zastavit zvuk po dokončení typewriter efektu
-                    AppLogger.debug('🎬 Typewriter dokončen - zastavuji zvuk');
-                    soundManager.stop();
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Copy to clipboard button
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: motivation));
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Text('✅ Text zkopírován do schránky'),
-                          backgroundColor: theme.appColors.green,
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  },
-                  icon: Icon(Icons.copy, color: theme.appColors.cyan),
-                  label: Text(
-                    'Kopírovat',
-                    style: TextStyle(color: theme.appColors.cyan),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: theme.appColors.cyan),
-                  ),
-                ),
-                // Close button
-                ElevatedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.appColors.magenta,
-                    foregroundColor: theme.appColors.bg,
-                  ),
-                  child: const Text('Zavřít'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

@@ -81,6 +81,9 @@ dependencies:
   table_calendar: ^3.2.0
   file_picker: ^10.3.3
 
+  # Text-to-Speech pro čtení motivačních textů
+  flutter_tts: ^4.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -70,5 +70,9 @@
         </intent>
         <!-- WhatsApp -->
         <package android:name="com.whatsapp" />
+        <!-- Text-to-Speech (flutter_tts) -->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
     </queries>
 </manifest>

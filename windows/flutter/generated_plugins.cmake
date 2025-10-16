@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   clipboard_watcher
   emoji_picker_flutter
+  flutter_tts
   url_launcher_windows
 )
 
