@@ -382,20 +382,23 @@ class _CalendarPageState extends State<CalendarPage> {
     final mainPageState = context.findAncestorStateOfType<MainPageState>();
     if (mainPageState != null) {
       // 2. Přepnout na TodoListPage (index 1)
-      mainPageState.pageController.animateToPage(
+      final animationFuture = mainPageState.pageController.animateToPage(
         1,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
 
-      // 3. KRITICKÉ: Počkat až se dokončí animace a TEPRVE pak odeslat event
-      // Jinak InputBar ještě není ready a text se nevloží
-      Future.delayed(const Duration(milliseconds: 350), () {
-        if (context.mounted) {
-          context.read<TodoListBloc>().add(
-                PrepopulateInputEvent(text: dateTag),
-              );
-        }
+      // 3. KRITICKÉ: Počkat až se dokončí animace pomocí Future.then
+      // místo Future.delayed - eliminuje race condition
+      animationFuture.then((_) {
+        // Použít addPostFrameCallback pro jistotu, že widget tree je ready
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.read<TodoListBloc>().add(
+                  PrepopulateInputEvent(text: dateTag),
+                );
+          }
+        });
       });
     }
   }
