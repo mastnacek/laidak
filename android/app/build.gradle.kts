@@ -42,3 +42,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // androidx.documentfile pro Storage Access Framework
+    implementation("androidx.documentfile:documentfile:1.0.1")
+}

@@ -41,17 +41,48 @@ dependencies:
   path: ^1.8.3
 
   # Intl pro formátování datumů
-  intl: ^0.19.0
+  intl: ^0.20.2
 
   # HTTP pro API calls
   http: ^1.1.0
 
-  # Audio přehrávač (just_audio funguje lépe na Windows)
-  just_audio: ^0.9.36
-  just_audio_windows: ^0.2.0  # Windows implementace pro just_audio
+  # Audio přehrávač
+  just_audio: ^0.10.5
+  just_audio_media_kit: ^2.0.8  # Windows support přes media_kit
 
   # State management pro dynamické změny tématu
   provider: ^6.1.0
+
+  # BLoC state management
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.5
+
+  # Persistence
+  shared_preferences: ^2.2.2
+
+  # UUID generování
+  uuid: ^4.3.3
+
+  # Color picker s kruhovým wheel designem
+  flutter_colorpicker: ^1.1.0
+  logger: ^2.6.2
+
+  # Emoji picker pro custom agenda views
+  emoji_picker_flutter: ^3.1.0
+
+  # Vibrace pro Pomodoro notifikace
+  vibration: ^2.0.0
+
+  # Clipboard monitoring
+  clipboard_watcher: ^0.2.1
+
+  # URL launcher (telefon, SMS, WhatsApp, email)
+  url_launcher: ^6.3.1
+  table_calendar: ^3.2.0
+  file_picker: ^10.3.3
+
+  # Text-to-Speech pro čtení motivačních textů
+  flutter_tts: ^4.2.0
 
 dev_dependencies:
   flutter_test:
@@ -62,7 +93,21 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
+
+  # Generování app ikon
+  flutter_launcher_icons: ^0.14.1
+  bloc_test: ^10.0.0
+  mockito: ^5.5.0
+  build_runner: ^2.7.1
+
+# Konfigurace app ikony
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#282c34"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -79,6 +124,7 @@ flutter:
   assets:
     - assets/sounds/typing_long.wav
     - assets/sounds/subtle_long_type.wav
+    - assets/sounds/pomodoro_complete.wav
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/doom_one_theme.dart';
+import '../core/theme/doom_one_theme.dart';
+import '../services/tag_service.dart';
+import '../core/services/database_helper.dart';
 
 /// TextField s live syntax highlighting pro tagy
+/// Používá dynamické barvy z TagService
 /// Používá EditableText s vlastním TextEditingController
 class HighlightedTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final ValueChanged<String>? onSubmitted;
+  final FocusNode? focusNode;
 
   const HighlightedTextField({
     super.key,
     required this.controller,
     required this.hintText,
     this.onSubmitted,
+    this.focusNode,
   });
 
   @override
@@ -21,12 +26,20 @@ class HighlightedTextField extends StatefulWidget {
 }
 
 class _HighlightedTextFieldState extends State<HighlightedTextField> {
-  final FocusNode _focusNode = FocusNode();
+  FocusNode? _internalFocusNode;
   late HighlightedTextEditingController _highlightController;
+
+  FocusNode get _focusNode => widget.focusNode ?? _internalFocusNode!;
 
   @override
   void initState() {
     super.initState();
+
+    // Vytvořit interní FocusNode pouze pokud není předán
+    if (widget.focusNode == null) {
+      _internalFocusNode = FocusNode();
+    }
+
     // Wrap původní controller do highlighting controlleru
     _highlightController = HighlightedTextEditingController(
       text: widget.controller.text,
@@ -42,7 +55,7 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
     widget.controller.removeListener(_syncFromOriginal);
     _highlightController.removeListener(_syncToOriginal);
     _highlightController.dispose();
-    _focusNode.dispose();
+    _internalFocusNode?.dispose();
     super.dispose();
   }
 
@@ -92,6 +105,9 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
           autocorrect: true,
           enableSuggestions: true,
           onSubmitted: widget.onSubmitted,
+          // Povolit text selection a Android context menu (copy, call, email, WhatsApp)
+          enableInteractiveSelection: true,
+          selectionControls: MaterialTextSelectionControls(),
         ),
       ),
     );
@@ -100,7 +116,37 @@ class _HighlightedTextFieldState extends State<HighlightedTextField> {
 
 /// Custom TextEditingController s syntax highlighting
 class HighlightedTextEditingController extends TextEditingController {
-  HighlightedTextEditingController({String? text}) : super(text: text);
+  final TagService _tagService = TagService();
+  String _delimiterStart = '*';
+  String _delimiterEnd = '*';
+  RegExp? _tagRegex;
+
+  HighlightedTextEditingController({super.text}) {
+    _initDelimiters();
+  }
+
+  /// Načíst delimitery z DB a vytvořit regex (async init)
+  Future<void> _initDelimiters() async {
+    try {
+      final db = DatabaseHelper();
+      final settings = await db.getSettings();
+      _delimiterStart = settings['tag_delimiter_start'] as String? ?? '*';
+      _delimiterEnd = settings['tag_delimiter_end'] as String? ?? '*';
+
+      // Vytvořit regex s escapovanými delimitery
+      final start = RegExp.escape(_delimiterStart);
+      final end = RegExp.escape(_delimiterEnd);
+      _tagRegex = RegExp('$start([^$end]+)$end');
+
+      // Trigger rebuild pro aplikaci nového regex
+      notifyListeners();
+    } catch (e) {
+      // Fallback na default delimitery pokud DB není ready
+      _delimiterStart = '*';
+      _delimiterEnd = '*';
+      _tagRegex = RegExp(r'\*([^*]+)\*');
+    }
+  }
 
   @override
   TextSpan buildTextSpan({
@@ -121,7 +167,8 @@ class HighlightedTextEditingController extends TextEditingController {
     final sanitizedText = _sanitizeText(text);
 
     final spans = <InlineSpan>[];
-    final tagRegex = RegExp(r'\*([^*]+)\*');
+    // Použít dynamický regex (fallback na default pokud ještě není načtený)
+    final tagRegex = _tagRegex ?? RegExp(r'\*([^*]+)\*');
     int lastMatchEnd = 0;
 
     for (final match in tagRegex.allMatches(sanitizedText)) {
@@ -199,6 +246,29 @@ class HighlightedTextEditingController extends TextEditingController {
   Color _getTagColor(String tagContent) {
     final lower = tagContent.toLowerCase();
 
+    // Pro date tagy s časem: extrahovat jen date část pro TagService lookup
+    // Např: "dnes 15:30" → "dnes", "zítra 9.30" → "zítra", "dnes15:30" → "dnes"
+    // Pattern: text před mezerou nebo před číslicí (pro podporu "dnes15:30")
+    final tagValueForLookup = lower.split(RegExp(r'[\s\d]')).first;
+
+    // Pokusit se získat definici z TagService (s error handling)
+    try {
+      final definition = _tagService.getDefinition(tagValueForLookup);
+
+      // Pokud existuje definice s barvou, použít ji
+      if (definition != null && definition.color != null) {
+        final color = _parseHexColor(definition.color!);
+        if (color != null) {
+          return color;
+        }
+      }
+    } catch (e) {
+      // TagService není inicializovaný → použít fallback barvy
+      // Toto je OK, protože highlighting controller může být vytvořen
+      // před dokončením inicializace TagService v main()
+    }
+
+    // Fallback barvy podle typu tagu (pokud definice neexistuje nebo nemá color)
     // Priorita
     if (lower == 'a') return DoomOneTheme.red;
     if (lower == 'b') return DoomOneTheme.yellow;
@@ -211,15 +281,55 @@ class HighlightedTextEditingController extends TextEditingController {
 
     // Akce
     const actions = [
-      'udelat', 'zavolat', 'napsat', 'koupit', 'poslat',
-      'pripravit', 'domluvit', 'zkontrolovat', 'opravit',
-      'nacist', 'poslouchat'
+      'udelat',
+      'zavolat',
+      'napsat',
+      'koupit',
+      'poslat',
+      'pripravit',
+      'domluvit',
+      'zkontrolovat',
+      'opravit',
+      'nacist',
+      'poslouchat'
     ];
     if (actions.contains(lower)) {
-      return DoomOneTheme.magenta;
+      return DoomOneTheme.violet;
     }
 
-    // Obecný tag
-    return DoomOneTheme.cyan;
+    // Obecný tag (custom tagy)
+    return DoomOneTheme.magenta;
+  }
+
+  /// Parsovat hex color string na Flutter Color
+  ///
+  /// Podporované formáty: "#FF5555", "#F55", "FF5555", "F55"
+  Color? _parseHexColor(String hexString) {
+    try {
+      // Odstranit # pokud existuje
+      String hex = hexString.replaceAll('#', '');
+
+      // Pokud je 3-znakový (#RGB), expandovat na 6-znakový (#RRGGBB)
+      if (hex.length == 3) {
+        hex = hex.split('').map((c) => c + c).join();
+      }
+
+      // Pokud je 6-znakový, přidat alfa kanál (FF = plně viditelné)
+      if (hex.length == 6) {
+        hex = 'FF$hex';
+      }
+
+      // Parsovat jako int a vytvořit Color
+      if (hex.length == 8) {
+        final value = int.tryParse(hex, radix: 16);
+        if (value != null) {
+          return Color(value);
+        }
+      }
+
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 }

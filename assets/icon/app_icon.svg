@@ -1,0 +1,36 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Doom One Theme TODO Icon -->
+  <!-- Tmavé pozadí s rounded square -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#21252b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#282c34;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="checkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#51afef;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#98be65;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square pozadí -->
+  <rect x="0" y="0" width="1024" height="1024" rx="180" fill="url(#bgGradient)"/>
+
+  <!-- TODO List lines (stránka) -->
+  <rect x="240" y="200" width="544" height="624" rx="40" fill="#3f444a" opacity="0.4"/>
+
+  <!-- Checkmark circle (hlavní element) -->
+  <circle cx="512" cy="512" r="280" fill="url(#checkGradient)" opacity="0.95"/>
+
+  <!-- Checkmark symbol -->
+  <path d="M 380 512 L 460 620 L 680 380"
+        stroke="#21252b"
+        stroke-width="56"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"/>
+
+  <!-- Prioritní body (A, B, C) -->
+  <circle cx="300" cy="280" r="28" fill="#ff6c6b" opacity="0.8"/>
+  <circle cx="300" cy="400" r="28" fill="#ecbe7b" opacity="0.8"/>
+  <circle cx="300" cy="520" r="28" fill="#98be65" opacity="0.6"/>
+</svg>

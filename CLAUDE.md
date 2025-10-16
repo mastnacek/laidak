@@ -55,6 +55,8 @@
 
 ---
 
+---
+
 ## 🚨 CRITICAL RULES - NIKDY NEPŘEKROČ
 
 ### 1. ❌ Business logika v widgetech → ✅ POUZE v BLoC/Cubit
@@ -194,6 +196,445 @@ Tento workflow je POVINNÝ pro všechny úkoly!
 
 ---
 
+## ✨ AI Brief - Inteligentní filtrování úkolů
+
+### 📋 Kompletní guide: [brief.md](brief.md)
+
+**Funkce**: AI-powered filter v Agenda view - inteligentní prioritizace úkolů
+
+**Kdy použít**: Implementace nové feature `lib/features/ai_brief/` + integrace do TodoListPage
+
+**DŮLEŽITÉ**: Brief NENÍ samostatná stránka! Je to **nový tab v Agenda views** (All, Today, Week, Overdue, **Brief**)
+
+### 🎯 Koncept
+
+User klikne "Brief" tab → AI filtruje úkoly do sekcí:
+- 🎯 **FOCUS NOW** (top 3 úkoly)
+- 📊 **KEY INSIGHTS** (dependencies, quick wins)
+- 💪 **MOTIVATION** (progress, encouragement)
+
+**Klíčové**: Zobrazí se **real TodoCards** (ne clickable linky!), user může hned pracovat (done, edit, pomodoro)
+
+### 📐 Architektura
+
+```
+lib/features/ai_brief/
+├── presentation/
+│   ├── widgets/
+│   │   ├── brief_section_header.dart      # AI komentář nad sekcí
+│   │   ├── brief_loading_indicator.dart   # Loading state
+│   │   └── brief_error_widget.dart        # Error state
+│   └── bloc/
+│       ├── ai_brief_bloc.dart
+│       ├── ai_brief_event.dart
+│       └── ai_brief_state.dart
+├── domain/
+│   ├── entities/
+│   │   ├── brief_config.dart              # Settings
+│   │   ├── brief_response.dart            # AI response
+│   │   └── brief_section.dart             # Section entity
+│   └── repositories/
+│       └── ai_brief_repository.dart
+└── data/
+    ├── datasources/
+    │   ├── brief_ai_datasource.dart       # OpenRouter API
+    │   └── brief_db_datasource.dart       # DB queries
+    └── repositories/
+        └── ai_brief_repository_impl.dart
+```
+
+**PLUS: Integrace do TodoListBloc** (ne nový BLoC!)
+
+### 🔧 Implementační kroky (6-8h MVP)
+
+#### **Krok 1: Snapshot commit** (5 min)
+
+```bash
+git add -A && git commit -m "🔖 snapshot: Před implementací AI Brief feature"
+```
+
+#### **Krok 2: Domain Layer** (1.5h)
+
+Vytvoř entity v `lib/features/ai_brief/domain/entities/`:
+
+**2.1 BriefSection** (15 min)
+```dart
+class BriefSection {
+  final String type;        // focus_now, key_insights, motivation
+  final String title;       // "🎯 FOCUS NOW"
+  final String commentary;  // AI komentář
+  final List<int> taskIds;  // [5, 12, 8]
+}
+```
+
+**2.2 BriefResponse** (30 min)
+```dart
+class BriefResponse {
+  final List<BriefSection> sections;
+  final DateTime generatedAt;
+
+  // Validate task IDs proti DB (catch AI hallucinations)
+  Future<BriefResponse> validate(DatabaseHelper db);
+
+  // Cache validity check (1 hour)
+  bool get isCacheValid;
+}
+```
+
+**2.3 BriefConfig** (15 min)
+```dart
+class BriefConfig {
+  final bool includeSubtasks;
+  final bool includePomodoroStats;
+  final double temperature;
+  final int maxTokens;
+}
+```
+
+**2.4 Repository Interface** (30 min)
+```dart
+abstract class AiBriefRepository {
+  Future<BriefResponse> generateBrief({
+    required List<Todo> tasks,
+    required BriefConfig config,
+  });
+}
+```
+
+#### **Krok 3: Data Layer** (2h)
+
+**3.1 BriefAiDatasource** (1h)
+```dart
+class BriefAiDatasource {
+  final OpenRouterClient _client;
+
+  Future<String> generateBrief({
+    required String systemPrompt,
+    required String userContext,
+  });
+}
+```
+
+Použij **system prompt z brief.md** (řádky 177-246) - AI má vrátit JSON!
+
+**3.2 Context Builder** (30 min)
+```dart
+String _buildUserContext(List<Todo> tasks) {
+  // Strukturovaný seznam úkolů pro AI:
+  // TASK_ID: 5
+  // Text: Dokončit prezentaci
+  // Priority: a (high)
+  // Due Date: 2025-10-13 14:00 (in 2 hours)
+  // Subtasks: 2/5 completed
+  // ...
+}
+```
+
+**3.3 Repository Implementation** (30 min)
+```dart
+class AiBriefRepositoryImpl implements AiBriefRepository {
+  @override
+  Future<BriefResponse> generateBrief(...) async {
+    final aiResponse = await _datasource.generateBrief(...);
+    final briefResponse = BriefResponse.fromJson(jsonDecode(aiResponse));
+    return await briefResponse.validate(_db); // Validace task IDs
+  }
+}
+```
+
+#### **Krok 4: Integrace do TodoListBloc** (1h)
+
+**4.1 Extend TodoListState** (20 min)
+```dart
+class TodoListState extends Equatable {
+  // Existing fields...
+
+  // NEW: AI Brief
+  final ViewMode currentView;          // all, today, week, overdue, aiBrief
+  final BriefResponse? aiBriefData;
+  final bool isGeneratingBrief;
+  final String? briefError;
+
+  // Computed: Brief sections s real Todo objekty
+  List<BriefSectionWithTodos>? get briefSections { ... }
+}
+
+enum ViewMode {
+  all, today, week, overdue, aiBrief,  // NEW
+}
+```
+
+**4.2 Přidej Events** (10 min)
+```dart
+class ChangeViewModeEvent extends TodoListEvent {
+  final ViewMode mode;
+}
+
+class RegenerateBriefEvent extends TodoListEvent {}
+```
+
+**4.3 Event Handlers** (30 min)
+```dart
+on<ChangeViewModeEvent>((event, emit) async {
+  if (event.mode == ViewMode.aiBrief) {
+    // Check cache first
+    if (_aiBriefCache != null && _aiBriefCache!.isCacheValid) {
+      emit(state.copyWith(
+        currentView: ViewMode.aiBrief,
+        aiBriefData: _aiBriefCache,
+      ));
+      return;
+    }
+
+    // Generate new brief
+    emit(state.copyWith(isGeneratingBrief: true));
+
+    final briefResponse = await _aiBriefRepository.generateBrief(...);
+    _aiBriefCache = briefResponse;
+
+    emit(state.copyWith(
+      aiBriefData: briefResponse,
+      isGeneratingBrief: false,
+    ));
+  }
+});
+```
+
+#### **Krok 5: UI Implementation** (1.5h)
+
+**5.1 Přidej Brief Tab** (30 min)
+
+V `TodoListPage` - horizontal scroll s tagy:
+```dart
+Row(
+  children: [
+    _ViewTab(label: 'All', icon: Icons.list, ...),
+    _ViewTab(label: 'Today', icon: Icons.today, ...),
+    _ViewTab(label: 'Week', icon: Icons.calendar_view_week, ...),
+    _ViewTab(label: 'Overdue', icon: Icons.warning, ...),
+    _ViewTab(label: 'Brief', icon: Icons.auto_awesome, ...), // NEW ✨
+  ],
+)
+```
+
+**5.2 Brief View Logic** (30 min)
+```dart
+Widget _buildBriefView(BuildContext context, TodoListState state) {
+  // Loading state
+  if (state.isGeneratingBrief) {
+    return Center(child: CircularProgressIndicator());
+  }
+
+  // Error state
+  if (state.briefError != null) {
+    return ErrorWidget(...);
+  }
+
+  // Brief sections s TodoCards
+  return ListView.builder(
+    itemCount: state.briefSections!.length,
+    itemBuilder: (context, index) {
+      final sectionData = state.briefSections![index];
+      return _BriefSectionWidget(
+        section: sectionData.section,
+        todos: sectionData.todos,
+      );
+    },
+  );
+}
+```
+
+**5.3 BriefSectionWidget** (30 min)
+
+Widget pro jednu sekci (AI komentář + TodoCards):
+```dart
+class _BriefSectionWidget extends StatelessWidget {
+  final BriefSection section;
+  final List<Todo> todos;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // AI Commentary Header
+        Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(...),
+          child: Column(
+            children: [
+              Text(section.title),      // "🎯 FOCUS NOW"
+              Text(section.commentary), // AI komentář
+            ],
+          ),
+        ),
+
+        // Real TodoCards (user může hned pracovat!)
+        ...todos.map((todo) => TodoCard(
+          key: ValueKey('todo_${todo.id}'),
+          todo: todo,
+          isExpanded: false,
+        )),
+      ],
+    );
+  }
+}
+```
+
+#### **Krok 6: Testing** (30 min)
+
+**6.1 Unit Tests** (15 min)
+```dart
+test('BriefResponse.fromJson parses correctly', () { ... });
+test('validate removes invalid task IDs', () { ... });
+```
+
+**6.2 Widget Tests** (15 min)
+```dart
+testWidgets('Brief view displays sections with TodoCards', (tester) async {
+  // Mock state s aiBriefData
+  // Verify section header + TodoCards displayed
+});
+```
+
+#### **Krok 7: Git Commit** (5 min)
+
+```bash
+git add -A && git commit -m "✨ feat: AI Brief - inteligentní filtrování úkolů v Agenda view
+
+- Brief jako nový tab (All, Today, Week, Overdue, Brief)
+- AI vrací JSON s task IDs + komentáře (focus_now, key_insights, motivation)
+- Zobrazí real TodoCards (user může hned pracovat)
+- Cache 1h + validace task IDs (anti-hallucination)
+- Cost: ~\$0.009 per brief
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+---
+
+### 🚨 CRITICAL RULES pro AI Brief
+
+1. **Brief NENÍ samostatná stránka** → je to VIEW MODE v TodoListPage
+2. **AI vrací JSON** (ne markdown!) - viz brief.md řádky 198-221
+3. **Validuj task IDs** proti DB (catch hallucinations)
+4. **Real TodoCards** - ne clickable linky!
+5. **Cache 1h** - uložit v BLoC state (_aiBriefCache)
+6. **Cost tracking** - každý API call ~$0.009
+
+### 📋 Checklist před implementací
+
+- [ ] Přečetl jsem celý [brief.md](brief.md)
+- [ ] Pochopil jsem koncept (Brief = Agenda view tab, ne samostatná page)
+- [ ] Snapshot commit před začátkem
+- [ ] Vytvořil jsem TODO list (7 kroků)
+- [ ] Dodržuji SCÉNÁŘ 1 z mapa-bloc.md (přidání nové feature)
+
+### 💡 Tips
+
+- **System prompt je v brief.md** (řádky 177-246) - zkopíruj přesně!
+- **AI má vrátit POUZE JSON** - žádný markdown kolem
+- **Cache je klíčový** - 1h validity saves money
+- **Validation je povinná** - AI může hallucinate task IDs
+- **TodoCard je reusable** - použij existující widget
+
+**Priorita**: ⭐⭐⭐ Vysoká (killer feature - AI prioritizace)
+
+**Effort**: 6-8h MVP, 10-12h polished
+
+---
+
+## 📝 Notes + PARA System - Second Brain Feature
+
+### 📋 Kompletní guide: [notes-para.md](notes-para.md)
+
+**⚠️ AKTUÁLNÍ STATUS: Phase 1 - Milestone implementace**
+
+**Funkce**: Notes s PARA organizací (Apple Notes + Obsidian inspirace) + AI-asistovaná klasifikace
+
+**Co implementujeme:**
+1. 📝 **Notes systém** - poznámky s tagy (stejný systém jako TODO)
+2. 📁 **PARA organizace** - Projects, Areas, Resources, Archives
+3. 🤖 **AI Helper** - automatická klasifikace do PARA + navrhování tagů
+4. 🔗 **Bidirectional linking** - propojení poznámek s TODO úkoly
+5. 🔍 **Fulltext search** - FTS5 v SQLite
+
+### 🎯 Přidání nové feature - POSTUPUJ PO MILESTONES!
+
+**DŮLEŽITÉ**: Implementujeme postupně po malých krocích kvůli token budgetu!
+
+**Aktuální milestone**: MILESTONE 1 - Databáze + Základní Entity (2-3h)
+
+**Další milestones:**
+- MILESTONE 2: GUI - Input Bar + Seznam Poznámek (3-4h)
+- MILESTONE 3: Note Editor + Základní Tagy (2-3h)
+- MILESTONE 4: Folders - Recent + Favorites (2h)
+- MILESTONE 5: Fulltext Search (2-3h)
+- MILESTONE 6: PARA Folders - Základy (4-5h)
+- MILESTONE 7: AI Helper - PARA Klasifikace (5-6h)
+- MILESTONE 8: Backlinks + Note Linking (3-4h)
+
+### 🚨 CRITICAL RULES pro Notes Feature
+
+1. **GUI = stejný jako TODO Input Bar** - ipnuté dole, nad klávesnicí při focusu
+2. **Folders Tab Bar = stejný jako Agenda views** - horizontal scroll
+3. **Tagy = custom oddělovače** `*tag*` (konzistence s TODO)
+4. **PARA je volitelné** - zatím základní folders (All Notes, Recent, Favorites)
+5. **Postupuj po milestones** - po každém aktualizuj notes-para.md TODO seznam!
+
+### 📐 Architektura
+
+```
+lib/features/notes/
+├── presentation/
+│   ├── bloc/
+│   │   ├── notes_bloc.dart
+│   │   ├── notes_event.dart
+│   │   └── notes_state.dart
+│   ├── pages/
+│   │   ├── notes_list_page.dart      # Input bar + seznam (jako TODO)
+│   │   └── note_editor_page.dart     # Full screen editor
+│   └── widgets/
+│       ├── note_input_bar.dart       # Reusable input bar
+│       ├── note_card.dart            # Preview karty poznámek
+│       └── folders_tab_bar.dart      # Horizontal tabs (All, Recent, Fav...)
+├── domain/
+│   ├── entities/
+│   │   └── note.dart                 # Note entity (id, content, createdAt...)
+│   ├── repositories/
+│   │   └── notes_repository.dart     # CRUD interface
+│   └── services/
+│       └── notes_tag_parser.dart     # Parse *tag*, *#123*, *[[Note]]*
+└── data/
+    ├── datasources/
+    │   └── notes_db_datasource.dart  # SQLite operations
+    └── repositories/
+        └── notes_repository_impl.dart
+```
+
+### 📋 Checklist před implementací
+
+- [ ] Přečetl jsem celý [notes-para.md](notes-para.md)
+- [ ] Pochopil jsem milestones workflow (po každém aktualizuj TODO seznam!)
+- [ ] Snapshot commit před začátkem
+- [ ] Vytvořil jsem TODO list pro aktuální milestone
+- [ ] Dodržuji SCÉNÁŘ 1 z mapa-bloc.md (přidání nové feature)
+
+### 💡 Tips
+
+- **GUI inspirace**: TODO Input Bar + Agenda Tabs (reuse vizuální design!)
+- **Start small**: Milestone 1 = jen databáze + entity (bez GUI)
+- **Token budget**: Po každém milestonu commit + pause → nová konverzace pokud potřeba
+- **PARA později**: Začínáme s "All Notes" folder, PARA až Milestone 6
+- **Auto-generated title**: Z prvního řádku nebo timestamp (displayTitle computed property)
+
+**Priorita**: ⭐⭐⭐⭐ Velmi vysoká (Second Brain = killer feature)
+
+**Effort**: 20-25h celkem (rozloženo do 8 milestones)
+
+---
+
 ## 📚 META
 
 Účel: Instrukce pro AI agenty pracující na Flutter/BLoC projektech
@@ -201,10 +642,12 @@ Tento workflow je POVINNÝ pro všechny úkoly!
 Companion dokumenty:
 - bloc.md - Detailní BLoC best practices guide
 - mapa-bloc.md - Navigační decision tree
-- CLAUDE.md - Univerzální instrukce (pro všechny projekty)
+- brief.md - AI Brief implementační plán
+- **notes-para.md** - Notes + PARA System design a milestones (NEW!)
 
-Verze: 1.0
+Verze: 2.0
 Vytvořeno: 2025-10-09
+Aktualizováno: 2025-10-13 (přidán AI Brief + Notes + PARA System)
 Autor: Claude Code (AI asistent)
 
 ---

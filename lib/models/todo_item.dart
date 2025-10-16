@@ -4,22 +4,28 @@ class TodoItem {
   String task;
   bool isCompleted;
   DateTime createdAt;
+  DateTime? completedAt;
 
   // Parsované hodnoty z tagů
   String? priority; // 'a', 'b', 'c' z *a*, *b*, *c*
   DateTime? dueDate; // Datum z *dnes*, *zitra*, nebo konkrétní datum
-  String? action; // Akce z *udelat*, *zavolat*, *napsat*, atd.
   List<String> tags; // Obecné tagy jako *rodina*, *prace*, atd.
+
+  // AI Split metadata
+  String? aiRecommendations;
+  String? aiDeadlineAnalysis;
 
   TodoItem({
     this.id,
     required this.task,
     this.isCompleted = false,
     DateTime? createdAt,
+    this.completedAt,
     this.priority,
     this.dueDate,
-    this.action,
     List<String>? tags,
+    this.aiRecommendations,
+    this.aiDeadlineAnalysis,
   })  : createdAt = createdAt ?? DateTime.now(),
         tags = tags ?? [];
 
@@ -30,10 +36,12 @@ class TodoItem {
       'task': task,
       'isCompleted': isCompleted ? 1 : 0,
       'createdAt': createdAt.toIso8601String(),
+      'completed_at': completedAt?.toIso8601String(),
       'priority': priority,
       'dueDate': dueDate?.toIso8601String(),
-      'action': action,
       'tags': tags.join(','), // Ukládat jako CSV
+      'ai_recommendations': aiRecommendations,
+      'ai_deadline_analysis': aiDeadlineAnalysis,
     };
   }
 
@@ -44,14 +52,18 @@ class TodoItem {
       task: map['task'] as String,
       isCompleted: (map['isCompleted'] as int) == 1,
       createdAt: DateTime.parse(map['createdAt'] as String),
+      completedAt: map['completed_at'] != null
+          ? DateTime.parse(map['completed_at'] as String)
+          : null,
       priority: map['priority'] as String?,
       dueDate: map['dueDate'] != null
           ? DateTime.parse(map['dueDate'] as String)
           : null,
-      action: map['action'] as String?,
       tags: map['tags'] != null && (map['tags'] as String).isNotEmpty
           ? (map['tags'] as String).split(',')
           : [],
+      aiRecommendations: map['ai_recommendations'] as String?,
+      aiDeadlineAnalysis: map['ai_deadline_analysis'] as String?,
     );
   }
 
@@ -61,20 +73,24 @@ class TodoItem {
     String? task,
     bool? isCompleted,
     DateTime? createdAt,
+    DateTime? completedAt,
     String? priority,
     DateTime? dueDate,
-    String? action,
     List<String>? tags,
+    String? aiRecommendations,
+    String? aiDeadlineAnalysis,
   }) {
     return TodoItem(
       id: id ?? this.id,
       task: task ?? this.task,
       isCompleted: isCompleted ?? this.isCompleted,
       createdAt: createdAt ?? this.createdAt,
+      completedAt: completedAt ?? this.completedAt,
       priority: priority ?? this.priority,
       dueDate: dueDate ?? this.dueDate,
-      action: action ?? this.action,
       tags: tags ?? this.tags,
+      aiRecommendations: aiRecommendations ?? this.aiRecommendations,
+      aiDeadlineAnalysis: aiDeadlineAnalysis ?? this.aiDeadlineAnalysis,
     );
   }
 }
