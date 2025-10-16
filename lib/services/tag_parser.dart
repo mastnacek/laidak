@@ -105,59 +105,125 @@ class TagParser {
   ///
   /// Podporované formáty:
   /// - dnes, zítra, pozítří, zatyden, zamesic, zarok
-  /// - dnes 14:00, zítra 14:30 (PREFEROVÁNO: s mezerou a dvojtečkou)
-  /// - dnes 14.30, zítra 9.45 (s mezerou a tečkou místo dvojtečky)
-  /// - dnes14:00, zítra14.30 (backward compatibility: bez mezery)
-  /// - dnes9, zítra14 (zkrácený formát: jen hodiny → automaticky :00)
-  /// - dnes 9, zítra 14 (zkrácený formát s mezerou)
-  /// - DD.MM.YYYY (bez času)
-  /// - DD.MM.YYYY 14:00 (s časem)
+  /// - dnes 14:00, dnes14:00, dnes 14, dnes14 (s/bez mezery, s/bez minut)
+  /// - DD.MM.YYYY (jen datum)
+  /// - DD.MM.YYYY 15:30, DD.MM.YYYY15:30 (s mezerou / bez mezery)
+  /// - DD.MM.YYYY 15, DD.MM.202515 (zkrácený formát, jen hodiny)
   static DateTime? _parseDateTag(String tagValue) {
     final now = DateTime.now();
 
+    // KRITICKÉ: Nejdřív zkusit DD.MM.YYYY formát s časem
+    // Tím zajistíme, že "24.10.202515" se správně parsuje jako datum + hodina
+    final ddmmyyyyResult = _parseDDMMYYYYWithTime(tagValue, now);
+    if (ddmmyyyyResult != null) return ddmmyyyyResult;
+
+    // Pokud to není DD.MM.YYYY → parsovat sémantické tagy (dnes, zítra, ...)
+    return _parseSemanticDateWithTime(tagValue, now);
+  }
+
+  /// Parsovat DD.MM.YYYY s volitelným časem
+  /// Podporuje: 24.10.2025, 24.10.2025 15:30, 24.10.202515:30, 24.10.2025 15, 24.10.202515
+  static DateTime? _parseDDMMYYYYWithTime(String tagValue, DateTime now) {
+    // 1. Regex pro DD.MM.YYYY (základ)
+    final dateRegex = RegExp(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})');
+    final dateMatch = dateRegex.firstMatch(tagValue);
+
+    if (dateMatch == null) return null; // Není DD.MM.YYYY formát
+
+    // Extrahovat datum
+    final day = int.tryParse(dateMatch.group(1)!);
+    final month = int.tryParse(dateMatch.group(2)!);
+    final year = int.tryParse(dateMatch.group(3)!);
+
+    if (day == null || month == null || year == null) return null;
+
+    // Vytvořit base date
+    DateTime baseDate;
+    try {
+      baseDate = DateTime(year, month, day);
+    } catch (e) {
+      return null; // Nevalidní datum
+    }
+
+    // 2. Zkontrolovat, jestli za datem následuje čas
+    final afterDate = tagValue.substring(dateMatch.end);
+
+    if (afterDate.isEmpty) {
+      // Jen datum bez času
+      return baseDate;
+    }
+
+    // 3. Parsovat čas (s/bez mezery, s/bez minut)
+    int? hour;
+    int? minute;
+
+    // 3a. Plný čas: "15:30" nebo " 15:30"
+    final fullTimeMatch = RegExp(r'^\s?(\d{1,2}):(\d{2})$').firstMatch(afterDate);
+    if (fullTimeMatch != null) {
+      hour = int.tryParse(fullTimeMatch.group(1)!);
+      minute = int.tryParse(fullTimeMatch.group(2)!);
+
+      if (hour == null || minute == null || hour > 23 || minute > 59) {
+        return null; // Nevalidní čas
+      }
+
+      return DateTime(year, month, day, hour, minute);
+    }
+
+    // 3b. Zkrácený čas: "15" nebo " 15"
+    final shortTimeMatch = RegExp(r'^\s?(\d{1,2})$').firstMatch(afterDate);
+    if (shortTimeMatch != null) {
+      hour = int.tryParse(shortTimeMatch.group(1)!);
+
+      if (hour == null || hour > 23) {
+        return null; // Nevalidní hodiny
+      }
+
+      return DateTime(year, month, day, hour, 0); // Minuty = 0
+    }
+
+    // Nějaký divný formát za datem → ignorovat čas, vrátit jen datum
+    return baseDate;
+  }
+
+  /// Parsovat sémantické date tagy (dnes, zítra, ...) s volitelným časem
+  static DateTime? _parseSemanticDateWithTime(String tagValue, DateTime now) {
     // 1. Zkusit extrahovat čas z tagu (pokud existuje)
     int? hour;
     int? minute;
     String datePartOnly = tagValue;
 
-    // 1a. Zkusit plný formát: hodiny + dvojtečka/tečka + minuty
-    // Pattern: volitelná mezera + hodiny + dvojtečka/tečka + minuty
-    // Podporuje: "dnes 14:00", "dnes14:00", "dnes 14.30", "dnes14.30"
-    final timeMatch = RegExp(r'\s?(\d{1,2})[:.](\d{2})$').firstMatch(tagValue);
+    // 1a. Zkusit plný formát: hodiny + dvojtečka + minuty
+    // Podporuje: "dnes 14:00", "dnes14:00"
+    final timeMatch = RegExp(r'\s?(\d{1,2}):(\d{2})$').firstMatch(tagValue);
 
     if (timeMatch != null) {
-      // Našli jsme plný čas na konci → extrahovat
       hour = int.tryParse(timeMatch.group(1)!);
       minute = int.tryParse(timeMatch.group(2)!);
 
-      // Validace času
       if (hour == null || minute == null || hour > 23 || minute > 59) {
         return null; // Nevalidní čas
       }
 
-      // Odstranit časovou část z tagu pro další parsing (včetně mezery)
       datePartOnly = tagValue.substring(0, timeMatch.start).trim();
     } else {
-      // 1b. Zkusit zkrácený formát: jen hodiny (automaticky :00)
-      // Pattern: volitelná mezera + 1-2 číslice na konci
-      // Podporuje: "dnes9", "dnes 14", "zítra8", "zítra 23"
+      // 1b. Zkrácený formát: jen hodiny (automaticky :00)
+      // Podporuje: "dnes 14", "dnes14"
       final shortTimeMatch = RegExp(r'\s?(\d{1,2})$').firstMatch(tagValue);
 
       if (shortTimeMatch != null) {
         hour = int.tryParse(shortTimeMatch.group(1)!);
-        minute = 0; // Implicitně 00 minut
+        minute = 0;
 
-        // Validace hodin
         if (hour == null || hour > 23) {
           return null; // Nevalidní hodiny
         }
 
-        // Odstranit časovou část z tagu pro další parsing (včetně mezery)
         datePartOnly = tagValue.substring(0, shortTimeMatch.start).trim();
       }
     }
 
-    // 2. Parsovat datum (bez času)
+    // 2. Parsovat sémantické datum
     DateTime? baseDate;
 
     switch (datePartOnly) {
@@ -189,15 +255,10 @@ class TagParser {
         break;
 
       default:
-        // Zkusit parsovat DD.MM.YYYY formát
-        baseDate = _parseDateFormat(datePartOnly);
-        break;
+        return null; // Neznámý sémantický tag
     }
 
-    // 3. Pokud se nepodařilo parsovat datum, return null
-    if (baseDate == null) return null;
-
-    // 4. Přidat čas, pokud byl zadán
+    // 3. Přidat čas, pokud byl zadán
     if (hour != null && minute != null) {
       return DateTime(
         baseDate.year,
@@ -208,30 +269,8 @@ class TagParser {
       );
     }
 
-    // 5. Bez času → vrátit pouze datum (00:00)
+    // 4. Bez času → vrátit pouze datum (00:00)
     return baseDate;
-  }
-
-  /// Parsovat datum ve formátu DD.MM.YYYY
-  static DateTime? _parseDateFormat(String input) {
-    final dateRegex = RegExp(r'^(\d{1,2})\.(\d{1,2})\.(\d{4})$');
-    final match = dateRegex.firstMatch(input);
-
-    if (match != null) {
-      final day = int.tryParse(match.group(1)!);
-      final month = int.tryParse(match.group(2)!);
-      final year = int.tryParse(match.group(3)!);
-
-      if (day != null && month != null && year != null) {
-        try {
-          return DateTime(year, month, day);
-        } catch (e) {
-          return null;
-        }
-      }
-    }
-
-    return null;
   }
 
   /// Formátovat datum pro zobrazení
