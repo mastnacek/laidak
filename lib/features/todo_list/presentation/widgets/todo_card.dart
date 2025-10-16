@@ -304,7 +304,7 @@ class TodoCard extends StatelessWidget {
         color: theme.appColors.magenta,
         size: 20,
       ),
-      tooltip: 'Rozšiřující funkce',
+      tooltip: '', // Vypnuto kvůli multiple tickers error při rebuildu
       color: theme.appColors.bg,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
