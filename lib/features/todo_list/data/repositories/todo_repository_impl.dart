@@ -88,6 +88,32 @@ class TodoRepositoryImpl implements TodoRepository {
     await _db.toggleTodoStatus(id, isCompleted);
   }
 
+  @override
+  Future<List<Todo>> fullTextSearchTodos(String query) async {
+    // ✅ Fail Fast: validace query
+    if (query.trim().isEmpty) {
+      throw ArgumentError('Search query cannot be empty');
+    }
+
+    // FTS5 Full-Text Search (DatabaseHelper)
+    final todoItems = await _db.fullTextSearchTodos(query);
+
+    // Převést TodoItem → Todo entity (včetně subtasks a tags)
+    final todos = <Todo>[];
+    for (final item in todoItems) {
+      // Načíst subtasks
+      final subtasksMaps = await _db.getSubtasksByTodoId(item.id!);
+      final subtasks = subtasksMaps.map((map) => SubtaskModel.fromMap(map)).toList();
+
+      // Načíst tagy z normalizované tabulky
+      final tags = await _db.getTagsForTodo(item.id!);
+
+      todos.add(_todoItemToEntity(item, subtasks, tags));
+    }
+
+    return todos;
+  }
+
   /// Helper: Převést TodoItem (starý model) → Todo entity
   Todo _todoItemToEntity(
     TodoItem item,

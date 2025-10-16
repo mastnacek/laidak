@@ -268,23 +268,46 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
 
   // ==================== SEARCH / FILTER / SORT HANDLERS ====================
 
-  /// Handler: Vyhledat úkoly podle query
-  void _onSearchTodos(SearchTodosEvent event, Emitter<TodoListState> emit) {
+  /// Handler: Vyhledat úkoly podle query (FTS5 Full-Text Search)
+  Future<void> _onSearchTodos(
+    SearchTodosEvent event,
+    Emitter<TodoListState> emit,
+  ) async {
     final currentState = state;
     if (currentState is! TodoListLoaded) return;
 
-    // Update search query v state
-    // displayedTodos getter automaticky aplikuje filtr
-    emit(currentState.copyWith(searchQuery: event.query));
+    final query = event.query.trim();
+
+    // Prázdný query → zobrazit všechny úkoly
+    if (query.isEmpty) {
+      emit(currentState.copyWith(searchQuery: ''));
+      return;
+    }
+
+    try {
+      // ✨ FTS5 Full-Text Search (BM25 ranking)
+      final searchResults = await _repository.fullTextSearchTodos(query);
+
+      // Nahradit allTodos za search results + nastavit search query
+      // displayedTodos getter pak aplikuje view filters a sort
+      emit(currentState.copyWith(
+        allTodos: searchResults,
+        searchQuery: query,
+      ));
+    } catch (e) {
+      // Fallback: pokud FTS5 selže, použij Dart-side filtrování
+      AppLogger.error('FTS5 search failed, fallback to Dart filter: $e');
+      emit(currentState.copyWith(searchQuery: query));
+    }
   }
 
-  /// Handler: Vymazat vyhledávání
+  /// Handler: Vymazat vyhledávání (reload všechny úkoly)
   void _onClearSearch(ClearSearchEvent event, Emitter<TodoListState> emit) {
     final currentState = state;
     if (currentState is! TodoListLoaded) return;
 
-    // Vymazat search query
-    emit(currentState.copyWith(searchQuery: ''));
+    // Reload všechny úkoly (FTS5 search nahradil allTodos)
+    add(const LoadTodosEvent());
   }
 
   /// Handler: Změnit view mode

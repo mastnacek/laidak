@@ -19,4 +19,15 @@ abstract class TodoRepository {
 
   /// Přepnout stav todo (hotovo/nehotovo)
   Future<void> toggleTodoStatus(int id, bool isCompleted);
+
+  /// FTS5 Full-Text Search v todos
+  ///
+  /// Query syntax:
+  /// - "prezentaci" → simple keyword
+  /// - "dokončit prezentaci" → phrase search
+  /// - "dokončit OR připravit" → boolean OR
+  /// - "prog*" → prefix search
+  ///
+  /// Vrací: List<Todo> seřazené podle relevance (BM25 rank)
+  Future<List<Todo>> fullTextSearchTodos(String query);
 }
