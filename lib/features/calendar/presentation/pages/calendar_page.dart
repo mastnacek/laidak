@@ -360,19 +360,19 @@ class _CalendarPageState extends State<CalendarPage> {
     final selectedDateOnly = DateTime(date.year, date.month, date.day);
 
     // Použít sémantické tagy kde to dává smysl
-    // KRITICKÉ: Tag NENÍ uzavřený, aby uživatel mohl doplnit čas!
-    // Např: *dnes 15:00* nebo *25.10.2025 9:30*
+    // KRITICKÉ: Tag NENÍ uzavřený, aby uživatel mohl doplnit čas
+    // Ale BEZ trailing mezery - tu si uživatel přidá sám při psaní
     if (selectedDateOnly == today) {
-      return '${startDelim}dnes ';
+      return '${startDelim}dnes';
     } else if (selectedDateOnly == tomorrow) {
-      return '${startDelim}zitra ';
+      return '${startDelim}zitra';
     } else if (selectedDateOnly == dayAfterTomorrow) {
-      return '${startDelim}pozitri ';
+      return '${startDelim}pozitri';
     } else {
       // Pro ostatní dny použít formát DD.MM.YYYY (kompatibilní s TagParser)
       final dateStr =
           '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-      return '$startDelim$dateStr ';
+      return '$startDelim$dateStr';
     }
   }
 
