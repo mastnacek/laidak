@@ -8,6 +8,10 @@ import '../../../ai_brief/domain/repositories/ai_brief_repository.dart';
 import '../../../ai_brief/domain/entities/brief_response.dart';
 import '../../../ai_brief/domain/entities/brief_config.dart';
 import '../../../ai_brief/data/services/brief_settings_service.dart';
+import '../../../markdown_export/domain/repositories/markdown_export_repository.dart';
+import '../../../settings/presentation/cubit/settings_cubit.dart';
+import '../../../settings/presentation/cubit/settings_state.dart';
+import '../../../../core/utils/app_logger.dart';
 import 'todo_list_event.dart';
 import 'todo_list_state.dart';
 
@@ -19,10 +23,13 @@ import 'todo_list_state.dart';
 /// - Filtrování zobrazení (hotové/nehotové)
 /// - Expandování/kolapsování úkolů
 /// - Generování AI Brief (s 1h cache)
+/// - Auto-export markdown (pokud zapnutý v settings)
 class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
   final TodoRepository _repository;
   final AiBriefRepository _aiBriefRepository;
   final BriefSettingsService _briefSettingsService;
+  final MarkdownExportRepository _exportRepository;
+  final SettingsCubit _settingsCubit;
 
   // Cache pro AI Brief (1h validity)
   BriefResponse? _aiBriefCache;
@@ -31,6 +38,8 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     this._repository,
     this._aiBriefRepository,
     this._briefSettingsService,
+    this._exportRepository,
+    this._settingsCubit,
   ) : super(const TodoListInitial()) {
     // Registrace event handlerů
     on<LoadTodosEvent>(_onLoadTodos);
@@ -139,6 +148,9 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
       // Uložit do databáze
       await _repository.insertTodo(newTodo);
 
+      // ✨ AUTO-EXPORT pokud je zapnutý
+      await _autoExportIfEnabled(newTodo);
+
       // Reload todos
       add(const LoadTodosEvent());
     } catch (e) {
@@ -164,6 +176,9 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
 
     try {
       await _repository.updateTodo(event.todo);
+
+      // ✨ AUTO-EXPORT pokud je zapnutý
+      await _autoExportIfEnabled(event.todo);
 
       // Reload todos
       add(const LoadTodosEvent());
@@ -480,5 +495,48 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
 
     // Vyčistit prepopulated text
     emit(currentState.copyWith(clearPrepopulatedText: true));
+  }
+
+  // ==================== MARKDOWN EXPORT HELPERS ====================
+
+  /// Helper: Auto-export TODO pokud je zapnutý v settings
+  ///
+  /// Fail silently - nebudeme blokovat hlavní operaci kvůli export erroru
+  Future<void> _autoExportIfEnabled(Todo todo) async {
+    try {
+      final settingsState = _settingsCubit.state;
+
+      // Check: settings jsou loaded
+      if (settingsState is! SettingsLoaded) {
+        AppLogger.debug('⏭️ Settings nejsou načteny, skip auto-export');
+        return;
+      }
+
+      final exportConfig = settingsState.exportConfig;
+
+      // Check: auto-export zapnutý + target directory nastavený + TODOs export povolený
+      if (!exportConfig.autoExportOnSave) {
+        AppLogger.debug('⏭️ Auto-export vypnutý, skip');
+        return;
+      }
+
+      if (!exportConfig.isConfigured) {
+        AppLogger.debug('⏭️ Export není nakonfigurovaný (chybí target directory), skip');
+        return;
+      }
+
+      if (!exportConfig.exportTodos) {
+        AppLogger.debug('⏭️ Export TODOs zakázán, skip');
+        return;
+      }
+
+      // ✅ Export TODO
+      await _exportRepository.exportTodo(todo, exportConfig);
+      AppLogger.debug('✅ Auto-export TODO ${todo.id} dokončen');
+    } catch (e) {
+      // Fail silently - logovat error, ale nepropagovat výjimku
+      // Auto-export nesmí blokovat hlavní operaci (Add/Update TODO)
+      AppLogger.error('❌ Auto-export selhal: $e');
+    }
   }
 }

@@ -1,6 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/database_helper.dart';
 import '../../../../models/note.dart';
+import '../../../markdown_export/domain/repositories/markdown_export_repository.dart';
+import '../../../settings/presentation/cubit/settings_cubit.dart';
+import '../../../settings/presentation/cubit/settings_state.dart';
+import '../../../../core/utils/app_logger.dart';
 import 'notes_event.dart';
 import 'notes_state.dart';
 
@@ -10,10 +14,17 @@ import 'notes_state.dart';
 /// - Načítání notes z databáze
 /// - Vytváření, aktualizace, mazání notes
 /// - Změna ViewMode (filtrování je computed v NotesState)
+/// - Auto-export markdown (pokud zapnutý v settings)
 class NotesBloc extends Bloc<NotesEvent, NotesState> {
   final DatabaseHelper _db;
+  final MarkdownExportRepository _exportRepository;
+  final SettingsCubit _settingsCubit;
 
-  NotesBloc(this._db) : super(const NotesInitial()) {
+  NotesBloc(
+    this._db,
+    this._exportRepository,
+    this._settingsCubit,
+  ) : super(const NotesInitial()) {
     // Registrace event handlerů
     on<LoadNotesEvent>(_onLoadNotes);
     on<CreateNoteEvent>(_onCreateNote);
@@ -66,6 +77,9 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
 
       await _db.insertNote(newNote.toMap());
 
+      // ✨ AUTO-EXPORT pokud je zapnutý
+      await _autoExportIfEnabled(newNote);
+
       // Reload notes
       add(const LoadNotesEvent());
     } catch (e) {
@@ -96,6 +110,9 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
       );
 
       await _db.updateNote(updatedNote.id!, updatedNote.toMap());
+
+      // ✨ AUTO-EXPORT pokud je zapnutý
+      await _autoExportIfEnabled(updatedNote);
 
       // Reload notes
       add(const LoadNotesEvent());
@@ -157,6 +174,49 @@ class NotesBloc extends Bloc<NotesEvent, NotesState> {
           : event.noteId;
 
       emit(currentState.copyWith(expandedNoteId: newExpandedId));
+    }
+  }
+
+  // ==================== MARKDOWN EXPORT HELPERS ====================
+
+  /// Helper: Auto-export Note pokud je zapnutý v settings
+  ///
+  /// Fail silently - nebudeme blokovat hlavní operaci kvůli export erroru
+  Future<void> _autoExportIfEnabled(Note note) async {
+    try {
+      final settingsState = _settingsCubit.state;
+
+      // Check: settings jsou loaded
+      if (settingsState is! SettingsLoaded) {
+        AppLogger.debug('⏭️ Settings nejsou načteny, skip auto-export Note');
+        return;
+      }
+
+      final exportConfig = settingsState.exportConfig;
+
+      // Check: auto-export zapnutý + target directory nastavený + Notes export povolený
+      if (!exportConfig.autoExportOnSave) {
+        AppLogger.debug('⏭️ Auto-export vypnutý, skip Note');
+        return;
+      }
+
+      if (!exportConfig.isConfigured) {
+        AppLogger.debug('⏭️ Export není nakonfigurovaný (chybí target directory), skip Note');
+        return;
+      }
+
+      if (!exportConfig.exportNotes) {
+        AppLogger.debug('⏭️ Export Notes zakázán, skip Note');
+        return;
+      }
+
+      // ✅ Export Note
+      await _exportRepository.exportNote(note, exportConfig);
+      AppLogger.debug('✅ Auto-export Note ${note.id} dokončen');
+    } catch (e) {
+      // Fail silently - logovat error, ale nepropagovat výjimku
+      // Auto-export nesmí blokovat hlavní operaci (Create/Update Note)
+      AppLogger.error('❌ Auto-export Note selhal: $e');
     }
   }
 }

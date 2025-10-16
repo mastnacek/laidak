@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../domain/entities/export_config.dart';
 import '../../domain/entities/export_format.dart';
+import '../../domain/repositories/markdown_export_repository.dart';
 import '../../../settings/presentation/cubit/settings_cubit.dart';
 import '../../../settings/presentation/cubit/settings_state.dart';
 
@@ -13,9 +14,15 @@ import '../../../settings/presentation/cubit/settings_state.dart';
 /// - Directory picker (file_picker)
 /// - Format dropdown (default / obsidian)
 /// - Export options (TODOs/Notes checkboxes)
-/// - Manual export button (disabled - repository není v MILESTONE 2)
+/// - Auto-export toggle
+/// - Manual export button
 class ExportSettingsSection extends StatelessWidget {
-  const ExportSettingsSection({super.key});
+  final MarkdownExportRepository exportRepository;
+
+  const ExportSettingsSection({
+    super.key,
+    required this.exportRepository,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +80,14 @@ class ExportSettingsSection extends StatelessWidget {
 
               // Export options (TODOs, Notes)
               _buildExportOptions(context, config, theme),
+              const SizedBox(height: 12),
+
+              // Auto-export toggle
+              _buildAutoExportToggle(context, config, theme),
+              const SizedBox(height: 16),
+
+              // Manual export button
+              _buildManualExportButton(context, config, theme),
             ],
           ),
         );
@@ -254,6 +269,110 @@ class ExportSettingsSection extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildAutoExportToggle(
+    BuildContext context,
+    ExportConfig config,
+    ThemeData theme,
+  ) {
+    return SwitchListTile(
+      value: config.autoExportOnSave,
+      onChanged: (value) {
+        context.read<SettingsCubit>().updateExportConfig(
+              config.copyWith(autoExportOnSave: value),
+            );
+      },
+      title: Text(
+        'Automatický export při uložení',
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: theme.appColors.fg,
+        ),
+      ),
+      subtitle: Text(
+        'Export markdown souborů při každé změně TODO/Note',
+        style: TextStyle(
+          fontSize: 12,
+          color: theme.appColors.base5,
+        ),
+      ),
+      activeColor: theme.appColors.cyan,
+      contentPadding: EdgeInsets.zero,
+    );
+  }
+
+  Widget _buildManualExportButton(
+    BuildContext context,
+    ExportConfig config,
+    ThemeData theme,
+  ) {
+    final isEnabled = config.isConfigured;
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: isEnabled
+            ? () async {
+                // Zobraz loading dialog
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => Center(
+                    child: CircularProgressIndicator(
+                      color: theme.appColors.cyan,
+                    ),
+                  ),
+                );
+
+                try {
+                  // Trigger manual export
+                  await exportRepository.exportAll(config);
+
+                  // Close loading dialog
+                  if (context.mounted) Navigator.of(context).pop();
+
+                  // Show success snackbar
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('✅ Export dokončen!'),
+                        backgroundColor: theme.appColors.green,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  // Close loading dialog
+                  if (context.mounted) Navigator.of(context).pop();
+
+                  // Show error snackbar
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('❌ Export selhal: $e'),
+                        backgroundColor: theme.appColors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              }
+            : null,
+        icon: const Icon(Icons.download, size: 20),
+        label: const Text('Exportovat vše nyní'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor:
+              isEnabled ? theme.appColors.cyan : theme.appColors.base3,
+          foregroundColor: theme.appColors.bg,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
     );
   }
 }

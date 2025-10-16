@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -23,6 +24,10 @@ import 'features/ai_split/data/datasources/openrouter_datasource.dart';
 import 'features/ai_brief/data/repositories/ai_brief_repository_impl.dart';
 import 'features/ai_brief/data/datasources/brief_ai_datasource.dart';
 import 'features/ai_brief/data/services/brief_settings_service.dart';
+import 'features/markdown_export/domain/services/markdown_formatter_service.dart';
+import 'features/markdown_export/domain/services/file_writer_service.dart';
+import 'features/markdown_export/domain/repositories/markdown_export_repository.dart';
+import 'features/markdown_export/data/repositories/markdown_export_repository_impl.dart';
 import 'core/services/database_helper.dart';
 import 'core/services/clipboard_monitor_service.dart';
 import 'core/widgets/smart_clipboard_dialog.dart';
@@ -72,27 +77,53 @@ void main() async {
   );
   final briefSettingsService = BriefSettingsService(db);
 
+  // Inicializovat Markdown Export dependencies
+  final markdownFormatterService = MarkdownFormatterService();
+  final fileWriterService = FileWriterService();
+  final markdownExportRepository = MarkdownExportRepositoryImpl(
+    formatter: markdownFormatterService,
+    fileWriter: fileWriterService,
+    db: db,
+  );
+  AppLogger.info('✅ Markdown Export services initialized');
+
   runApp(
-    MultiBlocProvider(
+    MultiProvider(
       providers: [
+        // Poskytujeme MarkdownExportRepository pro celou aplikaci
+        Provider<MarkdownExportRepository>.value(
+          value: markdownExportRepository,
+        ),
         // SettingsCubit pro themes
         BlocProvider(
           create: (_) => SettingsCubit(db),
         ),
         // TodoListBloc pro todo list management
         BlocProvider(
-          create: (_) => TodoListBloc(
-            TodoRepositoryImpl(db),
-            aiBriefRepository,
-            briefSettingsService,
-          )..add(const LoadTodosEvent()), // Automaticky načíst todos
+          create: (context) {
+            final settingsCubit = context.read<SettingsCubit>();
+            return TodoListBloc(
+              TodoRepositoryImpl(db),
+              aiBriefRepository,
+              briefSettingsService,
+              markdownExportRepository,
+              settingsCubit,
+            )..add(const LoadTodosEvent()); // Automaticky načíst todos
+          },
         ),
         // NotesBloc pro notes management
         BlocProvider(
-          create: (_) => NotesBloc(db)..add(const LoadNotesEvent(
-            tagDelimiterStart: '*', // Default delimiter (SettingsCubit načte skutečné později)
-            tagDelimiterEnd: '*',
-          )),
+          create: (context) {
+            final settingsCubit = context.read<SettingsCubit>();
+            return NotesBloc(
+              db,
+              markdownExportRepository,
+              settingsCubit,
+            )..add(const LoadNotesEvent(
+              tagDelimiterStart: '*', // Default delimiter (SettingsCubit načte skutečné později)
+              tagDelimiterEnd: '*',
+            ));
+          },
         ),
         // MotivationCubit pro AI motivaci
         BlocProvider(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../core/theme/theme_colors.dart';
 import '../features/settings/presentation/pages/ai_settings_tab.dart';
 import '../features/settings/presentation/pages/prompts_tab.dart';
@@ -7,6 +8,7 @@ import '../features/settings/presentation/pages/agenda_tab.dart';
 import '../features/settings/presentation/pages/notes_tab.dart';
 import '../features/tag_management/presentation/pages/tag_management_page.dart';
 import '../features/markdown_export/presentation/widgets/export_settings_section.dart';
+import '../features/markdown_export/domain/repositories/markdown_export_repository.dart';
 
 /// Stránka s nastavením AI motivace
 class SettingsPage extends StatefulWidget {
@@ -89,7 +91,9 @@ class _SettingsPageState extends State<SettingsPage> with SingleTickerProviderSt
           AgendaTab(),
           NotesTab(),
           SingleChildScrollView(
-            child: ExportSettingsSection(),
+            child: ExportSettingsSection(
+              exportRepository: context.read<MarkdownExportRepository>(),
+            ),
           ),
         ],
       ),
