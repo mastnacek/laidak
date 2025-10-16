@@ -388,10 +388,15 @@ class _CalendarPageState extends State<CalendarPage> {
         curve: Curves.easeInOut,
       );
 
-      // 3. Vyslat event do TodoListBloc s předvyplněným textem
-      context.read<TodoListBloc>().add(
-            PrepopulateInputEvent(text: dateTag),
-          );
+      // 3. KRITICKÉ: Počkat až se dokončí animace a TEPRVE pak odeslat event
+      // Jinak InputBar ještě není ready a text se nevloží
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (context.mounted) {
+          context.read<TodoListBloc>().add(
+                PrepopulateInputEvent(text: dateTag),
+              );
+        }
+      });
     }
   }
 }
