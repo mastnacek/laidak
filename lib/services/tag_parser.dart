@@ -44,6 +44,15 @@ class TagParser {
       final tagValue = match.group(1)?.toLowerCase();
       if (tagValue == null) continue;
 
+      // KRITICKÉ: Zkusit nejdřív parsovat jako datum (DD.MM.YYYY nebo s časem)
+      // Tím zajistíme, že i *25.10.2025* nebo *25.10.2025 15:00* se parsuje jako datum
+      final parsedDate = _parseDateTag(tagValue);
+      if (parsedDate != null) {
+        // Úspěšně parsováno jako datum → nastavit dueDate
+        dueDate = parsedDate;
+        continue; // Přeskočit zbylou logiku pro tento tag
+      }
+
       // Pro date tagy s časem: extrahovat jen date část pro TagService lookup
       // Např: "dnes 15:30" → "dnes", "zítra 9.30" → "zítra", "dnes15:30" → "dnes"
       // Pattern: text před mezerou nebo před číslicí (pro podporu "dnes15:30")
@@ -60,6 +69,8 @@ class TagParser {
             break;
 
           case TagType.date:
+            // Už jsme zkusili parsovat výše, takže tady by to nemělo skončit
+            // Ale pro jistotu zkusíme ještě jednou
             dueDate = _parseDateTag(tagValue);
             break;
 
