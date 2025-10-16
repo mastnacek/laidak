@@ -3,9 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../todo_list/presentation/bloc/todo_list_bloc.dart';
+import '../../../todo_list/presentation/bloc/todo_list_event.dart';
 import '../../../todo_list/presentation/bloc/todo_list_state.dart';
 import '../../../todo_list/domain/entities/todo.dart';
 import '../../../todo_list/presentation/widgets/todo_card.dart';
+import '../../../settings/presentation/cubit/settings_cubit.dart';
+import '../../../settings/presentation/cubit/settings_state.dart';
+import '../../../../pages/main_page.dart';
 
 /// CalendarPage - Kalendár s přehledem úkolů (5. tab PageView)
 ///
@@ -111,6 +115,10 @@ class _CalendarPageState extends State<CalendarPage> {
                   _selectedDay = selectedDay;
                   _focusedDay = focusedDay;
                 });
+              },
+              // User long press na den - přepnout na TodoListPage s date tagem
+              onDayLongPressed: (selectedDay, focusedDay) {
+                _handleDayLongPress(context, selectedDay);
               },
               // Výchozí nastavení calendáře
               calendarFormat: CalendarFormat.month,
@@ -324,5 +332,64 @@ class _CalendarPageState extends State<CalendarPage> {
         );
       },
     );
+  }
+
+  /// Handler pro dlouhé podržení na dni - přepnout na TodoListPage s date tagem
+  void _handleDayLongPress(BuildContext context, DateTime selectedDay) {
+    // 1. Získat nastavení oddělovačů tagů
+    final settingsState = context.read<SettingsCubit>().state;
+
+    if (settingsState is SettingsLoaded) {
+      final startDelim = settingsState.tagDelimiterStart;
+      final endDelim = settingsState.tagDelimiterEnd;
+
+      // 2. Vytvořit tag pro datum
+      final dateTag = _createDateTag(selectedDay, startDelim, endDelim);
+
+      // 3. Přepnout na TodoListPage s předvyplněným textem
+      _navigateToTodoListWithTag(context, dateTag);
+    }
+  }
+
+  /// Vytvořit date tag podle vybraného dne
+  String _createDateTag(DateTime date, String startDelim, String endDelim) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
+    final dayAfterTomorrow = today.add(const Duration(days: 2));
+    final selectedDateOnly = DateTime(date.year, date.month, date.day);
+
+    // Použít sémantické tagy kde to dává smysl
+    if (selectedDateOnly == today) {
+      return '${startDelim}dnes$endDelim ';
+    } else if (selectedDateOnly == tomorrow) {
+      return '${startDelim}zitra$endDelim ';
+    } else if (selectedDateOnly == dayAfterTomorrow) {
+      return '${startDelim}pozitri$endDelim ';
+    } else {
+      // Pro ostatní dny použít formát YYYY-MM-DD
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      return '$startDelim$dateStr$endDelim ';
+    }
+  }
+
+  /// Navigovat na TodoListPage s předvyplněným textem
+  void _navigateToTodoListWithTag(BuildContext context, String dateTag) {
+    // 1. Najít MainPageState a získat PageController
+    final mainPageState = context.findAncestorStateOfType<MainPageState>();
+    if (mainPageState != null) {
+      // 2. Přepnout na TodoListPage (index 1)
+      mainPageState.pageController.animateToPage(
+        1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+
+      // 3. Vyslat event do TodoListBloc s předvyplněným textem
+      context.read<TodoListBloc>().add(
+            PrepopulateInputEvent(text: dateTag),
+          );
+    }
   }
 }

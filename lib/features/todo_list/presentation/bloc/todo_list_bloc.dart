@@ -51,6 +51,10 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
     // AI Brief handlers
     on<RegenerateBriefEvent>(_onRegenerateBrief);
     on<UpdateBriefConfigEvent>(_onUpdateBriefConfig);
+
+    // Input bar handlers
+    on<PrepopulateInputEvent>(_onPrepopulateInput);
+    on<ClearPrepopulatedTextEvent>(_onClearPrepopulatedText);
   }
 
   /// Handler: Načíst všechny todos
@@ -448,5 +452,31 @@ class TodoListBloc extends Bloc<TodoListEvent, TodoListState> {
         briefError: 'Chyba při ukládání nastavení: $e',
       ));
     }
+  }
+
+  // ==================== INPUT BAR HANDLERS ====================
+
+  /// Handler: Předvyplnit input bar textem (např. z kalendáře)
+  void _onPrepopulateInput(
+    PrepopulateInputEvent event,
+    Emitter<TodoListState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Nastavit prepopulated text ve state
+    emit(currentState.copyWith(prepopulatedText: event.text));
+  }
+
+  /// Handler: Vyčistit předvyplněný text
+  void _onClearPrepopulatedText(
+    ClearPrepopulatedTextEvent event,
+    Emitter<TodoListState> emit,
+  ) {
+    final currentState = state;
+    if (currentState is! TodoListLoaded) return;
+
+    // Vyčistit prepopulated text
+    emit(currentState.copyWith(clearPrepopulatedText: true));
   }
 }

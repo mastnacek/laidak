@@ -141,10 +141,33 @@ class _InputBarState extends State<InputBar> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Semantics(
-      label: 'Panel pro přidání úkolu a vyhledávání',
-      container: true,
-      child: Container(
+    return BlocListener<TodoListBloc, TodoListState>(
+      listener: (context, state) {
+        // Reagovat na předvyplněný text z kalendáře
+        if (state is TodoListLoaded && state.prepopulatedText != null) {
+          // Nastavit text a focus
+          _controller.text = state.prepopulatedText!;
+          _controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: _controller.text.length),
+          );
+
+          // Request focus po frame render (Android keyboard fix)
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _focusNode.requestFocus();
+            }
+          });
+
+          // Vyčistit prepopulated text ve state
+          context.read<TodoListBloc>().add(
+                const ClearPrepopulatedTextEvent(),
+              );
+        }
+      },
+      child: Semantics(
+        label: 'Panel pro přidání úkolu a vyhledávání',
+        container: true,
+        child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: theme.appColors.bgAlt,
@@ -251,6 +274,7 @@ class _InputBarState extends State<InputBar> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

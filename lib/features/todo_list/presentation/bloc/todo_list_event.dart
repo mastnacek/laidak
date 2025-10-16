@@ -156,3 +156,20 @@ final class UpdateBriefConfigEvent extends TodoListEvent {
   @override
   List<Object?> get props => [config];
 }
+
+// ==================== INPUT BAR EVENTS ====================
+
+/// Event pro předvyplnění input baru textem (např. z kalendáře)
+final class PrepopulateInputEvent extends TodoListEvent {
+  final String text;
+
+  const PrepopulateInputEvent({required this.text});
+
+  @override
+  List<Object?> get props => [text];
+}
+
+/// Event pro vyčištění předvyplněného textu
+final class ClearPrepopulatedTextEvent extends TodoListEvent {
+  const ClearPrepopulatedTextEvent();
+}

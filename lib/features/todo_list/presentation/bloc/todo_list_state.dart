@@ -70,6 +70,11 @@ final class TodoListLoaded extends TodoListState {
   /// Brief generation error message
   final String? briefError;
 
+  // ==================== INPUT BAR FIELDS ====================
+
+  /// Text k předvyplnění v input baru (např. z kalendáře)
+  final String? prepopulatedText;
+
   /// Helper: ID aktuálního custom view
   String? get currentCustomViewId => currentCustomView?.id;
 
@@ -86,6 +91,7 @@ final class TodoListLoaded extends TodoListState {
     this.aiBriefData,
     this.isGeneratingBrief = false,
     this.briefError,
+    this.prepopulatedText,
   }) : briefConfig = briefConfig ?? const BriefConfig();
 
   /// Computed property: Brief sections s real Todo objekty
@@ -177,6 +183,8 @@ final class TodoListLoaded extends TodoListState {
     bool? isGeneratingBrief,
     String? briefError,
     bool clearBriefError = false,
+    String? prepopulatedText,
+    bool clearPrepopulatedText = false,
   }) {
     return TodoListLoaded(
       allTodos: allTodos ?? this.allTodos,
@@ -192,6 +200,7 @@ final class TodoListLoaded extends TodoListState {
       aiBriefData: clearAiBriefData ? null : (aiBriefData ?? this.aiBriefData),
       isGeneratingBrief: isGeneratingBrief ?? this.isGeneratingBrief,
       briefError: clearBriefError ? null : (briefError ?? this.briefError),
+      prepopulatedText: clearPrepopulatedText ? null : (prepopulatedText ?? this.prepopulatedText),
     );
   }
 
@@ -209,6 +218,7 @@ final class TodoListLoaded extends TodoListState {
         aiBriefData,
         isGeneratingBrief,
         briefError,
+        prepopulatedText,
       ];
 }
 

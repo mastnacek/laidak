@@ -33,16 +33,19 @@ class MainPage extends StatefulWidget {
   const MainPage({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<MainPage> createState() => MainPageState();
 }
 
-class _MainPageState extends State<MainPage> {
+class MainPageState extends State<MainPage> {
   // PageController pro správu PageView
   // initialPage: 1 = TodoListPage (střed)
   final PageController _pageController = PageController(initialPage: 1);
 
   // Aktuální index stránky (0 = AI Chat, 1 = TODO List, 2 = Pomodoro)
   int _currentPageIndex = 1;
+
+  // Veřejný getter pro PageController (pro přístup z CalendarPage)
+  PageController get pageController => _pageController;
 
   @override
   void dispose() {
