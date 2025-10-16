@@ -99,6 +99,7 @@ class _CalendarPageState extends State<CalendarPage> {
           flex: 1,
           child: SingleChildScrollView(
             child: TableCalendar(
+              key: ValueKey(state.allTodos.length), // Force rebuild při změně dat
               firstDay: DateTime(2020),
               lastDay: DateTime(2030),
               focusedDay: _focusedDay,
