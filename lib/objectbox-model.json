@@ -1,0 +1,125 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:4055643067187840678",
+      "lastPropertyId": "7:479865199194582066",
+      "name": "NoteEmbedding",
+      "properties": [
+        {
+          "id": "1:7167902647614530586",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6345209635127478301",
+          "name": "noteId",
+          "indexId": "1:3083595143307448835",
+          "type": 6,
+          "flags": 8
+        },
+        {
+          "id": "3:8865132640454939850",
+          "name": "embedding",
+          "indexId": "2:3526767439226554136",
+          "type": 28,
+          "flags": 8
+        },
+        {
+          "id": "4:8211942522805459572",
+          "name": "isFavourite",
+          "indexId": "3:309855197730275207",
+          "type": 1,
+          "flags": 8
+        },
+        {
+          "id": "5:186055134816275184",
+          "name": "textPreview",
+          "type": 9
+        },
+        {
+          "id": "6:4358313731592851364",
+          "name": "modelName",
+          "type": 9
+        },
+        {
+          "id": "7:479865199194582066",
+          "name": "embeddedAt",
+          "type": 10
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:5274882023371438436",
+      "lastPropertyId": "8:2765425146138238472",
+      "name": "TodoEmbedding",
+      "properties": [
+        {
+          "id": "1:2846122796511455956",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:9085020012482179747",
+          "name": "todoId",
+          "indexId": "4:6413302683161180022",
+          "type": 6,
+          "flags": 8
+        },
+        {
+          "id": "3:1066323295260213360",
+          "name": "embedding",
+          "indexId": "5:335186670791556605",
+          "type": 28,
+          "flags": 8
+        },
+        {
+          "id": "4:6836089740832269629",
+          "name": "status",
+          "indexId": "6:5034459071464012073",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "5:7999899262539443025",
+          "name": "priority",
+          "indexId": "7:200346845527871602",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "6:4174696970621306867",
+          "name": "textPreview",
+          "type": 9
+        },
+        {
+          "id": "7:1250532131027719093",
+          "name": "modelName",
+          "type": 9
+        },
+        {
+          "id": "8:2765425146138238472",
+          "name": "embeddedAt",
+          "type": 10
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:5274882023371438436",
+  "lastIndexId": "7:200346845527871602",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

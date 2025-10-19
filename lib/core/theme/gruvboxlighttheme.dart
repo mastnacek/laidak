@@ -1,0 +1,138 @@
+import 'package:flutter/material.dart';
+
+/// gruvbox light Theme
+/// Converted from Kitty theme
+class GruvboxlightTheme {
+  // Barvy pozadí
+  static const Color bg = Color(0xFFfbf1c7);
+  static const Color bgAlt = Color(0xFFfbf1c7);
+  static const Color base0 = Color(0xFFfbf1c7);
+  static const Color base1 = Color(0xFFfbf1c7);
+  static const Color base2 = Color(0xFF928374);
+  static const Color base3 = Color(0xFF928374);
+  static const Color base4 = Color(0xFF282828);
+  static const Color base5 = Color(0xFFa0a0a0);
+  static const Color base6 = Color(0xFF3c3836);
+  static const Color base7 = Color(0xFF3c3836);
+  static const Color base8 = Color(0xFF3c3836);
+
+  // Foreground barvy
+  static const Color fg = Color(0xFFf0e0d8);
+  static const Color fgAlt = Color(0xFF3c3836);
+
+  // Sémantické barvy
+  static const Color grey = Color(0xFF928374);
+  static const Color red = Color(0xFFcc241d);
+  static const Color orange = Color(0xFF9d0006);
+  static const Color green = Color(0xFF98971a);
+  static const Color teal = Color(0xFF79740e);
+  static const Color yellow = Color(0xFFd79921);
+  static const Color blue = Color(0xFF36686a);
+  static const Color darkBlue = Color(0xFF076678);
+  static const Color magenta = Color(0xFFb16286);
+  static const Color violet = Color(0xFF8f3f71);
+  static const Color cyan = Color(0xFF39563a);
+  static const Color darkCyan = Color(0xFF427b58);
+
+  /// Vytvořit tmavý ThemeData podle gruvbox light
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: bg,
+      colorScheme: ColorScheme.dark(
+        primary: blue,
+        secondary: magenta,
+        surface: bgAlt,
+        surfaceContainerHighest: base3,
+        error: red,
+        onPrimary: bg,
+        onSecondary: bg,
+        onSurface: fg,
+        onError: bg,
+      ),
+
+      // AppBar
+      appBarTheme: AppBarTheme(
+        backgroundColor: bgAlt,
+        foregroundColor: fg,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          color: cyan,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'monospace',
+        ),
+      ),
+
+      // Text
+      textTheme: TextTheme(
+        bodyLarge: TextStyle(color: fg),
+        bodyMedium: TextStyle(color: fg),
+        titleMedium: TextStyle(color: fg, fontWeight: FontWeight.bold),
+      ),
+
+      // Input fields
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: base2,
+        hintStyle: TextStyle(color: base5),
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: base4),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: base4, width: 1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: blue, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+
+      // Buttons
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: blue,
+          foregroundColor: bg,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      ),
+
+      // Checkboxes
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return green;
+          }
+          return base4;
+        }),
+        checkColor: WidgetStateProperty.all(bg),
+      ),
+
+      // Icons
+      iconTheme: IconThemeData(color: fg),
+
+      // Divider
+      dividerTheme: DividerThemeData(
+        color: base3,
+        thickness: 1,
+      ),
+
+      // Card
+      cardTheme: CardThemeData(
+        color: bgAlt,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: base3, width: 1),
+        ),
+      ),
+    );
+  }
+}

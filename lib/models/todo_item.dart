@@ -1,0 +1,110 @@
+/// Model pro TODO položku s podporou tagů a priorit
+class TodoItem {
+  int? id;
+  String task;
+  bool isCompleted;
+  DateTime createdAt;
+  DateTime? completedAt;
+
+  // Parsované hodnoty z tagů
+  String? priority; // 'a', 'b', 'c' z *a*, *b*, *c*
+  DateTime? dueDate; // Datum z *dnes*, *zitra*, nebo konkrétní datum
+  List<String> tags; // Obecné tagy jako *rodina*, *prace*, atd.
+
+  // AI Split metadata
+  String? aiRecommendations;
+  String? aiDeadlineAnalysis;
+
+  // AI Motivation cache
+  String? aiMotivation;
+  int? aiMotivationGeneratedAt; // Unix timestamp (seconds)
+
+  TodoItem({
+    this.id,
+    required this.task,
+    this.isCompleted = false,
+    DateTime? createdAt,
+    this.completedAt,
+    this.priority,
+    this.dueDate,
+    List<String>? tags,
+    this.aiRecommendations,
+    this.aiDeadlineAnalysis,
+    this.aiMotivation,
+    this.aiMotivationGeneratedAt,
+  })  : createdAt = createdAt ?? DateTime.now(),
+        tags = tags ?? [];
+
+  /// Převést na Map pro SQLite
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'task': task,
+      'isCompleted': isCompleted ? 1 : 0,
+      'createdAt': createdAt.toIso8601String(),
+      'completed_at': completedAt?.toIso8601String(),
+      'priority': priority,
+      'dueDate': dueDate?.toIso8601String(),
+      'tags': tags.join(','), // Ukládat jako CSV
+      'ai_recommendations': aiRecommendations,
+      'ai_deadline_analysis': aiDeadlineAnalysis,
+      'ai_motivation': aiMotivation,
+      'ai_motivation_generated_at': aiMotivationGeneratedAt,
+    };
+  }
+
+  /// Vytvořit z Map (ze SQLite)
+  factory TodoItem.fromMap(Map<String, dynamic> map) {
+    return TodoItem(
+      id: map['id'] as int?,
+      task: map['task'] as String,
+      isCompleted: (map['isCompleted'] as int) == 1,
+      createdAt: DateTime.parse(map['createdAt'] as String),
+      completedAt: map['completed_at'] != null
+          ? DateTime.parse(map['completed_at'] as String)
+          : null,
+      priority: map['priority'] as String?,
+      dueDate: map['dueDate'] != null
+          ? DateTime.parse(map['dueDate'] as String)
+          : null,
+      tags: map['tags'] != null && (map['tags'] as String).isNotEmpty
+          ? (map['tags'] as String).split(',')
+          : [],
+      aiRecommendations: map['ai_recommendations'] as String?,
+      aiDeadlineAnalysis: map['ai_deadline_analysis'] as String?,
+      aiMotivation: map['ai_motivation'] as String?,
+      aiMotivationGeneratedAt: map['ai_motivation_generated_at'] as int?,
+    );
+  }
+
+  /// Vytvořit kopii s upravenými hodnotami
+  TodoItem copyWith({
+    int? id,
+    String? task,
+    bool? isCompleted,
+    DateTime? createdAt,
+    DateTime? completedAt,
+    String? priority,
+    DateTime? dueDate,
+    List<String>? tags,
+    String? aiRecommendations,
+    String? aiDeadlineAnalysis,
+    String? aiMotivation,
+    int? aiMotivationGeneratedAt,
+  }) {
+    return TodoItem(
+      id: id ?? this.id,
+      task: task ?? this.task,
+      isCompleted: isCompleted ?? this.isCompleted,
+      createdAt: createdAt ?? this.createdAt,
+      completedAt: completedAt ?? this.completedAt,
+      priority: priority ?? this.priority,
+      dueDate: dueDate ?? this.dueDate,
+      tags: tags ?? this.tags,
+      aiRecommendations: aiRecommendations ?? this.aiRecommendations,
+      aiDeadlineAnalysis: aiDeadlineAnalysis ?? this.aiDeadlineAnalysis,
+      aiMotivation: aiMotivation ?? this.aiMotivation,
+      aiMotivationGeneratedAt: aiMotivationGeneratedAt ?? this.aiMotivationGeneratedAt,
+    );
+  }
+}
