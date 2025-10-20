@@ -50,11 +50,11 @@ dependencies:
   just_audio: ^0.10.5
   just_audio_media_kit: ^2.0.8  # Windows support přes media_kit
 
-  # State management pro dynamické změny tématu
-  provider: ^6.1.0
+  # Riverpod state management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
 
-  # BLoC state management
-  flutter_bloc: ^9.1.1
+  # Equatable pro value equality (still useful with Riverpod)
   equatable: ^2.0.5
 
   # Persistence
@@ -104,7 +104,12 @@ dev_dependencies:
 
   # Generování app ikon
   flutter_launcher_icons: ^0.14.1
-  bloc_test: ^10.0.0
+
+  # Riverpod code generation
+  riverpod_generator: ^2.6.2
+  riverpod_lint: ^2.6.1
+
+  # Testing
   mockito: ^5.5.0
   build_runner: ^2.7.1
 
