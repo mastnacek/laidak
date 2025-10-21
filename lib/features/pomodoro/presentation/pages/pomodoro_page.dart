@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-
-
+import '../providers/pomodoro_provider.dart';
 import '../widgets/timer_display.dart';
 import '../widgets/timer_controls.dart';
 import '../widgets/settings_panel.dart';
 import '../widgets/history_list.dart';
-import '../../domain/services/pomodoro_timer_service.dart';
-import '../../data/repositories/pomodoro_repository_impl.dart';
 
 /// Stránka Pomodoro Timer
 ///
@@ -24,7 +20,7 @@ import '../../data/repositories/pomodoro_repository_impl.dart';
 ///
 /// Parametr [taskId] a [duration]:
 /// - Pokud jsou nastaveny, timer se automaticky spustí při otevření
-class PomodoroPage extends StatelessWidget {
+class PomodoroPage extends ConsumerStatefulWidget {
   final bool showAppBar;
   final int? taskId;
   final Duration? duration;
@@ -37,38 +33,43 @@ class PomodoroPage extends StatelessWidget {
   });
 
   @override
+  ConsumerState<PomodoroPage> createState() => _PomodoroPageState();
+}
+
+class _PomodoroPageState extends ConsumerState<PomodoroPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Load history
+      ref.read(pomodoroProvider.notifier).loadHistory();
+
+      // Auto-start timer pokud máme taskId a duration
+      if (widget.taskId != null && widget.duration != null) {
+        ref.read(pomodoroProvider.notifier).startPomodoro(widget.taskId!, widget.duration);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final content = BlocProvider(
-      create: (context) {
-        final bloc = PomodoroBloc(
-          repository: PomodoroRepositoryImpl(),
-          timerService: PomodoroTimerService(),
-        );
-
-        // Load history
-        bloc.add(const LoadHistoryEvent());
-
-        // Auto-start timer pokud máme taskId a duration
-        if (taskId != null && duration != null) {
-          bloc.add(StartPomodoroEvent(taskId!, duration));
+    // Listen for errors
+    ref.listen<AsyncValue<PomodoroState>>(pomodoroProvider, (previous, next) {
+      next.whenData((state) {
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
+      });
+    });
 
-        return bloc;
-      },
-      child: BlocListener<PomodoroBloc, PomodoroState>(
-        listener: (context, state) {
-          // Zobrazit error message jako SnackBar
-          if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: Colors.red,
-                duration: const Duration(seconds: 3),
-              ),
-            );
-          }
-        },
-        child: SingleChildScrollView(
+    final content = SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
@@ -99,7 +100,7 @@ class PomodoroPage extends StatelessWidget {
     );
 
     // Pokud showAppBar = true, obal do Scaffold s AppBar
-    if (showAppBar) {
+    if (widget.showAppBar) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('🍅 Pomodoro Timer'),
@@ -115,16 +116,15 @@ class PomodoroPage extends StatelessWidget {
 }
 
 /// Widget zobrazující informace o aktuálním úkolu
-class _TaskInfo extends StatelessWidget {
+class _TaskInfo extends ConsumerWidget {
   const _TaskInfo();
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PomodoroBloc, PomodoroState>(
-      buildWhen: (previous, current) =>
-          previous.currentTaskId != current.currentTaskId ||
-          previous.sessionCount != current.sessionCount,
-      builder: (context, state) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pomodoroAsync = ref.watch(pomodoroProvider);
+
+    return pomodoroAsync.when(
+      data: (state) {
         if (state.currentTaskId == null) {
           return const Text(
             'Vyberte úkol ze seznamu úkolů',
@@ -157,6 +157,8 @@ class _TaskInfo extends StatelessWidget {
           ],
         );
       },
+      loading: () => const SizedBox.shrink(),
+      error: (error, stack) => const SizedBox.shrink(),
     );
   }
 }

@@ -1,33 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
-
-
+import '../providers/pomodoro_provider.dart';
 
 /// Widget zobrazujici historii Pomodoro sessions
-class HistoryList extends StatefulWidget {
+class HistoryList extends ConsumerStatefulWidget {
   const HistoryList({super.key});
 
   @override
-  State<HistoryList> createState() => _HistoryListState();
+  ConsumerState<HistoryList> createState() => _HistoryListState();
 }
 
-class _HistoryListState extends State<HistoryList> {
+class _HistoryListState extends ConsumerState<HistoryList> {
   @override
   void initState() {
     super.initState();
     // Nacist historii pri inicializaci
-    context.read<PomodoroBloc>().add(const LoadHistoryEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(pomodoroProvider.notifier).loadHistory();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PomodoroBloc, PomodoroState>(
-      buildWhen: (previous, current) =>
-          previous.history != current.history ||
-          previous.isLoading != current.isLoading,
-      builder: (context, state) {
+    final pomodoroAsync = ref.watch(pomodoroProvider);
+
+    return pomodoroAsync.when(
+      data: (state) {
         if (state.isLoading) {
           return const Center(
             child: CircularProgressIndicator(),
@@ -107,6 +106,8 @@ class _HistoryListState extends State<HistoryList> {
           ),
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 }
