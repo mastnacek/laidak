@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/widgets/info_dialog.dart';
-import '../bloc/todo_list_bloc.dart';
-import '../bloc/todo_list_state.dart';
+import '../providers/todo_provider.dart';
 
 /// StatsRow - Kompaktní stats dashboard pro AppBar
 ///
@@ -12,14 +11,16 @@ import '../bloc/todo_list_state.dart';
 /// - Icon size: 16dp (malé stats ikony)
 /// - Font size: 14dp (čísla)
 /// - Jeden řádek: [✅5] [🔴12] [📅3] [⏰7]
-/// - Real-time update přes BlocBuilder
-class StatsRow extends StatelessWidget {
+/// - Real-time update přes Riverpod
+class StatsRow extends ConsumerWidget {
   const StatsRow({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<TodoListBloc, TodoListState>(
-      builder: (context, state) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todoAsync = ref.watch(todoListProvider);
+
+    return todoAsync.when(
+      data: (state) {
         if (state is! TodoListLoaded) {
           return const SizedBox();
         }
@@ -60,6 +61,8 @@ class StatsRow extends StatelessWidget {
           ),
         );
       },
+      loading: () => const SizedBox(),
+      error: (error, stack) => const SizedBox(),
     );
   }
 

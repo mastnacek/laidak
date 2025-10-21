@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import '../providers/settings_provider.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../cubit/settings_cubit.dart';
-import '../cubit/settings_state.dart';
+
+
 import '../../../notes/domain/models/notes_view_config.dart';
 import '../../../notes/domain/models/custom_notes_view.dart';
 
 /// Tab pro konfiguraci Notes Views (built-in + custom)
-class NotesTab extends StatelessWidget {
+class NotesTab extends ConsumerWidget {
   const NotesTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
-    return BlocBuilder<SettingsCubit, SettingsState>(
-      builder: (context, state) {
-        if (state is! SettingsLoaded) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final settingsAsync = ref.watch(settingsProvider);
+    final state = settingsAsync.value;
 
-        final notesConfig = state.notesConfig;
+    if (state == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final notesConfig = state.notesConfig;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -57,17 +59,15 @@ class NotesTab extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Built-in views section
-              _buildBuiltInViewsSection(context, theme, notesConfig),
+              _buildBuiltInViewsSection(context, ref, theme, notesConfig),
 
               const SizedBox(height: 32),
 
               // Custom views section
-              _buildCustomViewsSection(context, theme, notesConfig),
+              _buildCustomViewsSection(context, ref, theme, notesConfig),
             ],
           ),
         );
-      },
-    );
   }
 
   Widget _buildBuiltInViewsSection(
@@ -116,6 +116,7 @@ class NotesTab extends StatelessWidget {
 
   Widget _buildBuiltInViewSwitch(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     String viewName,
     String label,
@@ -140,7 +141,7 @@ class NotesTab extends StatelessWidget {
         value: value,
         activeColor: theme.appColors.green,
         onChanged: (enabled) {
-          context.read<SettingsCubit>().toggleBuiltInNotesView(viewName, enabled);
+          ref.read(settingsProvider.notifier).toggleBuiltInNotesView(viewName, enabled);
         },
       ),
     );
@@ -148,6 +149,7 @@ class NotesTab extends StatelessWidget {
 
   Widget _buildCustomViewsSection(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     NotesViewConfig notesConfig,
   ) {
@@ -211,7 +213,7 @@ class NotesTab extends StatelessWidget {
           )
         else
           ...notesConfig.customViews.map((view) {
-            return _buildCustomViewCard(context, theme, view);
+            return _buildCustomViewCard(context, ref, theme, view);
           }),
       ],
     );
@@ -219,6 +221,7 @@ class NotesTab extends StatelessWidget {
 
   Widget _buildCustomViewCard(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     CustomNotesView view,
   ) {
@@ -289,7 +292,7 @@ class NotesTab extends StatelessWidget {
               value: view.isEnabled,
               activeColor: theme.appColors.green,
               onChanged: (enabled) {
-                context.read<SettingsCubit>().toggleCustomNotesView(view.id, enabled);
+                ref.read(settingsProvider.notifier).toggleCustomNotesView(view.id, enabled);
               },
             ),
           ],
@@ -312,7 +315,7 @@ class NotesTab extends StatelessWidget {
             tagFilter: tagFilter,
             emoji: emoji,
           );
-          context.read<SettingsCubit>().addCustomNotesView(view);
+          ref.read(settingsProvider.notifier).addCustomNotesView(view);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -343,7 +346,7 @@ class NotesTab extends StatelessWidget {
             tagFilter: tagFilter,
             emoji: emoji,
           );
-          context.read<SettingsCubit>().updateCustomNotesView(updated);
+          ref.read(settingsProvider.notifier).updateCustomNotesView(updated);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -391,7 +394,7 @@ class NotesTab extends StatelessWidget {
     );
 
     if (confirm == true) {
-      context.read<SettingsCubit>().deleteCustomNotesView(view.id);
+      ref.read(settingsProvider.notifier).deleteCustomNotesView(view.id);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -446,7 +449,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = widget.theme;
     final isEdit = widget.initialName != null;
 

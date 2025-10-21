@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/theme/theme_colors.dart';
+import '../features/ai_chat/presentation/providers/ai_chat_provider.dart';
 import '../features/help/presentation/pages/help_page.dart';
+import '../features/todo_list/presentation/providers/todo_list_provider.dart';
 import '../features/todo_list/presentation/pages/todo_list_page.dart';
 import '../features/pomodoro/presentation/pages/pomodoro_page.dart';
 import '../features/ai_chat/presentation/pages/ai_chat_page.dart';
-import '../features/ai_chat/presentation/bloc/ai_chat_bloc.dart';
-import '../features/ai_chat/presentation/bloc/ai_chat_event.dart';
+
+
 import '../features/todo_list/presentation/widgets/stats_row.dart';
-import '../features/todo_list/presentation/bloc/todo_list_bloc.dart';
-import '../features/todo_list/presentation/bloc/todo_list_event.dart';
-import '../features/todo_list/presentation/bloc/todo_list_state.dart';
+
+
+
 import '../features/todo_list/domain/enums/completion_filter.dart';
 import '../features/notes/presentation/pages/notes_list_page.dart';
 import '../features/calendar/presentation/pages/calendar_page.dart';
@@ -33,14 +35,14 @@ import 'settings_page.dart';
 /// - Initial page: TodoListPage (index 1)
 ///
 /// AppBar je fixní a nescrolluje se s obsahem.
-class MainPage extends StatefulWidget {
+class MainPage extends ConsumerStatefulWidget {
   const MainPage({super.key});
 
   @override
   State<MainPage> createState() => MainPageState();
 }
 
-class MainPageState extends State<MainPage> {
+class MainPageState extends ConsumerState<MainPage> {
   // PageController pro správu PageView
   // initialPage: 1 = TodoListPage (střed)
   final PageController _pageController = PageController(initialPage: 1);
@@ -142,9 +144,8 @@ class MainPageState extends State<MainPage> {
           icon: const Icon(Icons.delete_sweep),
           tooltip: 'Vymazat chat',
           onPressed: () {
-            // Najít AiChatBloc z PageView child widgetu
-            final bloc = context.read<AiChatBloc>();
-            bloc.add(const ClearChatEvent());
+            // Clear chat for standalone AI Chat
+            ref.read(aiChatProvider().notifier).clearChat();
           },
         ),
         // Info button (zobrazit kontext)
@@ -172,9 +173,11 @@ class MainPageState extends State<MainPage> {
     if (_currentPageIndex == 3) {
       return [
         // Completion filter toggle (eye button)
-        BlocBuilder<TodoListBloc, TodoListState>(
-          builder: (context, state) {
+        Consumer(
+          builder: (context, ref, child) {
             final theme = Theme.of(context);
+            final todoAsync = ref.watch(todoListProvider);
+            final state = todoAsync.value;
             final filter = state is TodoListLoaded
                 ? state.completionFilter
                 : CompletionFilter.incomplete;
@@ -203,7 +206,7 @@ class MainPageState extends State<MainPage> {
               tooltip: tooltip,
               color: color,
               onPressed: () {
-                context.read<TodoListBloc>().add(const ToggleShowCompletedEvent());
+                ref.read(todoListProvider.notifier).toggleShowCompleted();
               },
             );
           },

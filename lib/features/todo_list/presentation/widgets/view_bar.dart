@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/widgets/info_dialog.dart';
-import '../../../../features/settings/presentation/cubit/settings_cubit.dart';
-import '../../../../features/settings/presentation/cubit/settings_state.dart';
+import '../../../../features/settings/presentation/providers/settings_provider.dart';
 import '../../../../features/settings/domain/models/custom_agenda_view.dart';
 import '../../domain/enums/view_mode.dart';
-import '../bloc/todo_list_bloc.dart';
-import '../bloc/todo_list_event.dart';
-import '../bloc/todo_list_state.dart';
+import '../providers/todo_provider.dart';
 
 /// ViewBar - Kompaktní view mode selector s visibility toggle
 ///
@@ -21,23 +18,19 @@ import '../bloc/todo_list_state.dart';
 /// - Touch target: 44x44dp
 /// - Spacing: 4-8dp
 /// - Horizontal scroll pro > 6 views
-class ViewBar extends StatelessWidget {
+class ViewBar extends ConsumerWidget {
   const ViewBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final settingsAsync = ref.watch(settingsProvider);
 
     return Semantics(
       label: 'Panel pro výběr zobrazení úkolů',
       container: true,
-      child: BlocBuilder<SettingsCubit, SettingsState>(
-        builder: (context, settingsState) {
-          if (settingsState is! SettingsLoaded) {
-            // Fallback: zobrazit jen základní views
-            return _buildFallbackViewBar(context, theme);
-          }
-
+      child: settingsAsync.when(
+        data: (settingsState) {
           final agendaConfig = settingsState.agendaConfig;
 
           // Build list of visible views
@@ -90,14 +83,16 @@ class ViewBar extends StatelessWidget {
                 children: [
                   // View mode buttons (dynamicky generované) - zabírají celou šířku
                   Expanded(
-                    child: BlocBuilder<TodoListBloc, TodoListState>(
-                      builder: (context, todoState) {
-                        final currentViewMode = todoState is TodoListLoaded
-                            ? todoState.viewMode
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final todoAsync = ref.watch(todoListProvider);
+
+                        final currentViewMode = todoAsync.value is TodoListLoaded
+                            ? (todoAsync.value as TodoListLoaded).viewMode
                             : ViewMode.all;
 
-                        final currentCustomViewId = todoState is TodoListLoaded
-                            ? todoState.currentCustomViewId
+                        final currentCustomViewId = todoAsync.value is TodoListLoaded
+                            ? (todoAsync.value as TodoListLoaded).currentCustomViewId
                             : null;
 
                         return SingleChildScrollView(
@@ -113,7 +108,7 @@ class ViewBar extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(horizontal: 4),
                                 child: InkWell(
                                   onTap: () {
-                                    _handleViewTap(context, viewItem, isSelected);
+                                    _handleViewTap(context, ref, viewItem, isSelected);
                                   },
                                   onLongPress: () {
                                     _showInfoDialog(context, viewItem, theme);
@@ -149,27 +144,29 @@ class ViewBar extends StatelessWidget {
             ),
           );
         },
+        loading: () => _buildFallbackViewBar(context, theme),
+        error: (error, stack) => _buildFallbackViewBar(context, theme),
       ),
     );
   }
 
   /// Handle tap na view item
-  void _handleViewTap(BuildContext context, _ViewItem viewItem, bool isSelected) {
-    final bloc = context.read<TodoListBloc>();
+  void _handleViewTap(BuildContext context, WidgetRef ref, _ViewItem viewItem, bool isSelected) {
+    final notifier = ref.read(todoListProvider.notifier);
 
     if (viewItem.isBuiltIn) {
       // Built-in view: toggle behavior
       if (isSelected && viewItem.builtInMode != ViewMode.all) {
-        bloc.add(const ChangeViewModeEvent(ViewMode.all));
+        notifier.changeViewMode(ViewMode.all);
       } else {
-        bloc.add(ChangeViewModeEvent(viewItem.builtInMode!));
+        notifier.changeViewMode(viewItem.builtInMode!);
       }
     } else {
       // Custom view: toggle behavior
       if (isSelected) {
-        bloc.add(const ChangeViewModeEvent(ViewMode.all));
+        notifier.changeViewMode(ViewMode.all);
       } else {
-        bloc.add(ChangeToCustomViewEvent(viewItem.customView!));
+        notifier.changeToCustomView(viewItem.customView!);
       }
     }
   }

@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import '../providers/settings_provider.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../cubit/settings_cubit.dart';
-import '../cubit/settings_state.dart';
+
+
 import '../../domain/models/agenda_view_config.dart';
 import '../../domain/models/custom_agenda_view.dart';
 
 /// Tab pro konfiguraci Agenda Views (built-in + custom)
-class AgendaTab extends StatelessWidget {
+class AgendaTab extends ConsumerWidget {
   const AgendaTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
-    return BlocBuilder<SettingsCubit, SettingsState>(
-      builder: (context, state) {
-        if (state is! SettingsLoaded) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final settingsAsync = ref.watch(settingsProvider);
+    final state = settingsAsync.value;
 
-        final agendaConfig = state.agendaConfig;
+    if (state == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final agendaConfig = state.agendaConfig;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -57,17 +59,15 @@ class AgendaTab extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Built-in views section
-              _buildBuiltInViewsSection(context, theme, agendaConfig),
+              _buildBuiltInViewsSection(context, ref, theme, agendaConfig),
 
               const SizedBox(height: 32),
 
               // Custom views section
-              _buildCustomViewsSection(context, theme, agendaConfig),
+              _buildCustomViewsSection(context, ref, theme, agendaConfig),
             ],
           ),
         );
-      },
-    );
   }
 
   Widget _buildBuiltInViewsSection(
@@ -137,6 +137,7 @@ class AgendaTab extends StatelessWidget {
 
   Widget _buildBuiltInViewSwitch(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     String viewName,
     String label,
@@ -161,7 +162,7 @@ class AgendaTab extends StatelessWidget {
         value: value,
         activeColor: theme.appColors.green,
         onChanged: (enabled) {
-          context.read<SettingsCubit>().toggleBuiltInView(viewName, enabled);
+          ref.read(settingsProvider.notifier).toggleBuiltInView(viewName, enabled);
         },
       ),
     );
@@ -169,6 +170,7 @@ class AgendaTab extends StatelessWidget {
 
   Widget _buildCustomViewsSection(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     AgendaViewConfig agendaConfig,
   ) {
@@ -232,7 +234,7 @@ class AgendaTab extends StatelessWidget {
           )
         else
           ...agendaConfig.customViews.map((view) {
-            return _buildCustomViewCard(context, theme, view);
+            return _buildCustomViewCard(context, ref, theme, view);
           }),
       ],
     );
@@ -240,6 +242,7 @@ class AgendaTab extends StatelessWidget {
 
   Widget _buildCustomViewCard(
     BuildContext context,
+    WidgetRef ref,
     ThemeData theme,
     CustomAgendaView view,
   ) {
@@ -310,7 +313,7 @@ class AgendaTab extends StatelessWidget {
               value: view.isEnabled,
               activeColor: theme.appColors.green,
               onChanged: (enabled) {
-                context.read<SettingsCubit>().toggleCustomView(view.id, enabled);
+                ref.read(settingsProvider.notifier).toggleCustomView(view.id, enabled);
               },
             ),
           ],
@@ -333,7 +336,7 @@ class AgendaTab extends StatelessWidget {
             tagFilter: tagFilter,
             emoji: emoji,
           );
-          context.read<SettingsCubit>().addCustomView(view);
+          ref.read(settingsProvider.notifier).addCustomView(view);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -364,7 +367,7 @@ class AgendaTab extends StatelessWidget {
             tagFilter: tagFilter,
             emoji: emoji,
           );
-          context.read<SettingsCubit>().updateCustomView(updated);
+          ref.read(settingsProvider.notifier).updateCustomView(updated);
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -412,7 +415,7 @@ class AgendaTab extends StatelessWidget {
     );
 
     if (confirm == true) {
-      context.read<SettingsCubit>().deleteCustomView(view.id);
+      ref.read(settingsProvider.notifier).deleteCustomView(view.id);
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -467,7 +470,7 @@ class _CustomViewDialogState extends State<_CustomViewDialog> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = widget.theme;
     final isEdit = widget.initialName != null;
 

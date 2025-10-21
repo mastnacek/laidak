@@ -1,31 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/pomodoro_bloc.dart';
-import '../bloc/pomodoro_event.dart';
-import '../bloc/pomodoro_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/pomodoro_provider.dart';
 import '../../domain/entities/timer_state.dart';
 
 /// Widget s control buttons (Start/Pause/Resume/Stop/Break/Continue)
-class TimerControls extends StatelessWidget {
+class TimerControls extends ConsumerWidget {
   const TimerControls({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PomodoroBloc, PomodoroState>(
-      buildWhen: (previous, current) =>
-          previous.timerState != current.timerState ||
-          previous.currentTaskId != current.currentTaskId ||
-          previous.sessionCount != current.sessionCount,
-      builder: (context, state) {
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          alignment: WrapAlignment.center,
-          children: [
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(pomodoroProvider).value;
+
+    if (state == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      alignment: WrapAlignment.center,
+      children: [
             // START button (pouze pokud idle)
             if (state.timerState == TimerState.idle)
               ElevatedButton.icon(
-                onPressed: () => _showQuickStartDialog(context),
+                onPressed: () => _showQuickStartDialog(context, ref),
                 icon: const Icon(Icons.play_arrow, size: 28),
                 label: const Text(
                   'START',
@@ -45,7 +43,7 @@ class TimerControls extends StatelessWidget {
             if (state.timerState == TimerState.running)
               ElevatedButton.icon(
                 onPressed: () {
-                  context.read<PomodoroBloc>().add(const PausePomodoroEvent());
+                  ref.read(pomodoroProvider.notifier).add(const PausePomodoroEvent());
                 },
                 icon: const Icon(Icons.pause, size: 28),
                 label: const Text(
@@ -66,7 +64,7 @@ class TimerControls extends StatelessWidget {
             if (state.timerState == TimerState.paused)
               ElevatedButton.icon(
                 onPressed: () {
-                  context.read<PomodoroBloc>().add(const ResumePomodoroEvent());
+                  ref.read(pomodoroProvider.notifier).add(const ResumePomodoroEvent());
                 },
                 icon: const Icon(Icons.play_arrow, size: 28),
                 label: const Text(
@@ -87,7 +85,7 @@ class TimerControls extends StatelessWidget {
             if (state.timerState != TimerState.idle)
               ElevatedButton.icon(
                 onPressed: () {
-                  _showStopConfirmDialog(context);
+                  _showStopConfirmDialog(context, ref);
                 },
                 icon: const Icon(Icons.stop, size: 28),
                 label: const Text(
@@ -108,7 +106,7 @@ class TimerControls extends StatelessWidget {
             if (state.timerState == TimerState.idle && state.sessionCount > 0)
               ElevatedButton.icon(
                 onPressed: () {
-                  context.read<PomodoroBloc>().add(const StartBreakEvent());
+                  ref.read(pomodoroProvider.notifier).add(const StartBreakEvent());
                 },
                 icon: const Icon(Icons.coffee, size: 28),
                 label: const Text(
@@ -130,7 +128,7 @@ class TimerControls extends StatelessWidget {
                 state.currentTaskId != null)
               ElevatedButton.icon(
                 onPressed: () {
-                  _showContinueDialog(context, state.currentTaskId!);
+                  _showContinueDialog(context, ref, state.currentTaskId!);
                 },
                 icon: const Icon(Icons.refresh, size: 28),
                 label: const Text(
@@ -150,7 +148,7 @@ class TimerControls extends StatelessWidget {
                 state.currentTaskId != null)
               ElevatedButton.icon(
                 onPressed: () {
-                  context.read<PomodoroBloc>().add(const FinishTaskEvent());
+                  ref.read(pomodoroProvider.notifier).add(const FinishTaskEvent());
                 },
                 icon: const Icon(Icons.check_circle, size: 28),
                 label: const Text(
@@ -173,7 +171,7 @@ class TimerControls extends StatelessWidget {
   }
 
   /// Dialog pro Quick Start (vyber task ID a delky)
-  void _showQuickStartDialog(BuildContext context) {
+  void _showQuickStartDialog(BuildContext context, WidgetRef ref) {
     int taskId = 1; // Default task ID
     Duration customDuration = const Duration(minutes: 25); // Default duration
 
@@ -230,7 +228,7 @@ class TimerControls extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<PomodoroBloc>().add(
+              ref.read(pomodoroProvider.notifier).add(
                     StartPomodoroEvent(taskId, customDuration),
                   );
               Navigator.pop(dialogContext);
@@ -247,7 +245,7 @@ class TimerControls extends StatelessWidget {
   }
 
   /// Potvrzovaci dialog pro Stop
-  void _showStopConfirmDialog(BuildContext context) {
+  void _showStopConfirmDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -263,7 +261,7 @@ class TimerControls extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              context.read<PomodoroBloc>().add(const StopPomodoroEvent());
+              ref.read(pomodoroProvider.notifier).add(const StopPomodoroEvent());
               Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(
@@ -278,7 +276,7 @@ class TimerControls extends StatelessWidget {
   }
 
   /// Dialog pro Continue (vyber delky pro dalsi session)
-  void _showContinueDialog(BuildContext context, int taskId) {
+  void _showContinueDialog(BuildContext context, WidgetRef ref, int taskId) {
     int? selectedMinutes; // null = vlastní hodnota
     final customController = TextEditingController();
 
@@ -410,7 +408,7 @@ class TimerControls extends StatelessWidget {
                 }
 
                 // Spustit novou session s custom duration
-                context.read<PomodoroBloc>().add(
+                ref.read(pomodoroProvider.notifier).add(
                       ContinuePomodoroEvent(
                         Duration(minutes: finalMinutes),
                       ),

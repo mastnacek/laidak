@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/services/database_helper.dart';
 import '../../../../services/tag_parser.dart';
@@ -8,9 +8,7 @@ import '../../../../widgets/kitt_scanner_loader.dart';
 import '../../../tag_suggestions/domain/models/tag_suggestion.dart';
 import '../../../tag_suggestions/data/services/tag_suggestion_service.dart';
 import '../../../tag_suggestions/presentation/widgets/tag_suggestion_chip.dart';
-import '../bloc/todo_list_bloc.dart';
-import '../bloc/todo_list_event.dart';
-import '../bloc/todo_list_state.dart';
+import '../providers/todo_provider.dart';
 
 /// InputBar - Fixed bottom input s maximální šířkou TextField
 ///
@@ -26,7 +24,7 @@ import '../bloc/todo_list_state.dart';
 /// - Default mode: HighlightedTextField s TagParser (*a* *dnes* ...)
 /// - Search mode: Normální TextField s debouncing
 /// - Focus callback: Notifikuje parent o focus změnách (pro keyboard awareness)
-class InputBar extends StatefulWidget {
+class InputBar extends ConsumerStatefulWidget {
   /// Callback volaný při změně focus stavu
   final ValueChanged<bool>? onFocusChanged;
 
@@ -36,10 +34,10 @@ class InputBar extends StatefulWidget {
   });
 
   @override
-  State<InputBar> createState() => _InputBarState();
+  ConsumerState<InputBar> createState() => _InputBarState();
 }
 
-class _InputBarState extends State<InputBar> {
+class _InputBarState extends ConsumerState<InputBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
   Timer? _debounceTimer;
@@ -104,7 +102,7 @@ class _InputBarState extends State<InputBar> {
       // Křížek → zrušit filtr
       setState(() {
         _isSearchMode = false;
-        context.read<TodoListBloc>().add(const ClearSearchEvent());
+        ref.read(todoListProvider.notifier).clearSearch();
         _controller.clear();
         widget.onFocusChanged?.call(false);
       });
@@ -131,7 +129,7 @@ class _InputBarState extends State<InputBar> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _focusNode.requestFocus();
         });
-        context.read<TodoListBloc>().add(SearchTodosEvent(text));
+        ref.read(todoListProvider.notifier).searchTodos(text);
       }
     }
   }
@@ -148,13 +146,11 @@ class _InputBarState extends State<InputBar> {
       final parsed = await TagParser.parse(text);
 
       if (mounted) {
-        context.read<TodoListBloc>().add(
-              AddTodoEvent(
-                taskText: parsed.cleanText,
-                priority: parsed.priority,
-                dueDate: parsed.dueDate,
-                tags: parsed.tags,
-              ),
+        ref.read(todoListProvider.notifier).addTodo(
+              taskText: parsed.cleanText,
+              priority: parsed.priority,
+              dueDate: parsed.dueDate,
+              tags: parsed.tags,
             );
         _controller.clear();
       }
@@ -168,7 +164,7 @@ class _InputBarState extends State<InputBar> {
 
       // Spustit nový timer (300ms debounce)
       _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-        context.read<TodoListBloc>().add(SearchTodosEvent(text));
+        ref.read(todoListProvider.notifier).searchTodos(text);
       });
     } else {
       // V add mode: trigger tag suggestions
@@ -345,9 +341,7 @@ class _InputBarState extends State<InputBar> {
 
               // Vyčistit prepopulated text ve state POUZE pokud je widget stále mounted
               if (mounted) {
-                context.read<TodoListBloc>().add(
-                      const ClearPrepopulatedTextEvent(),
-                    );
+                ref.read(todoListProvider.notifier).clearPrepopulatedText();
               }
             }
           });
@@ -445,20 +439,15 @@ class _InputBarState extends State<InputBar> {
                     ),
 
                     // Add button (edge-aligned, skrytý v search mode)
-                    BlocBuilder<TodoListBloc, TodoListState>(
-                      builder: (context, state) {
-                        if (_isSearchMode) {
-                          return const SizedBox(width: 48);
-                        }
-
-                        return IconButton(
-                          icon: const Icon(Icons.add, size: 24),
-                          tooltip: 'Přidat úkol',
-                          color: theme.appColors.green,
-                          onPressed: _onSubmit,
-                        );
-                      },
-                    ),
+                    if (_isSearchMode)
+                      const SizedBox(width: 48)
+                    else
+                      IconButton(
+                        icon: const Icon(Icons.add, size: 24),
+                        tooltip: 'Přidat úkol',
+                        color: theme.appColors.green,
+                        onPressed: _onSubmit,
+                      ),
                   ],
                 ),
 

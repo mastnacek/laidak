@@ -1,42 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import '../bloc/profile_bloc.dart';
-import '../bloc/profile_event.dart';
-import '../bloc/profile_state.dart';
+import '../providers/profile_provider.dart';
+
+
+
 import '../../domain/entities/family_role.dart';
 import '../../domain/entities/gender.dart';
 
 /// Tab "O mně" v Settings
-class ProfileSettingsTab extends StatelessWidget {
+class ProfileSettingsTab extends ConsumerWidget {
   const ProfileSettingsTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
-      builder: (context, state) {
-        if (state is ProfileLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(profileProvider);
 
-        if (state is ProfileError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('Chyba: ${state.message}'),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<ProfileBloc>().add(const LoadProfileEvent());
-                  },
-                  child: const Text('Zkusit znovu'),
-                ),
-              ],
-            ),
-          );
-        }
-
+    return profileAsync.when(
+      data: (state) {
         if (state is ProfileLoaded) {
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -58,7 +39,7 @@ class ProfileSettingsTab extends StatelessWidget {
                 _FamilyMembersList(members: state.familyMembers),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: () => _showAddFamilyMemberDialog(context),
+                  onPressed: () => _showAddFamilyMemberDialog(context, ref),
                   icon: const Icon(Icons.add),
                   label: const Text('Přidat člena rodiny'),
                 ),
@@ -67,8 +48,24 @@ class ProfileSettingsTab extends StatelessWidget {
           );
         }
 
-        return const Center(child: Text('Načítání...'));
+        return const Center(child: Text('Neznámý stav profilu'));
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Chyba: $error'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                ref.read(profileProvider.notifier).loadProfile();
+              },
+              child: const Text('Zkusit znovu'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -93,7 +90,7 @@ class ProfileSettingsTab extends StatelessWidget {
     );
   }
 
-  void _showAddFamilyMemberDialog(BuildContext context) {
+  void _showAddFamilyMemberDialog(BuildContext context, WidgetRef ref) {
     final formKey = GlobalKey<FormState>();
     final firstNameController = TextEditingController();
     final lastNameController = TextEditingController();
@@ -282,42 +279,40 @@ class ProfileSettingsTab extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               if (formKey.currentState!.validate() && birthDate != null) {
-                context.read<ProfileBloc>().add(
-                      AddFamilyMemberEvent(
-                        firstName: firstNameController.text.trim(),
-                        lastName: lastNameController.text.trim(),
-                        birthDate: birthDate!,
-                        nameDay: nameDayController.text.trim().isEmpty
-                            ? null
-                            : nameDayController.text.trim(),
-                        nickname: nicknameController.text.trim().isEmpty
-                            ? null
-                            : nicknameController.text.trim(),
-                        gender: selectedGender,
-                        role: selectedRole,
-                        relationshipDescription: relationshipDescController.text.trim().isEmpty
-                            ? null
-                            : relationshipDescController.text.trim(),
-                        personalityTraits: personalityController.text.trim().isEmpty
-                            ? null
-                            : personalityController.text.trim(),
-                        hobbies: hobbiesController.text.trim().isEmpty
-                            ? null
-                            : hobbiesController.text.trim(),
-                        occupation: occupationController.text.trim().isEmpty
-                            ? null
-                            : occupationController.text.trim(),
-                        otherNotes: otherNotesController.text.trim().isEmpty
-                            ? null
-                            : otherNotesController.text.trim(),
-                        silneStranky: silneStrankyController.text.trim().isEmpty
-                            ? null
-                            : silneStrankyController.text.trim(),
-                        slabeStranky: slabeStrankyController.text.trim().isEmpty
-                            ? null
-                            : slabeStrankyController.text.trim(),
-                      ),
-                    );
+                ref.read(profileProvider.notifier).addFamilyMember(
+                  firstName: firstNameController.text.trim(),
+                  lastName: lastNameController.text.trim(),
+                  birthDate: birthDate!,
+                  nameDay: nameDayController.text.trim().isEmpty
+                      ? null
+                      : nameDayController.text.trim(),
+                  nickname: nicknameController.text.trim().isEmpty
+                      ? null
+                      : nicknameController.text.trim(),
+                  gender: selectedGender,
+                  role: selectedRole,
+                  relationshipDescription: relationshipDescController.text.trim().isEmpty
+                      ? null
+                      : relationshipDescController.text.trim(),
+                  personalityTraits: personalityController.text.trim().isEmpty
+                      ? null
+                      : personalityController.text.trim(),
+                  hobbies: hobbiesController.text.trim().isEmpty
+                      ? null
+                      : hobbiesController.text.trim(),
+                  occupation: occupationController.text.trim().isEmpty
+                      ? null
+                      : occupationController.text.trim(),
+                  otherNotes: otherNotesController.text.trim().isEmpty
+                      ? null
+                      : otherNotesController.text.trim(),
+                  silneStranky: silneStrankyController.text.trim().isEmpty
+                      ? null
+                      : silneStrankyController.text.trim(),
+                  slabeStranky: slabeStrankyController.text.trim().isEmpty
+                      ? null
+                      : slabeStrankyController.text.trim(),
+                );
                 Navigator.pop(dialogContext);
               }
             },
@@ -330,13 +325,13 @@ class ProfileSettingsTab extends StatelessWidget {
 }
 
 /// Karta UserProfile
-class _UserProfileCard extends StatelessWidget {
+class _UserProfileCard extends ConsumerWidget {
   final dynamic profile;
 
   const _UserProfileCard({required this.profile});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (profile == null) {
       return Card(
         child: Padding(
@@ -346,7 +341,7 @@ class _UserProfileCard extends StatelessWidget {
               const Text('Profil ještě není vyplněn'),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: () => _showEditProfileDialog(context, null),
+                onPressed: () => _showEditProfileDialog(context, ref, null),
                 child: const Text('Vytvořit profil'),
               ),
             ],
@@ -364,13 +359,13 @@ class _UserProfileCard extends StatelessWidget {
         ),
         trailing: IconButton(
           icon: const Icon(Icons.edit),
-          onPressed: () => _showEditProfileDialog(context, profile),
+          onPressed: () => _showEditProfileDialog(context, ref, profile),
         ),
       ),
     );
   }
 
-  void _showEditProfileDialog(BuildContext context, dynamic existingProfile) {
+  void _showEditProfileDialog(BuildContext context, WidgetRef ref, dynamic existingProfile) {
     final formKey = GlobalKey<FormState>();
     final firstNameController =
         TextEditingController(text: existingProfile?.firstName ?? '');
@@ -528,28 +523,26 @@ class _UserProfileCard extends StatelessWidget {
                     .where((h) => h.isNotEmpty)
                     .toList();
 
-                context.read<ProfileBloc>().add(
-                      SaveUserProfileEvent(
-                        firstName: firstNameController.text.trim(),
-                        lastName: lastNameController.text.trim(),
-                        birthDate: birthDate,
-                        nameDay: nameDayController.text.trim().isEmpty
-                            ? null
-                            : nameDayController.text.trim(),
-                        nickname: nicknameController.text.trim().isEmpty
-                            ? null
-                            : nicknameController.text.trim(),
-                        gender: selectedGender,
-                        hobbies: hobbies,
-                        aboutMe: aboutMeController.text.trim(),
-                        silneStranky: silneStrankyController.text.trim().isEmpty
-                            ? null
-                            : silneStrankyController.text.trim(),
-                        slabeStranky: slabeStrankyController.text.trim().isEmpty
-                            ? null
-                            : slabeStrankyController.text.trim(),
-                      ),
-                    );
+                ref.read(profileProvider.notifier).saveUserProfile(
+                  firstName: firstNameController.text.trim(),
+                  lastName: lastNameController.text.trim(),
+                  birthDate: birthDate,
+                  nameDay: nameDayController.text.trim().isEmpty
+                      ? null
+                      : nameDayController.text.trim(),
+                  nickname: nicknameController.text.trim().isEmpty
+                      ? null
+                      : nicknameController.text.trim(),
+                  gender: selectedGender,
+                  hobbies: hobbies,
+                  aboutMe: aboutMeController.text.trim(),
+                  silneStranky: silneStrankyController.text.trim().isEmpty
+                      ? null
+                      : silneStrankyController.text.trim(),
+                  slabeStranky: slabeStrankyController.text.trim().isEmpty
+                      ? null
+                      : slabeStrankyController.text.trim(),
+                );
                 Navigator.pop(dialogContext);
               }
             },
@@ -562,12 +555,12 @@ class _UserProfileCard extends StatelessWidget {
 }
 
 /// Seznam členů rodiny
-class _FamilyMembersList extends StatelessWidget {
+class _FamilyMembersList extends ConsumerWidget {
   final List<dynamic> members;
 
   const _FamilyMembersList({required this.members});
 
-  void _showEditFamilyMemberDialog(BuildContext context, dynamic existingMember) {
+  void _showEditFamilyMemberDialog(BuildContext context, WidgetRef ref, dynamic existingMember) {
     final formKey = GlobalKey<FormState>();
     final firstNameController = TextEditingController(text: existingMember.firstName);
     final lastNameController = TextEditingController(text: existingMember.lastName);
@@ -754,43 +747,41 @@ class _FamilyMembersList extends StatelessWidget {
           ElevatedButton(
             onPressed: () {
               if (formKey.currentState!.validate()) {
-                context.read<ProfileBloc>().add(
-                      UpdateFamilyMemberEvent(
-                        id: existingMember.id!,
-                        firstName: firstNameController.text.trim(),
-                        lastName: lastNameController.text.trim(),
-                        birthDate: birthDate,
-                        nameDay: nameDayController.text.trim().isEmpty
-                            ? null
-                            : nameDayController.text.trim(),
-                        nickname: nicknameController.text.trim().isEmpty
-                            ? null
-                            : nicknameController.text.trim(),
-                        gender: selectedGender,
-                        role: selectedRole,
-                        relationshipDescription: relationshipDescController.text.trim().isEmpty
-                            ? null
-                            : relationshipDescController.text.trim(),
-                        personalityTraits: personalityController.text.trim().isEmpty
-                            ? null
-                            : personalityController.text.trim(),
-                        hobbies: hobbiesController.text.trim().isEmpty
-                            ? null
-                            : hobbiesController.text.trim(),
-                        occupation: occupationController.text.trim().isEmpty
-                            ? null
-                            : occupationController.text.trim(),
-                        otherNotes: otherNotesController.text.trim().isEmpty
-                            ? null
-                            : otherNotesController.text.trim(),
-                        silneStranky: silneStrankyController.text.trim().isEmpty
-                            ? null
-                            : silneStrankyController.text.trim(),
-                        slabeStranky: slabeStrankyController.text.trim().isEmpty
-                            ? null
-                            : slabeStrankyController.text.trim(),
-                      ),
-                    );
+                ref.read(profileProvider.notifier).updateFamilyMember(
+                  id: existingMember.id!,
+                  firstName: firstNameController.text.trim(),
+                  lastName: lastNameController.text.trim(),
+                  birthDate: birthDate,
+                  nameDay: nameDayController.text.trim().isEmpty
+                      ? null
+                      : nameDayController.text.trim(),
+                  nickname: nicknameController.text.trim().isEmpty
+                      ? null
+                      : nicknameController.text.trim(),
+                  gender: selectedGender,
+                  role: selectedRole,
+                  relationshipDescription: relationshipDescController.text.trim().isEmpty
+                      ? null
+                      : relationshipDescController.text.trim(),
+                  personalityTraits: personalityController.text.trim().isEmpty
+                      ? null
+                      : personalityController.text.trim(),
+                  hobbies: hobbiesController.text.trim().isEmpty
+                      ? null
+                      : hobbiesController.text.trim(),
+                  occupation: occupationController.text.trim().isEmpty
+                      ? null
+                      : occupationController.text.trim(),
+                  otherNotes: otherNotesController.text.trim().isEmpty
+                      ? null
+                      : otherNotesController.text.trim(),
+                  silneStranky: silneStrankyController.text.trim().isEmpty
+                      ? null
+                      : silneStrankyController.text.trim(),
+                  slabeStranky: slabeStrankyController.text.trim().isEmpty
+                      ? null
+                      : slabeStrankyController.text.trim(),
+                );
                 Navigator.pop(dialogContext);
               }
             },
@@ -802,7 +793,7 @@ class _FamilyMembersList extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (members.isEmpty) {
       return const Card(
         child: Padding(
@@ -826,14 +817,12 @@ class _FamilyMembersList extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () => _showEditFamilyMemberDialog(context, member),
+                  onPressed: () => _showEditFamilyMemberDialog(context, ref, member),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () {
-                    context
-                        .read<ProfileBloc>()
-                        .add(DeleteFamilyMemberEvent(member.id!));
+                    ref.read(profileProvider.notifier).deleteFamilyMember(member.id!);
                   },
                 ),
               ],

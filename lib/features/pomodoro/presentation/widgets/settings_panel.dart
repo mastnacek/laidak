@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/pomodoro_bloc.dart';
-import '../bloc/pomodoro_event.dart';
-import '../bloc/pomodoro_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/pomodoro_provider.dart';
+
+
+
 
 /// Panel s nastavenim Pomodoro (work duration, break duration, atd.)
-class SettingsPanel extends StatelessWidget {
+class SettingsPanel extends ConsumerWidget {
   const SettingsPanel({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PomodoroBloc, PomodoroState>(
-      buildWhen: (previous, current) => previous.config != current.config,
-      builder: (context, state) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pomodoroAsync = ref.watch(pomodoroProvider);
+
+    return pomodoroAsync.when(
+      data: (state) {
         return Card(
           elevation: 2,
           child: Padding(
@@ -65,7 +67,7 @@ class SettingsPanel extends StatelessWidget {
                   value: state.config.autoStartBreak,
                   onChanged: (value) {
                     final newConfig = state.config.copyWith(autoStartBreak: value);
-                    context.read<PomodoroBloc>().add(UpdateConfigEvent(newConfig));
+                    ref.read(pomodoroProvider.notifier).add(UpdateConfigEvent(newConfig));
                   },
                 ),
                 const Divider(),
@@ -78,7 +80,7 @@ class SettingsPanel extends StatelessWidget {
                   value: state.config.soundEnabled,
                   onChanged: (value) {
                     final newConfig = state.config.copyWith(soundEnabled: value);
-                    context.read<PomodoroBloc>().add(UpdateConfigEvent(newConfig));
+                    ref.read(pomodoroProvider.notifier).add(UpdateConfigEvent(newConfig));
                   },
                 ),
               ],
@@ -86,6 +88,8 @@ class SettingsPanel extends StatelessWidget {
           ),
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 }

@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/pomodoro_bloc.dart';
-import '../bloc/pomodoro_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/pomodoro_provider.dart';
 import '../../domain/entities/timer_state.dart';
 
 /// Widget zobrazující velký časovač s circular progressem
-class TimerDisplay extends StatelessWidget {
+class TimerDisplay extends ConsumerWidget {
   const TimerDisplay({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<PomodoroBloc, PomodoroState>(
-      buildWhen: (previous, current) =>
-          previous.remainingTime != current.remainingTime ||
-          previous.timerState != current.timerState ||
-          previous.progress != current.progress,
-      builder: (context, state) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pomodoroAsync = ref.watch(pomodoroProvider);
+
+    return pomodoroAsync.when(
+      data: (state) {
         final timeText = state.formattedRemainingTime;
 
         // Žluto-oranžová barva pro progress ring (stejná jako text)
@@ -111,6 +108,8 @@ class TimerDisplay extends StatelessWidget {
           ),
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(child: Text('Error: $error')),
     );
   }
 }

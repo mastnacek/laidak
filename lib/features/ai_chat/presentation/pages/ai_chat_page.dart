@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/services/database_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../todo_list/domain/entities/todo.dart';
 import '../../../ai_split/domain/entities/subtask.dart';
 import '../../../pomodoro/domain/entities/pomodoro_session.dart';
-import '../../data/datasources/openrouter_chat_datasource.dart';
-import '../../data/repositories/ai_chat_repository_impl.dart';
 import '../../domain/entities/task_context.dart';
-import '../bloc/ai_chat_bloc.dart';
-import '../bloc/ai_chat_event.dart';
-import '../bloc/ai_chat_state.dart';
+import '../providers/ai_chat_provider.dart';
 import '../widgets/context_summary_card.dart';
 import '../widgets/chat_message_bubble.dart';
 import '../widgets/typing_indicator.dart';
@@ -41,36 +36,21 @@ class AiChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Použít task context pokud existuje, jinak null
-    final effectiveTaskContext = taskContext;
-
-    // Vytvořit repository
-    final repository = AiChatRepositoryImpl(
-      dataSource: OpenRouterChatDataSource(),
-      db: DatabaseHelper(),
-    );
-
-    return BlocProvider(
-      create: (_) => AiChatBloc(
-        repository: repository,
-        taskContext: effectiveTaskContext,
-      ),
-      child: _AiChatPageView(taskContext: effectiveTaskContext),
-    );
+    return _AiChatPageView(taskContext: taskContext);
   }
 }
 
 /// Internal view widget
-class _AiChatPageView extends StatefulWidget {
+class _AiChatPageView extends ConsumerStatefulWidget {
   final TaskContext? taskContext;
 
   const _AiChatPageView({required this.taskContext});
 
   @override
-  State<_AiChatPageView> createState() => _AiChatPageViewState();
+  ConsumerState<_AiChatPageView> createState() => _AiChatPageViewState();
 }
 
-class _AiChatPageViewState extends State<_AiChatPageView> {
+class _AiChatPageViewState extends ConsumerState<_AiChatPageView> {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -110,14 +90,21 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
 
           // Chat Messages (scrollable)
           Expanded(
-            child: BlocConsumer<AiChatBloc, AiChatState>(
-              listener: (context, state) {
-                // Auto-scroll po přidání zprávy
-                if (state is AiChatLoaded) {
-                  _scrollToBottom();
-                }
-              },
-              builder: (context, state) {
+            child: Consumer(
+              builder: (context, ref, child) {
+                // Listen for state changes to auto-scroll
+                ref.listen<AiChatState>(
+                  aiChatProvider(taskContext: widget.taskContext),
+                  (previous, state) {
+                    // Auto-scroll po přidání zprávy
+                    if (state is AiChatLoaded) {
+                      _scrollToBottom();
+                    }
+                  },
+                );
+
+                final state = ref.watch(aiChatProvider(taskContext: widget.taskContext));
+
                 if (state is AiChatInitial) {
                   return _buildEmptyState();
                 }
@@ -142,7 +129,7 @@ class _AiChatPageViewState extends State<_AiChatPageView> {
             padding: EdgeInsets.only(bottom: keyboardHeight),
             child: ChatInput(
               onSend: (message) {
-                context.read<AiChatBloc>().add(SendMessageEvent(message));
+                ref.read(aiChatProvider(taskContext: widget.taskContext).notifier).sendMessage(message);
               },
             ),
           ),

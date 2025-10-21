@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../todo_list/presentation/bloc/todo_list_bloc.dart';
-import '../../../todo_list/presentation/bloc/todo_list_event.dart';
-import '../../../todo_list/presentation/bloc/todo_list_state.dart';
+
+import '../../../todo_list/presentation/providers/todo_list_provider.dart';
+
+import '../../../settings/presentation/providers/settings_provider.dart';
+
 import '../../../todo_list/domain/entities/todo.dart';
 import '../../../todo_list/domain/enums/completion_filter.dart';
 import '../../../todo_list/presentation/widgets/todo_card.dart';
-import '../../../settings/presentation/cubit/settings_cubit.dart';
-import '../../../settings/presentation/cubit/settings_state.dart';
+
+
 import '../../../../pages/main_page.dart';
 
 /// CalendarPage - Kalendár s přehledem úkolů (5. tab PageView)
@@ -22,14 +24,14 @@ import '../../../../pages/main_page.dart';
 /// - Event markers (barevné tečky podle priority úkolů)
 /// - Day selection → zobrazí úkoly pro tento den
 /// - Priority visualization: červená (*a*), žlutá (*b*), zelená (*c*)
-class CalendarPage extends StatefulWidget {
+class CalendarPage extends ConsumerStatefulWidget {
   const CalendarPage({super.key});
 
   @override
-  State<CalendarPage> createState() => _CalendarPageState();
+  ConsumerState<CalendarPage> createState() => _CalendarPageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> {
+class _CalendarPageState extends ConsumerState<CalendarPage> {
   late DateTime _focusedDay;
   DateTime? _selectedDay;
   CalendarFormat _calendarFormat = CalendarFormat.month; // Výchozí formát: měsíc
@@ -43,47 +45,43 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TodoListBloc, TodoListState>(
-      builder: (context, state) {
-        final theme = Theme.of(context);
+    final todoAsync = ref.watch(todoListProvider);
+    final theme = Theme.of(context);
 
-        return switch (state) {
-          TodoListInitial() => const Center(
-              child: Text('Inicializace kalendáře...'),
-            ),
-          TodoListLoading() => const Center(
-              child: CircularProgressIndicator(),
-            ),
-          TodoListLoaded() => _buildCalendarView(context, state),
-          TodoListError() => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline,
-                      size: 48, color: theme.appColors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Chyba při načítání kalendáře',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: theme.appColors.fg,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.message,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: theme.appColors.base5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+    return todoAsync.when(
+      data: (state) {
+        if (state is TodoListLoaded) {
+          return _buildCalendarView(context, state);
+        }
+        return const Center(child: Text('Inicializace kalendáře...'));
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: theme.appColors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Chyba při načítání kalendáře',
+              style: TextStyle(
+                fontSize: 18,
+                color: theme.appColors.fg,
+                fontWeight: FontWeight.bold,
               ),
             ),
-        };
-      },
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.appColors.base5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -429,7 +427,7 @@ class _CalendarPageState extends State<CalendarPage> {
   /// Handler pro dlouhé podržení na dni - přepnout na TodoListPage s date tagem
   void _handleDayLongPress(BuildContext context, DateTime selectedDay) {
     // 1. Získat nastavení oddělovačů tagů
-    final settingsState = context.read<SettingsCubit>().state;
+    final settingsState = ref.read(settingsProvider.notifier).state;
 
     if (settingsState is SettingsLoaded) {
       final startDelim = settingsState.tagDelimiterStart;
@@ -472,7 +470,7 @@ class _CalendarPageState extends State<CalendarPage> {
   void _navigateToTodoListWithTag(BuildContext context, String dateTag) {
     // 1. KRITICKÉ: Získat BLoC referenci PŘED navigací
     // Context může být disposed během animace!
-    final todoListBloc = context.read<TodoListBloc>();
+    final todoListBloc = ref.read(todoListProvider.notifier);
 
     // 2. Najít MainPageState a získat PageController
     final mainPageState = context.findAncestorStateOfType<MainPageState>();
