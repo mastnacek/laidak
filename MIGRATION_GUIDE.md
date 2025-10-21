@@ -2,17 +2,20 @@
 
 Tento průvodce ti pomůže dokončit převod projektu **lAidak** z BLoC/Cubit na Riverpod.
 
-## ✅ Co už je hotové
+## ✅ Co už je hotové (Phase 1 + Phase 2)
 
 ### 1. Dependencies
 - ✅ Přidány `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator`, `riverpod_lint`
 - ✅ `build_runner` připraven pro code generation
+- ✅ `analysis_options.yaml` nakonfigurován pro Riverpod
 
 ### 2. Core Providers
 - ✅ `lib/core/providers/core_providers.dart` - DatabaseHelper, HTTP client, TagService
 - ✅ `lib/core/providers/repository_providers.dart` - Všechny repository providers
 
-### 3. Ukázkové konverze
+### 3. Kompletní konverze (Phase 1 + Phase 2)
+
+#### Settings & Connectivity
 - ✅ **SettingsCubit** → `lib/features/settings/presentation/providers/settings_provider.dart`
   - Používá `@riverpod` + AsyncNotifier
   - Ukázka async state managementu
@@ -21,10 +24,26 @@ Tento průvodce ti pomůže dokončit převod projektu **lAidak** z BLoC/Cubit n
   - Používá StreamNotifier
   - Ukázka real-time stream monitoring
 
+#### Core Features
+- ✅ **TodoListBloc** → `lib/features/todo_list/presentation/providers/todo_provider.dart`
+  - Kompletní převod včetně search, filter, sort, AI Brief
+  - Helper providers: displayedTodos, expandedTodoId, currentViewMode
+
+#### AI Features
+- ✅ **MotivationCubit** → `lib/features/ai_motivation/presentation/providers/motivation_provider.dart`
+  - Jednoduchý Notifier pro motivační zprávy
+
+- ✅ **AiSplitCubit** → `lib/features/ai_split/presentation/providers/ai_split_provider.dart`
+  - Rozdělování úkolů pomocí AI
+
+- ✅ **PrankCubit** → `lib/features/ai_prank/presentation/providers/prank_provider.dart`
+  - Pranky + good deeds po dokončení úkolu
+
 ### 4. Main entry point
 - ✅ `lib/main_riverpod.dart` - Nový main.dart s ProviderScope
   - Nahrazuje MultiBlocProvider
   - Používá `ref.watch()` místo `BlocBuilder`
+  - Importuje všechny nové providers
 
 ---
 
@@ -39,54 +58,27 @@ flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
-To vytvoří:
+To vytvoří `.g.dart` soubory pro všechny providery:
 - `lib/features/settings/presentation/providers/settings_provider.g.dart`
 - `lib/core/connectivity/providers/connectivity_provider.g.dart`
+- `lib/features/todo_list/presentation/providers/todo_provider.g.dart`
+- `lib/features/ai_motivation/presentation/providers/motivation_provider.g.dart`
+- `lib/features/ai_split/presentation/providers/ai_split_provider.g.dart`
+- `lib/features/ai_prank/presentation/providers/prank_provider.g.dart`
 
-### Krok 2: Převést zbylé BLoC/Cubit
+### Krok 2: Převést zbylé BLoC/Cubit (volitelné)
 
-Podle vzoru z `settings_provider.dart` a `connectivity_provider.dart` převeď:
+**Hlavní features jsou hotové!** Zbývající blocy jsou méně kritické:
 
-#### 🔴 Priority 1 (klíčové pro app)
-
-**TodoListBloc** → `lib/features/todo_list/presentation/providers/todo_provider.dart`
-```dart
-@riverpod
-class TodoList extends _$TodoList {
-  @override
-  Future<TodoState> build() async {
-    // Načíst todos
-    final todos = await ref.read(todoRepositoryProvider).getTodos();
-    return TodoLoaded(todos);
-  }
-
-  Future<void> addTodo(Todo todo) async {
-    // Implementace...
-    await ref.read(todoRepositoryProvider).addTodo(todo);
-    ref.invalidateSelf(); // Refresh state
-  }
-}
-```
+#### 🟢 Priority 3 (ostatní - lze převést postupně)
 
 **NotesBloc** → `lib/features/notes/presentation/providers/notes_provider.dart`
-
 **ProfileBloc** → `lib/features/profile/presentation/providers/profile_provider.dart`
-
-#### 🟡 Priority 2 (AI features)
-
-**MotivationCubit** → `lib/features/ai_motivation/presentation/providers/motivation_provider.dart`
-
-**AiSplitCubit** → `lib/features/ai_split/presentation/providers/ai_split_provider.dart`
-
-**PrankCubit** → `lib/features/ai_prank/presentation/providers/prank_provider.dart`
-
+**PomodoroBloc** → `lib/features/pomodoro/presentation/providers/pomodoro_provider.dart`
+**TagManagementCubit** → `lib/features/tag_management/presentation/providers/tag_management_provider.dart`
 **AiChatBloc** → `lib/features/ai_chat/presentation/providers/ai_chat_provider.dart`
 
-#### 🟢 Priority 3 (ostatní)
-
-**PomodoroBloc** → `lib/features/pomodoro/presentation/providers/pomodoro_provider.dart`
-
-**TagManagementCubit** → `lib/features/tag_management/presentation/providers/tag_management_provider.dart`
+Použij stejný pattern jako u TodoList provideru.
 
 ---
 
@@ -342,12 +334,12 @@ flutter run
 
 ## 🎯 Doporučený postup
 
-1. **Týden 1**: Převeď Settings + Connectivity (✅ Hotovo!)
-2. **Týden 2**: Převeď TodoList + Notes (core features)
-3. **Týden 3**: Převeď AI features (Motivation, Split, Prank, Chat)
-4. **Týden 4**: Převeď zbylé (Pomodoro, Profile, TagManagement)
-5. **Týden 5**: Aktualizuj všechny UI widgety
-6. **Týden 6**: Testování + cleanup (odstranění BLoC dependencies)
+1. **✅ Fáze 1 HOTOVÁ**: Settings + Connectivity
+2. **✅ Fáze 2 HOTOVÁ**: TodoList + AI features (Motivation, Split, Prank)
+3. **Fáze 3**: Převeď zbylé (Notes, Profile, Pomodoro, TagManagement, AiChat) - volitelné
+4. **Fáze 4**: Spusť build_runner a otestuj aplikaci
+5. **Fáze 5**: Aktualizuj UI widgety postupně (můžeš začít jednou feature)
+6. **Fáze 6**: Odstranění BLoC dependencies (až bude vše převedené)
 
 ---
 

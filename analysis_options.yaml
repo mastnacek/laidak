@@ -26,3 +26,20 @@ linter:
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
+
+analyzer:
+  # Exclude generated files from analysis (Riverpod code generation)
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+    - '**/generated/**'
+    - 'build/**'
+
+  # Error severity
+  errors:
+    # Riverpod code generation errors should be treated as errors
+    invalid_annotation_target: error
+    # Treat missing required params as errors
+    missing_required_param: error
+    # Treat missing returns as errors
+    missing_return: error
