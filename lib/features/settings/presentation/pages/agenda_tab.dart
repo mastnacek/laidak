@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import '../../../../core/theme/theme_colors.dart';

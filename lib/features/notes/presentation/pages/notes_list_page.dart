@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../settings/presentation/cubit/settings_cubit.dart';
-import '../../../settings/presentation/cubit/settings_state.dart';
-import '../bloc/notes_bloc.dart';
-import '../bloc/notes_event.dart';
-import '../bloc/notes_state.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+import '../providers/notes_provider.dart';
 import 'note_editor_page.dart';
 import '../widgets/note_input_bar.dart';
 import '../widgets/note_card.dart';
@@ -18,26 +15,24 @@ import '../widgets/folders_tab_bar.dart';
 /// - Notes List (scrollable)
 /// - (Folders Tab Bar zatím přeskočen - bude v MILESTONE 4)
 ///
-/// Používá BLoC pattern pro state management (stejně jako TodoListPage).
-class NotesListPage extends StatefulWidget {
+/// Používá Riverpod pattern pro state management (stejně jako TodoListPage).
+class NotesListPage extends ConsumerStatefulWidget {
   const NotesListPage({super.key});
 
   @override
-  State<NotesListPage> createState() => _NotesListPageState();
+  ConsumerState<NotesListPage> createState() => _NotesListPageState();
 }
 
-class _NotesListPageState extends State<NotesListPage> {
+class _NotesListPageState extends ConsumerState<NotesListPage> {
   bool _isInputFocused = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // NotesListPage je child widget MainPage PageView (stejně jako TodoListPage)
-    // AppBar je v MainPage, zde pouze body content
-    return BlocConsumer<NotesBloc, NotesState>(
-      listener: (context, state) {
-        // Zobrazit error snackbar
+    // Listen for errors
+    ref.listen<AsyncValue<NotesState>>(notesProvider, (previous, next) {
+      next.whenData((state) {
         if (state is NotesError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -46,9 +41,16 @@ class _NotesListPageState extends State<NotesListPage> {
             ),
           );
         }
-      },
-      builder: (context, state) {
-        return Column(
+      });
+    });
+
+    // Watch state
+    final notesAsync = ref.watch(notesProvider);
+
+    // NotesListPage je child widget MainPage PageView (stejně jako TodoListPage)
+    // AppBar je v MainPage, zde pouze body content
+    return notesAsync.when(
+      data: (state) => Column(
           children: [
             // Notes List (scrollable) - Expanded = zabere zbytek místa
             Expanded(
@@ -87,19 +89,14 @@ class _NotesListPageState extends State<NotesListPage> {
                         const SizedBox(height: 24),
                         ElevatedButton.icon(
                           onPressed: () {
-                            // Získat delimiters z SettingsCubit
-                            final settingsState = context.read<SettingsCubit>().state;
-                            final delimiters = settingsState is SettingsLoaded
-                                ? (
-                                    start: settingsState.tagDelimiterStart,
-                                    end: settingsState.tagDelimiterEnd,
-                                  )
-                                : (start: '*', end: '*'); // Fallback
-
-                            context.read<NotesBloc>().add(LoadNotesEvent(
-                              tagDelimiterStart: delimiters.start,
-                              tagDelimiterEnd: delimiters.end,
-                            ));
+                            // Získat delimiters z Settings provider
+                            final settingsAsync = ref.read(settingsProvider);
+                            settingsAsync.whenData((settingsState) {
+                              ref.read(notesProvider.notifier).loadNotes(
+                                tagDelimiterStart: settingsState.tagDelimiterStart,
+                                tagDelimiterEnd: settingsState.tagDelimiterEnd,
+                              );
+                            });
                           },
                           icon: const Icon(Icons.refresh),
                           label: const Text('Zkusit znovu'),
@@ -140,8 +137,34 @@ class _NotesListPageState extends State<NotesListPage> {
               ),
             ),
           ],
-        );
-      },
+        ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 48, color: theme.appColors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Chyba při načítání poznámek',
+              style: TextStyle(
+                fontSize: 18,
+                color: theme.appColors.fg,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error.toString(),
+              style: TextStyle(
+                fontSize: 14,
+                color: theme.appColors.base5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 

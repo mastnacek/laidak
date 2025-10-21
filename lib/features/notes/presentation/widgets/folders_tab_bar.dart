@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../settings/presentation/cubit/settings_cubit.dart';
-import '../../../settings/presentation/cubit/settings_state.dart';
-import '../bloc/notes_bloc.dart';
-import '../bloc/notes_event.dart';
-import '../bloc/notes_state.dart';
+import '../../../settings/presentation/providers/settings_provider.dart';
+import '../providers/notes_provider.dart';
 
 /// FoldersTabBar - Horizontal scroll tabs pro Notes Views
 ///
-/// Zobrazuje built-in + custom views z SettingsCubit.notesConfig:
+/// Zobrazuje built-in + custom views z Settings.notesConfig:
 /// - All Notes (📝)
 /// - Recent Notes (🕐)
 /// - Custom tag-based views (🛒, ⚽, ...)
 /// - Height: 56dp
 /// - Icon size: 20dp (emoji)
 /// - Touch target: 44x44dp
-class FoldersTabBar extends StatelessWidget {
+class FoldersTabBar extends ConsumerWidget {
   const FoldersTabBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Semantics(
@@ -41,17 +38,21 @@ class FoldersTabBar extends StatelessWidget {
             children: [
               // View tabs - expandují na celou šířku
               Expanded(
-                child: BlocBuilder<SettingsCubit, SettingsState>(
-                  builder: (context, settingsState) {
-                    // Načíst notesConfig ze SettingsCubit
-                    if (settingsState is! SettingsLoaded) {
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    // Načíst notesConfig ze Settings provider
+                    final settingsAsync = ref.watch(settingsProvider);
+                    final settingsState = settingsAsync.value;
+
+                    if (settingsState == null) {
                       return const SizedBox.shrink();
                     }
 
                     final notesConfig = settingsState.notesConfig;
 
-                    // Načíst currentView z NotesBloc
-                    final notesState = context.watch<NotesBloc>().state;
+                    // Načíst currentView z Notes provider
+                    final notesAsync = ref.watch(notesProvider);
+                    final notesState = notesAsync.value;
                     final currentView = notesState is NotesLoaded
                         ? notesState.currentView
                         : ViewMode.allNotes;
@@ -108,7 +109,7 @@ class FoldersTabBar extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: InkWell(
                               onTap: () {
-                                _handleViewTap(context, item, isSelected);
+                                _handleViewTap(context, ref, item, isSelected);
                               },
                               borderRadius: BorderRadius.circular(22),
                               child: Container(
@@ -146,21 +147,22 @@ class FoldersTabBar extends StatelessWidget {
   /// Handle tap na view item
   void _handleViewTap(
     BuildContext context,
+    WidgetRef ref,
     _ViewItem item,
     bool isSelected,
   ) {
-    final bloc = context.read<NotesBloc>();
+    final notifier = ref.read(notesProvider.notifier);
 
     // Toggle behavior: Tap na vybraný view → vrátit na All Notes
     if (isSelected && item.mode != ViewMode.allNotes) {
-      bloc.add(const ChangeViewModeEvent(ViewMode.allNotes));
+      notifier.changeViewMode(ViewMode.allNotes);
     } else {
-      // Dispatch event s customViewId a tagFilter
-      bloc.add(ChangeViewModeEvent(
+      // Změnit view mode s customViewId a tagFilter
+      notifier.changeViewMode(
         item.mode,
         customViewId: item.customViewId,
-        tagFilter: item.tagFilter, // Předat tagFilter do eventu
-      ));
+        tagFilter: item.tagFilter,
+      );
     }
   }
 }
