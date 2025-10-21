@@ -1,38 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/widgets/copyable_text.dart';
 import '../../../todo_list/domain/entities/todo.dart';
-import '../../../todo_list/presentation/bloc/todo_list_bloc.dart';
-import '../../../todo_list/presentation/bloc/todo_list_event.dart';
-import '../cubit/ai_split_cubit.dart';
-import '../cubit/ai_split_state.dart';
+import '../../../todo_list/presentation/providers/todo_provider.dart';
+import '../providers/ai_split_provider.dart';
 
 /// Dialog pro AI rozdělení úkolu
 /// Zobrazuje loading, výsledek AI analýzy nebo error
-class AiSplitDialog extends StatefulWidget {
+class AiSplitDialog extends ConsumerStatefulWidget {
   final Todo todo;
 
   const AiSplitDialog({super.key, required this.todo});
 
   @override
-  State<AiSplitDialog> createState() => _AiSplitDialogState();
+  ConsumerState<AiSplitDialog> createState() => _AiSplitDialogState();
 }
 
-class _AiSplitDialogState extends State<AiSplitDialog> {
+class _AiSplitDialogState extends ConsumerState<AiSplitDialog> {
   final _retryController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     // Zavolat AI hned při otevření dialogu
-    context.read<AiSplitCubit>().splitTask(
-          taskId: widget.todo.id!,
-          taskText: widget.todo.task,
-          priority: widget.todo.priority,
-          deadline: widget.todo.dueDate,
-          tags: widget.todo.tags,
-        );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(aiSplitProvider.notifier).splitTask(
+            taskId: widget.todo.id!,
+            taskText: widget.todo.task,
+            priority: widget.todo.priority,
+            deadline: widget.todo.dueDate,
+            tags: widget.todo.tags,
+          );
+    });
   }
 
   @override
@@ -70,27 +70,30 @@ class _AiSplitDialogState extends State<AiSplitDialog> {
                 child: IntrinsicHeight(
                   child: Container(
                     padding: const EdgeInsets.all(16),
-                    child: BlocConsumer<AiSplitCubit, AiSplitState>(
-                      listener: (context, state) {
-                        // Po akceptaci zavřít dialog a refreshnout todo list
-                        if (state is AiSplitAccepted) {
-                          // Reload todo list pro zobrazení nových subtasků
-                          context.read<TodoListBloc>().add(const LoadTodosEvent());
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        // Listen for state changes
+                        ref.listen<AiSplitState>(aiSplitProvider, (previous, state) {
+                          // Po akceptaci zavřít dialog a refreshnout todo list
+                          if (state is AiSplitAccepted) {
+                            // Reload todo list pro zobrazení nových subtasků
+                            ref.read(todoListProvider.notifier).loadTodos();
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(state.message),
-                              backgroundColor: theme.appColors.green,
-                            ),
-                          );
-                          Navigator.of(context).pop();
-                        }
-                        // Po odmítnutí zavřít dialog
-                        else if (state is AiSplitRejected) {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      builder: (context, state) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(state.message),
+                                backgroundColor: theme.appColors.green,
+                              ),
+                            );
+                            Navigator.of(context).pop();
+                          }
+                          // Po odmítnutí zavřít dialog
+                          else if (state is AiSplitRejected) {
+                            Navigator.of(context).pop();
+                          }
+                        });
+
+                        final state = ref.watch(aiSplitProvider);
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -323,14 +326,14 @@ class _AiSplitDialogState extends State<AiSplitDialog> {
             children: [
               TextButton(
                 onPressed: () =>
-                    context.read<AiSplitCubit>().rejectSuggestion(),
+                    ref.read(aiSplitProvider.notifier).rejectSuggestion(),
                 child: Text('Zrušit',
                     style: TextStyle(color: theme.appColors.base5)),
               ),
               const SizedBox(width: 12),
               ElevatedButton(
                 onPressed: () =>
-                    context.read<AiSplitCubit>().acceptSuggestion(),
+                    ref.read(aiSplitProvider.notifier).acceptSuggestion(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.appColors.green,
                   foregroundColor: theme.appColors.bg,
@@ -389,7 +392,7 @@ class _AiSplitDialogState extends State<AiSplitDialog> {
       return;
     }
 
-    context.read<AiSplitCubit>().retrySuggestion(
+    ref.read(aiSplitProvider.notifier).retrySuggestion(
           taskId: widget.todo.id!,
           taskText: widget.todo.task,
           userNote: note,

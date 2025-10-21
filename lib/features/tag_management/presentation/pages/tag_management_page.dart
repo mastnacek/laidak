@@ -1,64 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/services/database_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
-import '../../../../services/tag_service.dart';
 import '../../../../utils/color_utils.dart';
 import '../../../../widgets/color_picker_dialog.dart';
-import '../../data/repositories/tag_management_repository_impl.dart';
 import '../../domain/entities/tag_definition.dart';
-import '../cubit/tag_management_cubit.dart';
-import '../cubit/tag_management_state.dart';
+import '../providers/tag_management_provider.dart';
 
-/// Stránka pro správu tagů - Feature-First + BLoC architektura
-class TagManagementPage extends StatelessWidget {
+/// Stránka pro správu tagů - Feature-First + Riverpod architektura
+class TagManagementPage extends ConsumerWidget {
   const TagManagementPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => TagManagementCubit(
-        repository: TagManagementRepositoryImpl(TagService()),
-        db: DatabaseHelper(),
-      )..loadTags(),
-      child: const _TagManagementView(),
-    );
-  }
-}
-
-class _TagManagementView extends StatelessWidget {
-  const _TagManagementView();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final tagManagementAsync = ref.watch(tagManagementProvider);
 
-    return BlocBuilder<TagManagementCubit, TagManagementState>(
-      builder: (context, state) {
-        if (state is TagManagementLoading) {
-          return const Center(child: CircularProgressIndicator());
+    return tagManagementAsync.when(
+      data: (state) {
+        if (state is! TagManagementLoaded) {
+          return const SizedBox.shrink();
         }
 
-        if (state is TagManagementError) {
-          return Center(
-            child: Text(
-              'Chyba: ${state.message}',
-              style: TextStyle(color: theme.appColors.red),
-            ),
-          );
-        }
-
-        if (state is TagManagementLoaded) {
-          return _buildLoadedView(context, state, theme);
-        }
-
-        return const SizedBox.shrink();
+        return _buildLoadedView(context, ref, state, theme);
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stack) => Center(
+        child: Text(
+          'Chyba: $error',
+          style: TextStyle(color: theme.appColors.red),
+        ),
+      ),
     );
   }
 
   Widget _buildLoadedView(
     BuildContext context,
+    WidgetRef ref,
     TagManagementLoaded state,
     ThemeData theme,
   ) {
@@ -83,9 +60,9 @@ class _TagManagementView extends StatelessWidget {
               _DelimiterSelector(
                 tagDelimiterStart: state.tagDelimiterStart,
                 tagDelimiterEnd: state.tagDelimiterEnd,
-                onSave: (start, end) => context.read<TagManagementCubit>().saveDelimiters(start, end),
+                onSave: (start, end) => ref.read(tagManagementProvider.notifier).saveDelimiters(start, end),
                 onDelimiterChange: (start, end) {
-                  context.read<TagManagementCubit>().updateDelimitersTemporarily(start, end);
+                  ref.read(tagManagementProvider.notifier).updateDelimitersTemporarily(start, end);
                 },
               ),
               Divider(height: 1, color: theme.appColors.base3),
@@ -116,7 +93,7 @@ class _TagManagementView extends StatelessWidget {
                           onDelete: () => _confirmDeleteTag(context, tag),
                           onToggle: () {
                             if (tag.id != null) {
-                              context.read<TagManagementCubit>().toggleTag(tag.id!, !tag.enabled);
+                              ref.read(tagManagementProvider.notifier).toggleTag(tag.id!, !tag.enabled);
                             }
                           },
                         )),
@@ -180,7 +157,7 @@ class _TagManagementView extends StatelessWidget {
     );
 
     if (result != null && context.mounted) {
-      context.read<TagManagementCubit>().addTag(result);
+      ref.read(tagManagementProvider.notifier).addTag(result);
     }
   }
 
@@ -192,7 +169,7 @@ class _TagManagementView extends StatelessWidget {
     );
 
     if (result != null && context.mounted) {
-      context.read<TagManagementCubit>().updateTag(result);
+      ref.read(tagManagementProvider.notifier).updateTag(result);
     }
   }
 
@@ -226,7 +203,7 @@ class _TagManagementView extends StatelessWidget {
     );
 
     if (confirm == true && context.mounted && tag.id != null) {
-      context.read<TagManagementCubit>().deleteTag(tag.id!);
+      ref.read(tagManagementProvider.notifier).deleteTag(tag.id!);
     }
   }
 }
