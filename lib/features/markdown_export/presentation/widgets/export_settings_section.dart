@@ -7,8 +7,9 @@ import '../../../../core/services/saf_file_writer.dart';
 import '../../domain/entities/export_config.dart';
 import '../../domain/entities/export_format.dart';
 import '../../domain/repositories/markdown_export_repository.dart';
-import '../../../settings/presentation/cubit/settings_cubit.dart';
-import '../../../settings/presentation/cubit/settings_state.dart';
+
+import '../../../settings/presentation/providers/settings_provider.dart';
+
 
 /// Settings sekce pro Markdown Export
 ///
@@ -30,13 +31,14 @@ class ExportSettingsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BlocBuilder<SettingsCubit, SettingsState>(
-      builder: (context, state) {
-        if (state is! SettingsLoaded) {
-          return const SizedBox.shrink();
-        }
+    final settingsAsync = ref.watch(settingsProvider);
+    final state = settingsAsync.value;
 
-        final config = state.exportConfig;
+    if (state == null) {
+      return const SizedBox.shrink();
+    }
+
+    final config = state.exportConfig;
 
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -170,7 +172,7 @@ class ExportSettingsSection extends StatelessWidget {
                   }
 
                   if (directory != null && context.mounted) {
-                    context.read<SettingsCubit>().updateExportConfig(
+                    ref.read(settingsProvider.notifier).updateExportConfig(
                           config.copyWith(targetDirectory: directory),
                         );
                   }
@@ -234,7 +236,7 @@ class ExportSettingsSection extends StatelessWidget {
             }).toList(),
             onChanged: (format) {
               if (format != null) {
-                context.read<SettingsCubit>().updateExportConfig(
+                ref.read(settingsProvider.notifier).updateExportConfig(
                       config.copyWith(format: format),
                     );
               }
@@ -269,7 +271,7 @@ class ExportSettingsSection extends StatelessWidget {
                 value: config.exportTodos,
                 onChanged: (value) {
                   if (value != null) {
-                    context.read<SettingsCubit>().updateExportConfig(
+                    ref.read(settingsProvider.notifier).updateExportConfig(
                           config.copyWith(exportTodos: value),
                         );
                   }
@@ -285,7 +287,7 @@ class ExportSettingsSection extends StatelessWidget {
                 value: config.exportNotes,
                 onChanged: (value) {
                   if (value != null) {
-                    context.read<SettingsCubit>().updateExportConfig(
+                    ref.read(settingsProvider.notifier).updateExportConfig(
                           config.copyWith(exportNotes: value),
                         );
                   }
@@ -310,7 +312,7 @@ class ExportSettingsSection extends StatelessWidget {
     return SwitchListTile(
       value: config.autoExportOnSave,
       onChanged: (value) {
-        context.read<SettingsCubit>().updateExportConfig(
+        ref.read(settingsProvider.notifier).updateExportConfig(
               config.copyWith(autoExportOnSave: value),
             );
       },
@@ -460,7 +462,7 @@ class ExportSettingsSection extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: () async {
                 // Zavolat SettingsCubit.exportAllSettings()
-                final cubit = context.read<SettingsCubit>();
+                final cubit = ref.read(settingsProvider.notifier);
 
                 try {
                   // Trigger export (zobrazí SAF picker)
@@ -622,7 +624,7 @@ class ExportSettingsSection extends StatelessWidget {
                 if (confirmed != true) return;
 
                 // Zavolat SettingsCubit.importAllSettings()
-                final cubit = context.read<SettingsCubit>();
+                final cubit = ref.read(settingsProvider.notifier);
 
                 try {
                   // Trigger import (zobrazí file picker)
