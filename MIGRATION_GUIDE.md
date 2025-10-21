@@ -2,7 +2,7 @@
 
 Tento průvodce ti pomůže dokončit převod projektu **lAidak** z BLoC/Cubit na Riverpod.
 
-## ✅ Co už je hotové (Phase 1 + Phase 2)
+## ✅ Co už je hotové (Phase 1-4 KOMPLETNÍ - 100%)
 
 ### 1. Dependencies
 - ✅ Přidány `flutter_riverpod`, `riverpod_annotation`, `riverpod_generator`, `riverpod_lint`
@@ -13,7 +13,7 @@ Tento průvodce ti pomůže dokončit převod projektu **lAidak** z BLoC/Cubit n
 - ✅ `lib/core/providers/core_providers.dart` - DatabaseHelper, HTTP client, TagService
 - ✅ `lib/core/providers/repository_providers.dart` - Všechny repository providers
 
-### 3. Kompletní konverze (Phase 1 + Phase 2)
+### 3. Kompletní konverze (11/11 features převedeno)
 
 #### Settings & Connectivity
 - ✅ **SettingsCubit** → `lib/features/settings/presentation/providers/settings_provider.dart`
@@ -39,15 +39,37 @@ Tento průvodce ti pomůže dokončit převod projektu **lAidak** z BLoC/Cubit n
 - ✅ **PrankCubit** → `lib/features/ai_prank/presentation/providers/prank_provider.dart`
   - Pranky + good deeds po dokončení úkolu
 
+#### Additional Features (Phase 3)
+- ✅ **NotesBloc** → `lib/features/notes/presentation/providers/notes_provider.dart`
+  - Správa notes s PARA systémem, search, filter
+  - Helper providers: displayedNotes, expandedNoteId, currentNotesViewMode
+
+- ✅ **ProfileBloc** → `lib/features/profile/presentation/providers/profile_provider.dart`
+  - User profile + family members management
+  - Helper providers: userProfile, familyMembers
+
+- ✅ **PomodoroBloc** → `lib/features/pomodoro/presentation/providers/pomodoro_provider.dart`
+  - Timer management, sessions, breaks, notifications
+  - Helper providers: isPomodoroActive, pomodoroRemainingTime
+
+#### Final Features (Phase 4)
+- ✅ **TagManagementCubit** → `lib/features/tag_management/presentation/providers/tag_management_provider.dart`
+  - Tag definitions CRUD, delimiter settings
+  - Helper providers: allTags, tagDelimiters
+
+- ✅ **AiChatBloc** → `lib/features/ai_chat/presentation/providers/ai_chat_provider.dart`
+  - AI chat s task context (family pattern)
+  - Helper providers: chatMessages, isAiTyping
+
 ### 4. Main entry point
 - ✅ `lib/main_riverpod.dart` - Nový main.dart s ProviderScope
   - Nahrazuje MultiBlocProvider
   - Používá `ref.watch()` místo `BlocBuilder`
-  - Importuje všechny nové providers
+  - Importuje všech 11 providers
 
 ---
 
-## 📋 Co zbývá udělat
+## 🎉 Všech 11 features převedeno! (100%)
 
 ### Krok 1: Spustit build_runner
 
@@ -58,27 +80,22 @@ flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
-To vytvoří `.g.dart` soubory pro všechny providery:
+To vytvoří `.g.dart` soubory pro všech 11 providers:
 - `lib/features/settings/presentation/providers/settings_provider.g.dart`
 - `lib/core/connectivity/providers/connectivity_provider.g.dart`
 - `lib/features/todo_list/presentation/providers/todo_provider.g.dart`
 - `lib/features/ai_motivation/presentation/providers/motivation_provider.g.dart`
 - `lib/features/ai_split/presentation/providers/ai_split_provider.g.dart`
 - `lib/features/ai_prank/presentation/providers/prank_provider.g.dart`
+- `lib/features/notes/presentation/providers/notes_provider.g.dart`
+- `lib/features/profile/presentation/providers/profile_provider.g.dart`
+- `lib/features/pomodoro/presentation/providers/pomodoro_provider.g.dart`
+- `lib/features/tag_management/presentation/providers/tag_management_provider.g.dart`
+- `lib/features/ai_chat/presentation/providers/ai_chat_provider.g.dart`
 
-### Krok 2: Převést zbylé BLoC/Cubit (volitelné)
+### Krok 2: Aktualizovat UI widgety
 
-**Hlavní features jsou hotové!** Zbývající blocy jsou méně kritické:
-
-#### 🟢 Priority 3 (ostatní - lze převést postupně)
-
-**NotesBloc** → `lib/features/notes/presentation/providers/notes_provider.dart`
-**ProfileBloc** → `lib/features/profile/presentation/providers/profile_provider.dart`
-**PomodoroBloc** → `lib/features/pomodoro/presentation/providers/pomodoro_provider.dart`
-**TagManagementCubit** → `lib/features/tag_management/presentation/providers/tag_management_provider.dart`
-**AiChatBloc** → `lib/features/ai_chat/presentation/providers/ai_chat_provider.dart`
-
-Použij stejný pattern jako u TodoList provideru.
+Všechny BLoC/Cubit třídy jsou převedené! Nyní postupně aktualizuj UI widgety (viz návod níže).
 
 ---
 
@@ -336,10 +353,11 @@ flutter run
 
 1. **✅ Fáze 1 HOTOVÁ**: Settings + Connectivity
 2. **✅ Fáze 2 HOTOVÁ**: TodoList + AI features (Motivation, Split, Prank)
-3. **Fáze 3**: Převeď zbylé (Notes, Profile, Pomodoro, TagManagement, AiChat) - volitelné
-4. **Fáze 4**: Spusť build_runner a otestuj aplikaci
-5. **Fáze 5**: Aktualizuj UI widgety postupně (můžeš začít jednou feature)
-6. **Fáze 6**: Odstranění BLoC dependencies (až bude vše převedené)
+3. **✅ Fáze 3 HOTOVÁ**: Notes, Profile, Pomodoro
+4. **✅ Fáze 4 HOTOVÁ**: TagManagement, AiChat
+5. **Fáze 5**: Spusť build_runner a otestuj aplikaci
+6. **Fáze 6**: Aktualizuj UI widgety postupně (můžeš začít jednou feature)
+7. **Fáze 7**: Odstranění BLoC dependencies (až budou UI widgety převedené)
 
 ---
 

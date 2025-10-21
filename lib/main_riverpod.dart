@@ -17,6 +17,8 @@ import 'features/pomodoro/presentation/providers/pomodoro_provider.dart';
 import 'features/ai_motivation/presentation/providers/motivation_provider.dart';
 import 'features/ai_split/presentation/providers/ai_split_provider.dart';
 import 'features/ai_prank/presentation/providers/prank_provider.dart';
+import 'features/tag_management/presentation/providers/tag_management_provider.dart';
+import 'features/ai_chat/presentation/providers/ai_chat_provider.dart';
 import 'pages/main_page.dart';
 import 'core/services/clipboard_monitor_service.dart';
 import 'core/widgets/smart_clipboard_dialog.dart';
