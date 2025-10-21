@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/widgets/info_dialog.dart';
 import '../../domain/enums/sort_mode.dart';
-import '../bloc/todo_list_bloc.dart';
-import '../bloc/todo_list_event.dart';
-import '../bloc/todo_list_state.dart';
+import '../providers/todo_provider.dart';
 
 /// Widget pro Sort tlačítka (kompaktní ikony)
 ///
@@ -32,17 +30,16 @@ import '../bloc/todo_list_state.dart';
 /// 2. 📅 Deadline (`SortMode.dueDate`) - podle dueDate
 /// 3. ✅ Status (`SortMode.status`) - completed vs. active
 /// 4. 🆕 Datum (`SortMode.createdAt`) - podle data vytvoření
-class SortButtons extends StatelessWidget {
+class SortButtons extends ConsumerWidget {
   const SortButtons({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<TodoListBloc, TodoListState>(
-      builder: (context, state) {
-        final currentSortMode =
-            state is TodoListLoaded ? state.sortMode : null;
-        final currentDirection =
-            state is TodoListLoaded ? state.sortDirection : SortDirection.desc;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final todoAsync = ref.watch(todoListProvider);
+    final currentSortMode =
+        todoAsync.value is TodoListLoaded ? (todoAsync.value as TodoListLoaded).sortMode : null;
+    final currentDirection =
+        todoAsync.value is TodoListLoaded ? (todoAsync.value as TodoListLoaded).sortDirection : SortDirection.desc;
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -61,13 +58,11 @@ class SortButtons extends StatelessWidget {
             ),
           ),
         );
-      },
-    );
   }
 }
 
 /// Individual Sort Button (kompaktní ikona s tooltipem)
-class _SortButton extends StatelessWidget {
+class _SortButton extends ConsumerWidget {
   final SortMode sortMode;
   final SortMode? currentSortMode;
   final SortDirection currentDirection;
@@ -79,7 +74,7 @@ class _SortButton extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isActive = sortMode == currentSortMode;
     final theme = Theme.of(context);
 
@@ -92,17 +87,17 @@ class _SortButton extends StatelessWidget {
 
     return InkWell(
       onTap: () {
-        final bloc = context.read<TodoListBloc>();
+        final notifier = ref.read(todoListProvider.notifier);
 
         if (!isActive) {
           // První klik → aktivovat DESC
-          bloc.add(SortTodosEvent(sortMode, SortDirection.desc));
+          notifier.sortTodos(sortMode, SortDirection.desc);
         } else if (currentDirection == SortDirection.desc) {
           // Druhý klik → přepnout na ASC
-          bloc.add(SortTodosEvent(sortMode, SortDirection.asc));
+          notifier.sortTodos(sortMode, SortDirection.asc);
         } else {
           // Třetí klik → deaktivovat (null sort = default)
-          bloc.add(const ClearSortEvent());
+          notifier.clearSort();
         }
       },
       onLongPress: () {

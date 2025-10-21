@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/widgets/info_dialog.dart';
 import '../../domain/enums/sort_mode.dart';
 import '../../domain/enums/completion_filter.dart';
-import '../bloc/todo_list_bloc.dart';
-import '../bloc/todo_list_event.dart';
-import '../bloc/todo_list_state.dart';
+import '../providers/todo_provider.dart';
 
 /// SortBar - Kompaktní sort controls s triple-toggle (DESC → ASC → OFF)
 ///
@@ -16,12 +14,13 @@ import '../bloc/todo_list_state.dart';
 /// - Touch target: 44x44dp
 /// - Spacing: 8dp
 /// - Triple toggle: DESC (🔴↓) → ASC (🔴↑) → OFF
-class SortBar extends StatelessWidget {
+class SortBar extends ConsumerWidget {
   const SortBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+    final todoAsync = ref.watch(todoListProvider);
 
     return Semantics(
       label: 'Panel pro řazení úkolů',
@@ -40,12 +39,12 @@ class SortBar extends StatelessWidget {
         ),
         child: SafeArea(
           top: false,
-          child: BlocBuilder<TodoListBloc, TodoListState>(
-            builder: (context, state) {
+          child: Builder(
+            builder: (context) {
             final currentSortMode =
-                state is TodoListLoaded ? state.sortMode : null;
-            final currentDirection = state is TodoListLoaded
-                ? state.sortDirection
+                todoAsync.value is TodoListLoaded ? (todoAsync.value as TodoListLoaded).sortMode : null;
+            final currentDirection = todoAsync.value is TodoListLoaded
+                ? (todoAsync.value as TodoListLoaded).sortDirection
                 : SortDirection.desc;
 
             return Row(
@@ -58,7 +57,7 @@ class SortBar extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: InkWell(
                       onTap: () {
-                        final bloc = context.read<TodoListBloc>();
+                        final notifier = ref.read(todoListProvider.notifier);
 
                         // Triple toggle logic:
                         // 1. First click: DESC
@@ -66,13 +65,13 @@ class SortBar extends StatelessWidget {
                         // 3. Third click: OFF (clear sort)
                         if (!isActive) {
                           // Activate with DESC
-                          bloc.add(SortTodosEvent(mode, SortDirection.desc));
+                          notifier.sortTodos(mode, SortDirection.desc);
                         } else if (currentDirection == SortDirection.desc) {
                           // Switch to ASC
-                          bloc.add(SortTodosEvent(mode, SortDirection.asc));
+                          notifier.sortTodos(mode, SortDirection.asc);
                         } else {
                           // Clear sort
-                          bloc.add(const ClearSortEvent());
+                          notifier.clearSort();
                         }
                       },
                       onLongPress: () {
@@ -152,9 +151,7 @@ class SortBar extends StatelessWidget {
                       ),
                       padding: EdgeInsets.zero,
                       onPressed: () {
-                        context
-                            .read<TodoListBloc>()
-                            .add(const ToggleShowCompletedEvent());
+                        ref.read(todoListProvider.notifier).toggleShowCompleted();
                       },
                     );
                   },
