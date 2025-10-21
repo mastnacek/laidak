@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/pomodoro_bloc.dart';
-import '../bloc/pomodoro_state.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+
 import '../../domain/entities/timer_state.dart';
 
 /// Widget zobrazující velký časovač s circular progressem
